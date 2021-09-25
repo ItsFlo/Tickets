@@ -1,0 +1,14 @@
+{
+	"server": {
+		"https": {
+			"port": 443
+		},
+		"http": {
+			"enable": true,
+			"port": 80
+		}
+	},
+	"database": {
+		"file": "ticketDb.sqlite"
+	}
+}
