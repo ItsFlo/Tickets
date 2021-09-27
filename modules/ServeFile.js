@@ -31,7 +31,7 @@ function serveFile(sFilePath, response, mimeType) {
 	readFile(sFilePath, (err, sContent) => {
 		if(err) {
 			if(err.code == "ENOENT") {
-				response.setHeader("Cache-Control", "public, max-age=86400");
+				response.setHeader("Cache-Control", "public, max-age=31536000");
 				response.writeHead(404);
 				response.end();
 			}
