@@ -5,12 +5,18 @@ const COL_VENUE = "venue";
 const COL_ORDER_NUMBER = "orderNumber";
 const COL_PRICE = "price";
 const COL_STATUS = "status";
+const COL_ORDER_TIMESTAMP = "orderTimestamp";
+const COL_DONE_TIMESTAMP = "doneTimestamp";
+const COL_PICKUP_TIMESTAMP = "pickupTimestamp";
 const COLUMNS = [
 	COL_ID,
 	COL_VENUE,
 	COL_ORDER_NUMBER,
 	COL_PRICE,
 	COL_STATUS,
+	COL_ORDER_TIMESTAMP,
+	COL_DONE_TIMESTAMP,
+	COL_PICKUP_TIMESTAMP,
 ];
 
 
@@ -22,7 +28,7 @@ class Order {
 	}
 
 	createTable(callback) {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" ("${COL_ID}" INTEGER PRIMARY KEY, "${COL_VENUE}" INTEGER, "${COL_ORDER_NUMBER}" INTEGER, "${COL_PRICE}" REAL, "${COL_STATUS}" TEXT, UNIQUE("${COL_VENUE}", "${COL_ORDER_NUMBER}"))`;
+		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" ("${COL_ID}" INTEGER PRIMARY KEY, "${COL_VENUE}" INTEGER, "${COL_ORDER_NUMBER}" INTEGER, "${COL_PRICE}" REAL, "${COL_STATUS}" TEXT, "${COL_ORDER_TIMESTAMP}" TEXT, "${COL_DONE_TIMESTAMP}" TEXT, "${COL_PICKUP_TIMESTAMP}" TEXT, UNIQUE("${COL_VENUE}", "${COL_ORDER_NUMBER}"))`;
 		this.moDb.run(sQuery, callback);
 		return this;
 	}
@@ -143,6 +149,9 @@ export default {
 	COL_ORDER_NUMBER,
 	COL_PRICE,
 	COL_STATUS,
+	COL_ORDER_TIMESTAMP,
+	COL_DONE_TIMESTAMP,
+	COL_PICKUP_TIMESTAMP,
 	COLUMNS,
 	Order,
 };
