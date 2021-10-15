@@ -20,21 +20,21 @@ class HttpDispatcherGroup extends HttpDispatcher {
 		this.moFallbackDispatcher = (oDispatcher instanceof HttpDispatcher? oDispatcher : null);
 		return this;
 	}
-	dispatchFallback(sPath, request, response) {
+	dispatchFallback(sPath, request, response, ...args) {
 		if(this.moFallbackDispatcher instanceof HttpDispatcher) {
-			this.moFallbackDispatcher.dispatch(sPath, request, response);
+			this.moFallbackDispatcher.dispatch(sPath, request, response, ...args);
 		}
 		else {
-			super.dispatch(sPath, request, response);
+			super.dispatch(sPath, request, response, ...args);
 		}
 		return this;
 	}
 
 
 
-	dispatch(sPath, request, response) {
+	dispatch(sPath, request, response, ...args) {
 		if(typeof sPath !== "string") {
-			this.dispatchFallback(sPath, request, response);
+			this.dispatchFallback(sPath, request, response, ...args);
 			return;
 		}
 
@@ -44,7 +44,7 @@ class HttpDispatcherGroup extends HttpDispatcher {
 		}
 		let aPathElements = this.splitPath(sPathCopy);
 		if(!aPathElements) {
-			this.dispatchFallback("", request, response);
+			this.dispatchFallback("", request, response, ...args);
 			return;
 		}
 
@@ -54,10 +54,10 @@ class HttpDispatcherGroup extends HttpDispatcher {
 			let sIndex = aPathElements[ii];
 			if(!oDispatcherParent.hasOwnProperty(sIndex)) {
 				if(!ii && this.moDispatchers.hasOwnProperty("/")) {
-					this.moDispatchers["/"].dispatch(sPath, request, response);
+					this.moDispatchers["/"].dispatch(sPath, request, response, ...args);
 				}
 				else {
-					this.dispatchFallback(sPath, request, response);
+					this.dispatchFallback(sPath, request, response, ...args);
 				}
 				return;
 			}
@@ -68,20 +68,20 @@ class HttpDispatcherGroup extends HttpDispatcher {
 				for(let kk=ii+2;kk<=iLen;++kk) {
 					sNewPath += "/"+aPathElements[kk];
 				}
-				oDispatcherParent.dispatch(sNewPath, request, response);
+				oDispatcherParent.dispatch(sNewPath, request, response, ...args);
 				return;
 			}
 		}
 		if(oDispatcherParent.hasOwnProperty(aPathElements[iLen]) && oDispatcherParent[aPathElements[iLen]] instanceof HttpDispatcher) {
-			oDispatcherParent[aPathElements[iLen]].dispatch("", request, response);;
+			oDispatcherParent[aPathElements[iLen]].dispatch("", request, response, ...args);
 			return;
 		}
 
 		if(this.moDispatchers.hasOwnProperty("/")) {
-			this.moDispatchers["/"].dispatch(sPath, request, response);
+			this.moDispatchers["/"].dispatch(sPath, request, response, ...args);
 		}
 		else {
-			this.dispatchFallback(sPath, request, response);
+			this.dispatchFallback(sPath, request, response, ...args);
 		}
 	}
 
@@ -139,12 +139,12 @@ class HttpDispatcherGroup extends HttpDispatcher {
 class HttpMethodDispatcher extends HttpDispatcher {
 	moDispatchers = {};
 
-	dispatch(sPath, request, response) {
+	dispatch(sPath, request, response, ...args) {
 		if(this.moDispatchers.hasOwnProperty(request.method) && this.moDispatchers[request.method] instanceof HttpDispatcher) {
-			this.moDispatchers[request.method].dispatch(sPath, request, response);
+			this.moDispatchers[request.method].dispatch(sPath, request, response, ...args);
 		}
 		else {
-			super.dispatch(sPath, request, response);
+			super.dispatch(sPath, request, response, ...args);
 		}
 	}
 
