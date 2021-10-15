@@ -26,6 +26,7 @@ function requestListener(request, response) {
 	let oUrl = new URL(request.url, "https://"+request.headers.host);
 	let sPath = oUrl.pathname;
 
+	response.setHeader("Content-Type", "text/plain");
 	DispatchManager.dispatchManager.dispatch(sPath, request, response);
 }
 
