@@ -1,3 +1,5 @@
+import Venue from "./Venue.js";
+
 const TABLE = "item";
 
 const COL_ID = "id";
@@ -20,7 +22,14 @@ class Item {
 	}
 
 	createTable(callback) {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" ("${COL_ID}" INTEGER PRIMARY KEY, "${COL_VENUE}" INTEGER, "${COL_NAME}" TEXT, "${COL_PRICE}" REAL)`;
+		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
+			"${COL_ID}" INTEGER PRIMARY KEY,
+			"${COL_VENUE}" INTEGER NOT NULL,
+			"${COL_NAME}" TEXT,
+			"${COL_PRICE}" REAL,
+
+			FOREIGN KEY("${COL_VENUE}") REFERENCES "${Venue.TABLE}"("${Venue.COL_ID}") ON DELETE CASCADE
+		)`;
 		this.moDb.run(sQuery, callback);
 		return this;
 	}
@@ -83,6 +92,7 @@ class Item {
 
 
 export default {
+	TABLE,
 	COL_ID,
 	COL_VENUE,
 	COL_NAME,

@@ -1,3 +1,6 @@
+import Order from "./Order.js";
+import Item from "./Item.js";
+
 const TABLE = "orderItem";
 
 const COL_ID = "id";
@@ -22,7 +25,17 @@ class OrderItem {
 	}
 
 	createTable(callback) {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" ("${COL_ID}" INTEGER PRIMARY KEY, "${COL_ORDER}" INTEGER, "${COL_ITEM}" INTEGER, "${COL_COUNT}" INTEGER, "${COL_STATUS}" TEXT, UNIQUE("${COL_ORDER}", "${COL_ITEM}"))`;
+		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
+			"${COL_ID}" INTEGER PRIMARY KEY,
+			"${COL_ORDER}" INTEGER NOT NULL,
+			"${COL_ITEM}" INTEGER NOT NULL,
+			"${COL_COUNT}" INTEGER,
+			"${COL_STATUS}" TEXT,
+
+			UNIQUE("${COL_ORDER}", "${COL_ITEM}"),
+			FOREIGN KEY("${COL_ORDER}") REFERENCES "${Order.TABLE}"("${Order.COL_ID}") ON DELETE CASCADE,
+			FOREIGN KEY("${COL_ITEM}") REFERENCES "${Item.TABLE}"("${Item.COL_ID}") ON DELETE CASCADE
+		)`;
 		this.moDb.run(sQuery, callback);
 		return this;
 	}
@@ -124,6 +137,7 @@ class OrderItem {
 
 
 export default {
+	TABLE,
 	COL_ID,
 	COL_ORDER,
 	COL_ITEM,

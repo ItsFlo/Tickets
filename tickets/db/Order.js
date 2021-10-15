@@ -1,3 +1,5 @@
+import Venue from "./Venue.js";
+
 const TABLE = "order";
 
 const COL_ID = "id";
@@ -28,7 +30,19 @@ class Order {
 	}
 
 	createTable(callback) {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" ("${COL_ID}" INTEGER PRIMARY KEY, "${COL_VENUE}" INTEGER, "${COL_ORDER_NUMBER}" INTEGER, "${COL_PRICE}" REAL, "${COL_STATUS}" TEXT, "${COL_ORDER_TIMESTAMP}" TEXT, "${COL_DONE_TIMESTAMP}" TEXT, "${COL_PICKUP_TIMESTAMP}" TEXT, UNIQUE("${COL_VENUE}", "${COL_ORDER_NUMBER}"))`;
+		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
+			"${COL_ID}" INTEGER PRIMARY KEY,
+			"${COL_VENUE}" INTEGER NOT NULL,
+			"${COL_ORDER_NUMBER}" INTEGER,
+			"${COL_PRICE}" REAL,
+			"${COL_STATUS}" TEXT,
+			"${COL_ORDER_TIMESTAMP}" TEXT,
+			"${COL_DONE_TIMESTAMP}" TEXT,
+			"${COL_PICKUP_TIMESTAMP}" TEXT,
+
+			UNIQUE("${COL_VENUE}", "${COL_ORDER_NUMBER}"),
+			FOREIGN KEY("${COL_VENUE}") REFERENCES "${Venue.TABLE}"("${Venue.COL_ID}") ON DELETE CASCADE
+		)`;
 		this.moDb.run(sQuery, callback);
 		return this;
 	}
@@ -144,6 +158,7 @@ class Order {
 
 
 export default {
+	TABLE,
 	COL_ID,
 	COL_VENUE,
 	COL_ORDER_NUMBER,

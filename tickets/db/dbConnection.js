@@ -32,6 +32,7 @@ class DbConnection extends sqlite3.Database {
 		}
 
 		this.serialize(() => {
+			this.run("PRAGMA foreign_keys = ON;");
 			this.venue.createTable();
 			this.item.createTable();
 			this.order.createTable();

@@ -20,7 +20,12 @@ class Venue {
 	}
 
 	createTable(callback) {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" ("${COL_ID}" INTEGER PRIMARY KEY, "${COL_NAME}" TEXT UNIQUE, "${COL_DATE}" TEXT, "${COL_TIME}" TEXT)`;
+		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
+			"${COL_ID}" INTEGER PRIMARY KEY,
+			"${COL_NAME}" TEXT UNIQUE,
+			"${COL_DATE}" TEXT,
+			"${COL_TIME}" TEXT
+		)`;
 		this.moDb.run(sQuery, callback);
 		return this;
 	}
@@ -84,6 +89,7 @@ class Venue {
 
 
 export default {
+	TABLE,
 	COL_ID,
 	COL_NAME,
 	COL_DATE,
