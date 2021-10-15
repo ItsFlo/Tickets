@@ -1,6 +1,7 @@
+import { DbTable, COL_ID, addConstants } from "./DbTable.js";
+
 const TABLE = "venue";
 
-const COL_ID = "id";
 const COL_NAME = "name";
 const COL_DATE = "date";
 const COL_TIME = "time";
@@ -12,11 +13,9 @@ const COLUMNS = [
 ];
 
 
-class Venue {
-	moDb;
-
+class Venue extends DbTable {
 	constructor(oDb) {
-		this.moDb = oDb;
+		super(oDb);
 	}
 
 	createTable(callback) {
@@ -31,14 +30,6 @@ class Venue {
 	}
 
 
-	getByID(id, callback) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_ID}" = ?`;
-		this.moDb.get(sQuery, [id], callback);
-		return this;
-	}
 	getByName(name, callback) {
 		if(typeof callback !== "function") {
 			return this;
@@ -47,46 +38,23 @@ class Venue {
 		this.moDb.get(sQuery, [name], callback);
 		return this;
 	}
-	getAll(callback, orderCol) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-		let sQuery = `SELECT * FROM "${TABLE}"`;
-		if(orderCol && COLUMNS.includes(orderCol)) {
-			sQuery += " ORDER BY ?";
-		}
-		this.moDb.get(sQuery, [orderCol], callback);
-		return this;
+
+	getAllByDate(date, callback, order, limit) {
+		let sWhere = `"${COL_DATE}" = ?`;
+		return this.getAllWhere(sWhere, [date], callback, order, limit);
 	}
-	update(id, name, date, time, callback) {
-		let sQuery = `UPDATE "${TABLE}" SET "${COL_NAME}" = ?, "${COL_DATE}" = ?, "${COL_TIME}" = ? WHERE "${COL_ID}" = ?`;
-		this.moDb.run(sQuery, [name, date, time, id], (err) => {
-			if(typeof callback === "function") {
-				callback(err);
-			}
-		});
-		return this;
-	}
+
 	create(name, date, time, callback) {
-		let sQuery = `INSERT INTO "${TABLE}" ("${COL_NAME}", "${COL_DATE}", "${COL_TIME}") VALUES (?, ?, ?)`;
-		this.moDb.run(sQuery, [name, date, time], function(err) {
-			if(typeof callback === "function") {
-				callback(err, this? this.lastID : undefined);
-			}
-		});
-		return this;
-	}
-	delete(id, callback) {
-		if(typeof callback !== "function") {
-			callback = undefined;
-		}
-		let sQuery = `DELETE FROM "${TABLE}" WHERE "${COL_ID}" = ?`;
-		this.moDb.run(sQuery, [id], callback);
-		return this;
+		return super.create({
+			[COL_NAME]: name,
+			[COL_DATE]: date,
+			[COL_TIME]: time,
+		}, callback);
 	}
 }
 
 
+addConstants(Venue, TABLE, COLUMNS);
 
 export default {
 	TABLE,

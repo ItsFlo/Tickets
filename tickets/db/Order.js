@@ -1,8 +1,8 @@
+import { DbTable, COL_ID, addConstants } from "./DbTable.js";
 import Venue from "./Venue.js";
 
 const TABLE = "order";
 
-const COL_ID = "id";
 const COL_VENUE = "venue";
 const COL_ORDER_NUMBER = "orderNumber";
 const COL_PRICE = "price";
@@ -22,11 +22,9 @@ const COLUMNS = [
 ];
 
 
-class Order {
-	moDb;
-
+class Order extends DbTable {
 	constructor(oDb) {
-		this.moDb = oDb;
+		super(oDb);
 	}
 
 	createTable(callback) {
@@ -48,15 +46,7 @@ class Order {
 	}
 
 
-	getByID(id, callback) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_ID}" = ?`;
-		this.moDb.get(sQuery, [id], callback);
-		return this;
-	}
-	get(venue, orderNumber, callback) {
+	getByOrderNumber(venue, orderNumber, callback) {
 		if(typeof callback !== "function") {
 			return this;
 		}
@@ -72,57 +62,21 @@ class Order {
 		this.moDb.get(sQuery, [venue, name], callback);
 		return this;
 	}
-	getAll(callback, orderCol) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-		let sQuery = `SELECT * FROM "${TABLE}"`;
-		if(orderCol && COLUMNS.includes(orderCol)) {
-			sQuery += " ORDER BY ?";
-		}
-		this.moDb.get(sQuery, [orderCol], callback);
-		return this;
+
+	getAllByVenue(venue, callback, order, limit) {
+		let sWhere = `"${COL_VENUE}" = ?`;
+		return this.getAllWhere(sWhere, [venue], callback, order, limit);
 	}
-	getAllByVenue(venue, callback, orderCol) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? ORDER BY ?`;
-		if(!orderCol || !COLUMNS.includes(orderCol)) {
-			orderCol = COL_ORDER_NUMBER;
-		}
-		this.moDb.get(sQuery, [venue, orderCol], callback);
-		return this;
+	getAllByStatus(venue, status, callback, order, limit) {
+		let sWhere = `"${COL_VENUE}" = ? AND "${COL_STATUS}" = ?`;
+		return this.getAllWhere(sWhere, [venue, status], callback, order, limit);
 	}
-	getAllByStatus(venue, status, callback, orderCol) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? AND "${COL_STATUS}" = ? ORDER BY ?`;
-		if(!orderCol || !COLUMNS.includes(orderCol)) {
-			orderCol = COL_ID;
-		}
-		this.moDb.get(sQuery, [venue, status, orderCol], callback);
-		return this;
+
+	updateByOrderNumber(venue, orderNumber, updates, callback) {
+		let sWhere = `"${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
+		return this.updateWhere(sWhere, [venue, orderNumber], updates, callback);
 	}
-	update(id, price, status, callback) {
-		let sQuery = `UPDATE "${TABLE}" SET "${COL_PRICE}" = ?, "${COL_STATUS}" = ? WHERE "${COL_ID}" = ?`;
-		this.moDb.run(sQuery, [price, status, id], (err) => {
-			if(typeof callback === "function") {
-				callback(err);
-			}
-		});
-		return this;
-	}
-	updateByOrderNumber(venue, orderNumber, price, status, callback) {
-		let sQuery = `UPDATE "${TABLE}" SET "${COL_PRICE}" = ?, "${COL_STATUS}" = ? WHERE "${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
-		this.moDb.run(sQuery, [price, status, venue, orderNumber], (err) => {
-			if(typeof callback === "function") {
-				callback(err);
-			}
-		});
-		return this;
-	}
+
 	create(venue, price, status, callback) {
 		let sSubQuery = `SELECT IFNULL(MAX("${COL_ORDER_NUMBER}"), 0) FROM "${TABLE}" WHERE "${COL_VENUE}" = $venueID LIMIT 1`;
 		let sQuery = `INSERT INTO "${TABLE}" ("${COL_VENUE}", "${COL_ORDER_NUMBER}", "${COL_PRICE}", "${COL_STATUS}") VALUES ($venueID, (${sSubQuery})+1, $price, $status)`;
@@ -138,14 +92,6 @@ class Order {
 		});
 		return this;
 	}
-	delete(id, callback) {
-		if(typeof callback !== "function") {
-			callback = undefined;
-		}
-		let sQuery = `DELETE FROM "${TABLE}" WHERE "${COL_ID}" = ?`;
-		this.moDb.run(sQuery, [id], callback);
-		return this;
-	}
 	deleteByOrderNumber(venue, orderNumber, callback) {
 		if(typeof callback !== "function") {
 			callback = undefined;
@@ -156,6 +102,8 @@ class Order {
 	}
 }
 
+
+addConstants(Order, TABLE, COLUMNS);
 
 export default {
 	TABLE,

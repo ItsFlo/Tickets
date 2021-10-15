@@ -1,8 +1,8 @@
+import { DbTable, COL_ID, addConstants } from "./DbTable.js";
 import Venue from "./Venue.js";
 
 const TABLE = "item";
 
-const COL_ID = "id";
 const COL_VENUE = "venue";
 const COL_NAME = "name";
 const COL_PRICE = "price";
@@ -14,11 +14,9 @@ const COLUMNS = [
 ];
 
 
-class Item {
-	moDb;
-
+class Item extends DbTable {
 	constructor(oDb) {
-		this.moDb = oDb;
+		super(oDb);
 	}
 
 	createTable(callback) {
@@ -35,14 +33,6 @@ class Item {
 	}
 
 
-	getByID(id, callback) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_ID}" = ?`;
-		this.moDb.get(sQuery, [id], callback);
-		return this;
-	}
 	getByName(venue, name, callback) {
 		if(typeof callback !== "function") {
 			return this;
@@ -51,45 +41,18 @@ class Item {
 		this.moDb.get(sQuery, [venue, name], callback);
 		return this;
 	}
-	getAll(callback, orderCol) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-		let sQuery = `SELECT * FROM "${TABLE}"`;
-		if(orderCol && COLUMNS.includes(orderCol)) {
-			sQuery += " ORDER BY ?";
-		}
-		this.moDb.get(sQuery, [orderCol], callback);
-		return this;
-	}
-	update(id, venue, name, price, callback) {
-		let sQuery = `UPDATE "${TABLE}" SET "${COL_VENUE}" = ?, "${COL_NAME}" = ?, "${COL_PRICE}" = ? WHERE "${COL_ID}" = ?`;
-		this.moDb.run(sQuery, [venue, name, price, id], (err) => {
-			if(typeof callback === "function") {
-				callback(err);
-			}
-		});
-		return this;
-	}
+
 	create(venue, name, price, callback) {
-		let sQuery = `INSERT INTO "${TABLE}" ("${COL_VENUE}", "${COL_NAME}", "${COL_PRICE}") VALUES (?, ?, ?)`;
-		this.moDb.run(sQuery, [venue, name, price], function(err) {
-			if(typeof callback === "function") {
-				callback(err, this? this.lastID : undefined);
-			}
-		});
-		return this;
-	}
-	delete(id, callback) {
-		if(typeof callback !== "function") {
-			callback = undefined;
-		}
-		let sQuery = `DELETE FROM "${TABLE}" WHERE "${COL_ID}" = ?`;
-		this.moDb.run(sQuery, [id], callback);
-		return this;
+		return super.create({
+			[COL_VENUE]: venue,
+			[COL_NAME]: name,
+			[COL_PRICE]: price,
+		}, callback);
 	}
 }
 
+
+addConstants(Item, TABLE, COLUMNS);
 
 export default {
 	TABLE,
