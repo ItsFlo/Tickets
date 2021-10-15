@@ -22,8 +22,8 @@ oFrontEndDispatcher.dispatch = function(sPath, request, response) {
 		let sFilePath = sCurDir+"/html/view.html";
 		switch(sPath.toUpperCase()) {
 			case "FAVICON.ICO":
-				send404(response);
-				return;
+				sFilePath = sCurDir+"/favicon.svg";
+				break;
 
 			case "ADMIN":
 				sFilePath = sCurDir+"/html/admin.html";
