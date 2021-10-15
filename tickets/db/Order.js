@@ -63,13 +63,13 @@ class Order extends DbTable {
 		return this;
 	}
 
-	getAllByVenue(venue, callback, order, limit) {
+	getAllByVenue(venue, callback, sortOrder, limit) {
 		let sWhere = `"${COL_VENUE}" = ?`;
-		return this.getAllWhere(sWhere, [venue], callback, order, limit);
+		return this.getAllWhere(sWhere, [venue], callback, sortOrder, limit);
 	}
-	getAllByStatus(venue, status, callback, order, limit) {
+	getAllByStatus(venue, status, callback, sortOrder, limit) {
 		let sWhere = `"${COL_VENUE}" = ? AND "${COL_STATUS}" = ?`;
-		return this.getAllWhere(sWhere, [venue, status], callback, order, limit);
+		return this.getAllWhere(sWhere, [venue, status], callback, sortOrder, limit);
 	}
 
 	updateByOrderNumber(venue, orderNumber, updates, callback) {

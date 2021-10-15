@@ -39,9 +39,9 @@ class Venue extends DbTable {
 		return this;
 	}
 
-	getAllByDate(date, callback, order, limit) {
+	getAllByDate(date, callback, sortOrder, limit) {
 		let sWhere = `"${COL_DATE}" = ?`;
-		return this.getAllWhere(sWhere, [date], callback, order, limit);
+		return this.getAllWhere(sWhere, [date], callback, sortOrder, limit);
 	}
 
 	create(name, date, time, callback) {

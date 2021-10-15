@@ -18,7 +18,7 @@ class DbTable {
 		return this;
 	}
 
-	getAllWhere(sWhere, aWhereValues, callback, order, limit) {
+	getAllWhere(sWhere, aWhereValues, callback, sortOrder, limit) {
 		if(typeof callback !== "function") {
 			return this;
 		}
@@ -33,10 +33,10 @@ class DbTable {
 		}
 
 		//ORDER BY
-		if(Array.isArray(order)) {
+		if(Array.isArray(sortOrder)) {
 			let sOrderClause = "";
 			let aCols = [];
-			for(let sCol of order) {
+			for(let sCol of sortOrder) {
 				if(this.constructor.COLUMNS.includes(sCol)) {
 					if(sOrderClause) {
 						sOrderClause += ", ";
@@ -50,13 +50,13 @@ class DbTable {
 				aValues.concat(aCols);
 			}
 		}
-		else if(typeof order === "object") {
+		else if(typeof sortOrder === "object") {
 			let sOrderClause = "";
 			let aColValues = [];
 			let aDirections = ["ASC", "DESC"];
-			for(let sCol in order) {
+			for(let sCol in sortOrder) {
 				if(this.constructor.COLUMNS.includes(sCol)) {
-					let sDirection = order[sCol].toUpperCase();
+					let sDirection = sortOrder[sCol].toUpperCase();
 					if(aDirections.includes(sDirection)) {
 						if(sOrderClause) {
 							sOrderClause += ", ";
@@ -71,10 +71,10 @@ class DbTable {
 				aValues.concat(aCols);
 			}
 		}
-		else if(typeof order === "string") {
-			if(this.constructor.COLUMNS.includes(order)) {
+		else if(typeof sortOrder === "string") {
+			if(this.constructor.COLUMNS.includes(sortOrder)) {
 				sQuery += " ORDER BY ?";
-				aValues.push(order);
+				aValues.push(sortOrder);
 			}
 		}
 
@@ -86,8 +86,8 @@ class DbTable {
 		this.moDb.all(sQuery, aValues, callback);
 		return this;
 	}
-	getAll(callback, order, limit) {
-		return this.getAllWhere(null, null, callback, order, limit);
+	getAll(callback, sortOrder, limit) {
+		return this.getAllWhere(null, null, callback, sortOrder, limit);
 	}
 
 	updateWhere(where, aWhereValues, updates, callback) {

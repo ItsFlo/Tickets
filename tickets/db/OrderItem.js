@@ -48,13 +48,13 @@ class OrderItem extends DbTable {
 		return this;
 	}
 
-	getAllByOrder(order, callback, order, limit) {
+	getAllByOrder(order, callback, sortOrder, limit) {
 		let sWhere = `"${COL_ORDER}" = ?`;
-		return this.getAllWhere(sWhere, [order], callback, order, limit);
+		return this.getAllWhere(sWhere, [order], callback, sortOrder, limit);
 	}
-	getAllByStatus(order, status, callback, order, limit) {
+	getAllByStatus(order, status, callback, sortOrder, limit) {
 		let sWhere = `"${COL_ORDER}" = ? AND "${COL_STATUS}" = ?`;
-		return this.getAllWhere(sWhere, [order, status], callback, order, limit);
+		return this.getAllWhere(sWhere, [order, status], callback, sortOrder, limit);
 	}
 
 	updateByOrderItem(order, item, updates, callback) {
