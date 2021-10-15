@@ -17,7 +17,7 @@ oDefault.dispatch = function(sPath, request, response) {
 oApiDispatcher.setFallbackDispatcher(oDefault);
 
 
-function init(oConfig, oDbConnection) {
+function init() {
 
 }
 

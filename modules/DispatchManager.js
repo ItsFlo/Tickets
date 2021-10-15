@@ -6,8 +6,8 @@ let oDispatchManager = new HttpDispatcherGroup(false);
 oDispatchManager.addDispatcher("", TicketDispatcher.ticketDispatcher);
 
 
-function init(oConfig) {
-	TicketDispatcher.init(oConfig);
+function init() {
+	TicketDispatcher.init();
 }
 
 export default {

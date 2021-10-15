@@ -8,10 +8,12 @@ import https from "https";
 import { readFileSync } from "fs";
 import Config from "./modules/Config.js";
 import DispatchManager from "./modules/DispatchManager.js";
+import TicketConfig from "./tickets/TicketConfig.js";
 
 const oConfig = new Config(JSON.parse(readFileSync(__rootpath+"/config.json")));
 
-DispatchManager.init(oConfig);
+TicketConfig.init(oConfig);
+DispatchManager.init();
 
 
 const httpsOptions = {
