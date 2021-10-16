@@ -1,4 +1,5 @@
 import { DbTable, COL_ID, addConstants } from "./DbTable.js";
+import Item from './Item.js';
 
 const TABLE = "venue";
 
@@ -39,6 +40,14 @@ class Venue extends DbTable {
 		return this;
 	}
 
+	getAllWithItemCount(callback, sortOrder, limit) {
+		let sGroupColumns = 'v."' + COLUMNS.join('", v."') + '"';
+		let sQuery = `SELECT v.*, COUNT(DISTINCT it."${Item.COL_ID}") as "itemCount" FROM "${TABLE}" v LEFT OUTER JOIN "${Item.TABLE}" it ON v."${COL_ID}" = it."${Item.COL_VENUE}" GROUP BY ${sGroupColumns}`;
+		sQuery += this.getOrderClause(sortOrder);
+		sQuery += this.getLimitClause(limit);
+		this.moDb.all(sQuery, [], callback);
+		return this;
+	}
 	getAllByDate(date, callback, sortOrder, limit) {
 		let sWhere = `"${COL_DATE}" = ?`;
 		return this.getAllWhere(sWhere, [date], callback, sortOrder, limit);

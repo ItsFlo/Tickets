@@ -1,5 +1,6 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
+import { getOrderDirection, getLimit } from "../functions.js";
 import Venue from "../../db/Venue.js";
 
 class VenueGetDispatcher extends HttpDispatcher {
@@ -41,44 +42,6 @@ class VenueGetDispatcher extends HttpDispatcher {
 	}
 
 
-	getOrderDirection(aPathElements, sDefaultOrderDirection = "ASC") {
-		let sOrder = null;
-		let iLen = aPathElements.length;
-		for(let ii=0;ii<iLen;++ii) {
-			if(ii+1 < iLen && aPathElements[ii].toUpperCase() === "ORDER") {
-				sOrder = aPathElements[ii+1].toUpperCase();
-				break;
-			}
-		}
-
-		let aOrderDirections = ["ASC", "DESC"];
-		if(sOrder && aOrderDirections.includes(sOrder)) {
-			return sOrder;
-		}
-		if(aOrderDirections.includes(sDefaultOrderDirection)) {
-			return sDefaultOrderDirection;
-		}
-		return "ASC";
-	}
-	getLimit(aPathElements, iDefaultLimit = null) {
-		let iLimit = NaN;
-		let iLen = aPathElements.length;
-		for(let ii=0;ii<iLen;++ii) {
-			if(ii+1 < iLen && aPathElements[ii].toUpperCase() === "LIMIT") {
-				iLimit = parseInt(aPathElements[ii+1]);
-				break;
-			}
-		}
-
-		if(!isNaN(iLimit) && iLimit > 0) {
-			return iLimit;
-		}
-		if(!isNaN(iDefaultLimit) && iDefaultLimit > 0) {
-			return iDefaultLimit;
-		}
-		return null;
-	}
-
 
 
 	dispatchId(response, aPathElements) {
@@ -108,13 +71,13 @@ class VenueGetDispatcher extends HttpDispatcher {
 
 
 	dispatchAll(response, aPathElements) {
-		let sOrderDirection = this.getOrderDirection(aPathElements, "DESC");;
+		let sOrderDirection = getOrderDirection(aPathElements, "DESC");;
 		let oOrder = {
 			[Venue.COL_DATE]: sOrderDirection,
 			[Venue.COL_TIME]: sOrderDirection,
 		};
-		let iLimit = this.getLimit(aPathElements, null);
-		TicketConfig.db.venue.getAll((err, rows) => {
+		let iLimit = getLimit(aPathElements, null);
+		let callback = (err, rows) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -124,7 +87,21 @@ class VenueGetDispatcher extends HttpDispatcher {
 				response.writeHead(200);
 				response.end(JSON.stringify(rows));
 			}
-		}, oOrder, iLimit);
+		};
+
+		let bWithItemCount = false;
+		for(let sPart of aPathElements) {
+			if(sPart.toUpperCase() === "ITEMCOUNT") {
+				bWithItemCount = true;
+				break;
+			}
+		}
+		if(bWithItemCount) {
+			TicketConfig.db.venue.getAllWithItemCount(callback, oOrder, iLimit);
+		}
+		else {
+			TicketConfig.db.venue.getAll(callback, oOrder, iLimit);
+		}
 	}
 
 
@@ -161,12 +138,12 @@ class VenueGetDispatcher extends HttpDispatcher {
 		}
 		let sDate = aPathElements.shift();
 
-		let sOrderDirection = this.getOrderDirection(aPathElements, "DESC");
+		let sOrderDirection = getOrderDirection(aPathElements, "DESC");
 		let oOrder = {
 			[Venue.COL_DATE]: sOrderDirection,
 			[Venue.COL_TIME]: sOrderDirection,
 		};
-		let iLimit = this.getLimit(aPathElements, null);
+		let iLimit = getLimit(aPathElements, null);
 		TicketConfig.db.venue.getAllByDate(sDate, (err, rows) => {
 			if(err) {
 				response.writeHead(500);

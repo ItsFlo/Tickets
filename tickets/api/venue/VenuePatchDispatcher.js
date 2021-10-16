@@ -52,7 +52,7 @@ class VenuePatchDispatcher extends HttpDispatcher {
 			return;
 		}
 
-		TicketConfig.db.venue.update(oPost.id, oUpdates, (err, lastID) => {
+		TicketConfig.db.venue.update(oPost.id, oUpdates, (err) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -60,9 +60,7 @@ class VenuePatchDispatcher extends HttpDispatcher {
 			else {
 				response.setHeader("Content-Type", "application/json");
 				response.writeHead(200);
-				response.end(JSON.stringify({
-					id: lastID,
-				}));
+				response.end("{}");
 			}
 		});
 	}

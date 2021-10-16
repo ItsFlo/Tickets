@@ -18,21 +18,7 @@ class DbTable {
 		return this;
 	}
 
-	getAllWhere(sWhere, aWhereValues, callback, sortOrder, limit) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-
-		let aValues = [];
-		let sQuery = `SELECT * FROM "${this.constructor.TABLE}"`;
-
-		//WHERE
-		if(sWhere) {
-			sQuery += " WHERE " + sWhere;
-			aValues = aWhereValues;
-		}
-
-		//ORDER BY
+	getOrderClause(sortOrder) {
 		if(Array.isArray(sortOrder)) {
 			let sOrderClause = "";
 			for(let sCol of sortOrder) {
@@ -44,7 +30,7 @@ class DbTable {
 				}
 			}
 			if(sOrderClause) {
-				sQuery += " ORDER BY " + sOrderClause;
+				return " ORDER BY " + sOrderClause + " ";
 			}
 		}
 		else if(typeof sortOrder === "object") {
@@ -62,21 +48,43 @@ class DbTable {
 				}
 			}
 			if(sOrderClause) {
-				sQuery += " ORDER BY " + sOrderClause;
+				return " ORDER BY " + sOrderClause + " ";
 			}
 		}
 		else if(typeof sortOrder === "string") {
 			if(this.constructor.COLUMNS.includes(sortOrder)) {
-				sQuery += ` ORDER BY "${sortOrder}"`;
+				return ` ORDER BY "${sortOrder}" `;
 			}
 		}
-
-		//LIMIT
+		return "";
+	}
+	getLimitClause(limit) {
 		let iLimit = parseInt(limit);
 		if(!isNaN(iLimit) && iLimit > 0) {
-			sQuery += " LIMIT ?";
-			aValues.push(iLimit);
+			return ` LIMIT ${iLimit} `;
 		}
+		return "";
+	}
+	getAllWhere(sWhere, aWhereValues, callback, sortOrder, limit) {
+		if(typeof callback !== "function") {
+			return this;
+		}
+
+		let aValues = [];
+		let sQuery = `SELECT * FROM "${this.constructor.TABLE}"`;
+
+		//WHERE
+		if(sWhere) {
+			sQuery += " WHERE " + sWhere;
+			aValues = aWhereValues;
+		}
+
+		//ORDER BY
+		sQuery += this.getOrderClause(sortOrder);
+
+		//LIMIT
+		sQuery += this.getLimitClause(limit);
+
 		this.moDb.all(sQuery, aValues, callback);
 		return this;
 	}
