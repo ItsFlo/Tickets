@@ -1,5 +1,6 @@
 import { HttpDispatcherGroup } from "../../modules/HttpDispatcher.js";
 import { AJAX_METHODS_WITH_BODY } from "../script/api/Ajax.js";
+import oItemDispatcher from "./ItemDispatcher.js";
 import oVenueDispatcher from "./VenueDispatcher.js";
 
 let oApiDispatcher = new class extends HttpDispatcherGroup {
@@ -31,6 +32,7 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 }(false);
 
 oApiDispatcher.addDispatcher("venue", oVenueDispatcher);
+oApiDispatcher.addDispatcher("item", oItemDispatcher);
 
 
 

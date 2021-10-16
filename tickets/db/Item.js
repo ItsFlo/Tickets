@@ -26,6 +26,7 @@ class Item extends DbTable {
 			"${COL_NAME}" TEXT,
 			"${COL_PRICE}" REAL,
 
+			UNIQUE("${COL_VENUE}", "${COL_NAME}"),
 			FOREIGN KEY("${COL_VENUE}") REFERENCES "${Venue.TABLE}"("${Venue.COL_ID}") ON DELETE CASCADE
 		)`;
 		this.moDb.run(sQuery, callback);
@@ -40,6 +41,11 @@ class Item extends DbTable {
 		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? and "${COL_NAME}" = ?`;
 		this.moDb.get(sQuery, [venue, name], callback);
 		return this;
+	}
+
+	getAllByVenue(venue, callback, sortOrder, limit) {
+		let sWhere = `"${COL_VENUE}" = ?`;
+		return this.getAllWhere(sWhere, [venue], callback, sortOrder, limit);
 	}
 
 	create(venue, name, price, callback) {
