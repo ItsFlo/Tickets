@@ -3,8 +3,13 @@ const SORT_DESC = "DESC";
 
 function insertSorted(oParent, oElement, sSortOrder, sSortElementSelector=null, sSortAttributeName=null, sChildClass=null) {
 	let aChildren = Array.from(oParent.children);
-	if(sChildClass) {
-		for(let ii=0;ii<aChildren.length;++ii) {
+	for(let ii=0;ii<aChildren.length;++ii) {
+		if(aChildren[ii] === oElement) {
+			aChildren.splice(ii, 1);
+			--ii;
+			continue;
+		}
+		if(sChildClass) {
 			if(!aChildren[ii].classList.contains(sChildClass)) {
 				aChildren.splice(ii, 1);
 				--ii;

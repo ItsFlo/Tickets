@@ -116,7 +116,7 @@ class DbTable {
 		}
 
 		sQuery += ` WHERE ` + where;
-		aValues.concat(aWhereValues);
+		aValues = aValues.concat(aWhereValues);
 
 		this.moDb.run(sQuery, aValues, (err) => {
 			if(typeof callback === "function") {
@@ -126,7 +126,7 @@ class DbTable {
 		return this;
 	}
 	update(id, updates, callback) {
-		let sWhere = `"${COL_ID} = ?"`;
+		let sWhere = `"${COL_ID}" = ?`;
 		return this.updateWhere(sWhere, [id], updates, callback);
 	}
 

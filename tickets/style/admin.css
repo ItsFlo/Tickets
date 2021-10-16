@@ -87,6 +87,24 @@ header {
 }
 
 
+.venue .buttons.edit button,
+#itemTable .item.edit button {
+	-webkit-appearance: none;
+	appearance: none;
+	border: none;
+	background: none;
+}
+.venue.edit :not(input).name,
+.venue.edit :not(input).date,
+.venue.edit :not(input).time,
+.venue.edit .buttons:not(.edit) {
+	display: none;
+}
+.venue input.date {
+	margin-right: 0;
+}
+
+
 
 
 #itemEditor:not(.visible) {
@@ -114,7 +132,7 @@ header {
 #newItemForm {
 	margin-bottom: 0.8em;
 }
-#itemPrice {
+#newItemPrice {
 	width: 5em;
 	margin-right: 0.2em;
 	text-align: right;
@@ -157,6 +175,26 @@ header {
 }
 #itemTable td.button img:hover {
 	opacity: 1;
+}
+#itemTable td.price {
+	text-align: right;
+}
+
+
+#itemTable .item.edit .button:not(.edit),
+#itemTable .item.edit form,
+#itemTable .item.edit .name:not(.edit),
+#itemTable .item.edit .price:not(.edit) {
+	display: none;
+}
+
+#itemTable .item.edit .price.edit:after {
+	content: "€";
+}
+#itemTable .item.edit .price.edit input {
+	width: 5em;
+	margin-right: 0.2em;
+	text-align: right;
 }
 
 

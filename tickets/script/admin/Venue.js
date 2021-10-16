@@ -3,6 +3,10 @@ import * as Error from '../Error.js';
 import * as Item from './Item.js';
 import { SORT_DESC, insertSorted } from '../functions.js';
 
+function stopPropagationListener(ev) {
+	ev.stopPropagation();
+}
+
 function newVenueListener(ev) {
 	ev.preventDefault();
 
@@ -28,10 +32,175 @@ function newVenueListener(ev) {
 
 
 
+function saveEditListener(ev) {
+	ev.stopPropagation();
+	ev.preventDefault();
+	let oVenue = this.closest(".venue");
+	let iID = parseInt(oVenue.dataset.venueId);
+	if(isNaN(iID)) {
+		abortEditVenue(oVenue);
+		return;
+	}
+
+	let sNewName = oVenue.querySelector("input.name").value.trim();
+	let sNewDate = oVenue.querySelector("input.date").value.trim();
+	let sNewTime = oVenue.querySelector("input.time").value.trim();
+
+	let oOldName = oVenue.querySelector(".name:not(input)");
+	let oOldDate = oVenue.querySelector(".date:not(input)");
+	let oOldTime = oVenue.querySelector(".time:not(input)");
+
+	let bChanges = false;
+	let bReInsert = false;
+	if(sNewName !== oOldName.textContent.trim()) {
+		bChanges = true;
+	}
+	else {
+		sNewName = null;
+	}
+
+	if(sNewDate !== oOldDate.textContent.trim()) {
+		bChanges = true;
+		bReInsert = true;
+	}
+	else {
+		sNewDate = null;
+	}
+
+	if(sNewTime !== oOldTime.textContent.trim()) {
+		bChanges = true;
+		bReInsert = true;
+	}
+	else {
+		sNewTime = null;
+	}
+
+	if(bChanges) {
+		Api.venue.update(iID, sNewName, sNewDate, sNewTime).then(() => {
+			if(sNewName) {
+				oOldName.innerHTML = sNewName;
+				Item.updateVenueName();
+			}
+			if(sNewDate) {
+				oOldDate.innerHTML = sNewDate;
+			}
+			if(sNewTime) {
+				oOldTime.innerHTML = sNewTime;
+			}
+			if(sNewDate || sNewTime) {
+				oVenue.dataset.dateTime = oOldDate.textContent.trim()+"T"+oOldTime.textContent.trim();
+			}
+			abortEditVenue(oVenue);
+			if(bReInsert) {
+				insertElement(oVenue);
+			}
+		}).catch((error) => {
+			Error.show(error);
+			abortEditVenue(oVenue);
+		})
+	}
+	else {
+		abortEditVenue(oVenue);
+	}
+}
+function abortEditListener(ev) {
+	ev.stopPropagation();
+	let oVenue = this.closest(".venue");
+	abortEditVenue(oVenue);
+}
+
+
+function editVenue(oVenue) {
+	let oName = oVenue.querySelector(".name");
+	let iVenueID = parseInt(oVenue.dataset.venueId);
+	let sFormID = "editVenueForm_" + iVenueID;
+
+	let oEditButtons = document.createElement("div");
+	oEditButtons.classList.add("buttons");
+	oEditButtons.classList.add("edit");
+
+	let oDoneButton = document.createElement("button");
+	oDoneButton.classList.add("button");
+	oDoneButton.setAttribute("type", "submit");
+	oDoneButton.setAttribute("form", sFormID);
+	oDoneButton.addEventListener("click", stopPropagationListener);
+	oEditButtons.appendChild(oDoneButton);
+	let oDoneButtonIcon = document.createElement("img");
+	oDoneButtonIcon.setAttribute("src", "/image/done_icon.svg");
+	oDoneButtonIcon.setAttribute("height", "100%");
+	oDoneButton.appendChild(oDoneButtonIcon);
+
+	let oClearButton = document.createElement("img");
+	oClearButton.classList.add("button");
+	oClearButton.setAttribute("src", "/image/clear_icon.svg");
+	oClearButton.addEventListener("click", abortEditListener);
+	oEditButtons.appendChild(oClearButton);
+
+
+	let oForm = document.createElement("form");
+	oForm.id = sFormID;
+	oForm.addEventListener("submit", saveEditListener);
+
+
+	let oNameInput = document.createElement("input");
+	oNameInput.classList.add("name");
+	oNameInput.setAttribute("type", "text");
+	oNameInput.setAttribute("required", "required");
+	oNameInput.setAttribute("placeholder", "Name");
+	oNameInput.setAttribute("form", sFormID);
+	oNameInput.addEventListener("click", stopPropagationListener);
+	oNameInput.value = oName.textContent.trim();
+
+	let oDateInput = document.createElement("input");
+	oDateInput.classList.add("date");
+	oDateInput.setAttribute("type", "date");
+	oDateInput.setAttribute("required", "required");
+	oDateInput.addEventListener("click", stopPropagationListener);
+	oDateInput.setAttribute("form", sFormID);
+	oDateInput.value = oVenue.querySelector(".date").textContent.trim();
+
+	let oTimeInput = document.createElement("input");
+	oTimeInput.classList.add("time");
+	oTimeInput.setAttribute("type", "time");
+	oTimeInput.setAttribute("required", "required");
+	oTimeInput.addEventListener("click", stopPropagationListener);
+	oTimeInput.setAttribute("form", sFormID);
+	oTimeInput.value = oVenue.querySelector(".time").textContent.trim();
+
+
+	oVenue.insertBefore(oEditButtons, oName);
+	oVenue.insertBefore(oForm, oName);
+	oVenue.insertBefore(oNameInput, oName);
+	oVenue.insertBefore(oDateInput, oName);
+	oVenue.insertBefore(oTimeInput, oName);
+	oVenue.classList.add("edit");
+}
+
+function abortEditVenue(oVenue) {
+	let oButtons = oVenue.querySelector(".buttons.edit");
+	if(oButtons) {
+		oButtons.remove();
+	}
+
+	let oForm = oVenue.querySelector("form");
+	if(oForm) {
+		oForm.remove();
+	}
+
+	let aInputs = Array.from(oVenue.getElementsByTagName("input"));
+	for(let oInput of aInputs) {
+		oInput.remove();
+	}
+
+	oVenue.classList.remove("edit");
+}
+
 
 function editListener(ev) {
 	ev.stopPropagation();
-	
+	let oVenue = this.closest(".venue");
+
+	editVenue(oVenue);
 }
 
 function deleteListener(ev) {

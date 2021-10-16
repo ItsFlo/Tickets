@@ -52,7 +52,7 @@ function openEditor(iVenueID) {
 	let oEditor = document.getElementById("itemEditor");
 
 	if(iVenueID != oEditor.dataset.venueId) {
-		oEditor.querySelector(".venueName").innerHTML = oVenue.querySelector(".name").textContent;
+		oEditor.querySelector(".venueName").innerHTML = oVenue.querySelector(".name:not(input)").textContent;
 
 		oEditor.dataset.venueId = iVenueID;
 		if(oVenue.nextElementSibling) {
@@ -83,10 +83,170 @@ function closeEditor() {
 }
 
 
+function updateVenueName() {
+	let oItemEditor = document.getElementById("itemEditor");
+	if(!oItemEditor.classList.contains("visible")) {
+		return;
+	}
+
+	let iVenueID = parseInt(oItemEditor.dataset.venueId);
+	if(isNaN(iVenueID)) {
+		return;
+	}
+	let oVenue = Venue.getElement(iVenueID);
+	oItemEditor.querySelector(".venueName").innerHTML = oVenue.querySelector(".name:not(input)").textContent;
+}
+
+
+
+
+function saveEditListener(ev) {
+	ev.preventDefault();
+	let oItem = this.closest(".item");
+	let iID = parseInt(oItem.dataset.itemId);
+	if(isNaN(iID)) {
+		abortEditItem(oItem);
+		return;
+	}
+
+	let sNewName = oItem.querySelector(".name.edit input").value.trim();
+	let fNewPrice = parseFloat(oItem.querySelector(".price.edit input").value);
+
+	let oOldName = oItem.querySelector(".name:not(.edit)");
+	let oOldPrice = oItem.querySelector(".price:not(.edit)");
+
+	let bChanges = false;
+	let bReInsert = false;
+	if(sNewName !== oOldName.textContent.trim()) {
+		bChanges = true;
+		bReInsert = true;
+	}
+	else {
+		sNewName = null;
+	}
+
+	if(fNewPrice !== parseFloat(oOldPrice.textContent)) {
+		bChanges = true;
+	}
+	else {
+		fNewPrice = null;
+	}
+
+	if(bChanges) {
+		Api.item.update(iID, sNewName, fNewPrice).then(() => {
+			if(sNewName) {
+				oOldName.innerHTML = sNewName;
+			}
+			if(fNewPrice !== null) {
+				oOldPrice.innerHTML = fNewPrice.toFixed(2) + " €";
+			}
+			abortEditItem(oItem);
+			if(bReInsert) {
+				insertElement(oItem);
+			}
+		}).catch((error) => {
+			Error.show(error);
+			abortEditItem(oItem);
+		})
+	}
+	else {
+		abortEditItem(oItem);
+	}
+}
+function abortEditListener(ev) {
+	let oItem = this.closest(".item");
+	abortEditItem(oItem);
+}
+
+
+function editItem(oItem) {
+	let oName = oItem.querySelector(".name");
+	let iItemID = parseInt(oItem.dataset.itemId);
+	let sFormID = "editItemForm_" + iItemID;
+
+	let oDoneButtonCell = document.createElement("td");
+	oDoneButtonCell.classList.add("button");
+	oDoneButtonCell.classList.add("edit");
+	let oDoneButton = document.createElement("button");
+	oDoneButton.setAttribute("type", "submit");
+	oDoneButton.setAttribute("form", sFormID);
+	oDoneButtonCell.appendChild(oDoneButton);
+	let oDoneButtonIcon = document.createElement("img");
+	oDoneButtonIcon.setAttribute("src", "/image/done_icon.svg");
+	oDoneButtonIcon.setAttribute("height", "100%");
+	oDoneButton.appendChild(oDoneButtonIcon);
+
+	let oClearButtonCell = document.createElement("td");
+	oClearButtonCell.classList.add("button");
+	oClearButtonCell.classList.add("edit");
+	let oClearButton = document.createElement("img");
+	oClearButton.setAttribute("src", "/image/clear_icon.svg");
+	oClearButton.addEventListener("click", abortEditListener);
+	oClearButtonCell.appendChild(oClearButton);
+
+
+	let oForm = document.createElement("form");
+	oForm.id = sFormID;
+	oForm.addEventListener("submit", saveEditListener);
+
+
+	let oNameCell = document.createElement("td");
+	oNameCell.classList.add("name");
+	oNameCell.classList.add("edit");
+	let oNameInput = document.createElement("input");
+	oNameInput.setAttribute("type", "text");
+	oNameInput.setAttribute("required", "required");
+	oNameInput.setAttribute("placeholder", "Name");
+	oNameInput.setAttribute("form", sFormID);
+	oNameInput.value = oName.textContent.trim();
+	oNameCell.appendChild(oNameInput);
+
+	let oPriceCell = document.createElement("td");
+	oPriceCell.classList.add("price");
+	oPriceCell.classList.add("edit");
+	let oPriceInput = document.createElement("input");
+	oPriceInput.setAttribute("type", "number");
+	oPriceInput.setAttribute("min", "0");
+	oPriceInput.setAttribute("step", "0.01");
+	oPriceInput.setAttribute("required", "required");
+	oPriceInput.setAttribute("placeholder", "Preis");
+	oPriceInput.setAttribute("form", sFormID);
+	oPriceInput.value = parseFloat(oItem.querySelector(".price").textContent);
+	oPriceCell.appendChild(oPriceInput);
+
+	oItem.insertBefore(oDoneButtonCell, oName);
+	oItem.insertBefore(oClearButtonCell, oName);
+	oItem.insertBefore(oForm, oName);
+	oItem.insertBefore(oNameCell, oName);
+	oItem.insertBefore(oPriceCell, oName);
+	oItem.classList.add("edit");
+}
+function abortEditItem(oItem) {
+	let aButtons = Array.from(oItem.querySelectorAll(".button.edit"));
+	for(let oButton of aButtons) {
+		oButton.remove();
+	}
+
+	let oForm = oItem.querySelector("form");
+	if(oForm) {
+		oForm.remove();
+	}
+
+	let aEditCells = Array.from(oItem.querySelectorAll("td.edit"));
+	for(let oEditCell of aEditCells) {
+		oEditCell.remove();
+	}
+
+	oItem.classList.remove("edit");
+}
+
 
 
 function editListener(ev) {
 	ev.stopPropagation();
+	let oItem = this.closest(".item");
+
+	editItem(oItem);
 }
 
 function deleteListener(ev) {
@@ -159,7 +319,9 @@ function insertElement(oItemElement) {
 	insertSorted(oItemTableBody, oItemElement, SORT_ASC, ".name");
 }
 
-
+function getElement(iItemID) {
+	return document.getElementById("itemTable").querySelector(".item[data-item-id=\""+iItemID+"\"");
+}
 
 
 
@@ -173,6 +335,9 @@ export {
 
 	openEditor,
 	closeEditor,
+	updateVenueName,
+
 	createElement,
 	insertElement,
+	getElement,
 };

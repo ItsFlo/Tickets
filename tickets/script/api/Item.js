@@ -38,6 +38,36 @@ function deleteItem(id) {
 }
 
 
+function update(id, sName, fPrice) {
+	let oRequestBody = {
+		id: id,
+	}
+	fPrice = parseFloat(fPrice);
+
+
+	let bChanges = false;
+	if(sName) {
+		oRequestBody.name = sName;
+		bChanges = true;
+	}
+	if(typeof fPrice === "number" && !isNaN(fPrice)) {
+		oRequestBody.price = fPrice;
+		bChanges = true;
+	}
+
+	if(!bChanges) {
+		return new Promise((resolve, reject) => {
+			reject(new Error("No changes set"));
+		});
+	}
+
+	let oAjax = new AjaxRequest(Ajax.PATCH);
+	oAjax.open("/api/item");
+	oAjax.setJsonEncoded();
+	return oAjax.send(JSON.stringify(oRequestBody));
+}
+
+
 
 function getAll(iVenueID=null) {
 	iVenueID = parseInt(iVenueID);
@@ -56,5 +86,6 @@ function getAll(iVenueID=null) {
 export {
 	create,
 	deleteItem as delete,
+	update,
 	getAll,
 };

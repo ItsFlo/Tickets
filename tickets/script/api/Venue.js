@@ -36,6 +36,38 @@ function deleteVenue(id) {
 }
 
 
+function update(id, sName, sDate, sTime) {
+	let oRequestBody = {
+		id: id,
+	}
+
+	let bChanges = false;
+	if(sName) {
+		oRequestBody.name = sName;
+		bChanges = true;
+	}
+	if(sDate) {
+		oRequestBody.date = sDate;
+		bChanges = true;
+	}
+	if(sTime) {
+		oRequestBody.time = sTime;
+		bChanges = true;
+	}
+
+	if(!bChanges) {
+		return new Promise((resolve, reject) => {
+			reject(new Error("No changes set"));
+		});
+	}
+
+	let oAjax = new AjaxRequest(Ajax.PATCH);
+	oAjax.open("/api/venue");
+	oAjax.setJsonEncoded();
+	return oAjax.send(JSON.stringify(oRequestBody));
+}
+
+
 
 function getAll(bWithItemCount=false) {
 	let sPath = "/api/venue/all";
@@ -54,5 +86,6 @@ function getAll(bWithItemCount=false) {
 export {
 	create,
 	deleteVenue as delete,
+	update,
 	getAll,
 };
