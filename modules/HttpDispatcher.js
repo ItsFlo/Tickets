@@ -3,6 +3,26 @@ class HttpDispatcher {
 		response.writeHead(404);
 		response.end();
 	}
+
+	splitPath(sPath) {
+		if(typeof sPath !== "string") {
+			return null;
+		}
+		sPath = sPath.replace(/^\/+|\/+$/g, "");
+		if(!sPath) {
+			return ["/"];
+		}
+		var aPathElements = sPath.split("/");
+
+		var iLen = aPathElements.length;
+		for(var ii=0;ii<iLen;++ii) {
+			if(!aPathElements[ii]) {
+				return null;
+			}
+		}
+
+		return aPathElements;
+	}
 };
 
 
@@ -112,26 +132,6 @@ class HttpDispatcherGroup extends HttpDispatcher {
 		oDispatcherParent[aPathElements[iLen]] = oDispatcher;
 
 		return this;
-	}
-
-	splitPath(sPath) {
-		if(typeof sPath !== "string") {
-			return null;
-		}
-		sPath = sPath.replace(/^\/+|\/+$/g, "");
-		if(!sPath) {
-			return ["/"];
-		}
-		var aPathElements = sPath.split("/");
-
-		var iLen = aPathElements.length;
-		for(var ii=0;ii<iLen;++ii) {
-			if(!aPathElements[ii]) {
-				return null;
-			}
-		}
-
-		return aPathElements;
 	}
 }
 

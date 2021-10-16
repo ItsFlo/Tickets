@@ -1,4 +1,5 @@
 import { HttpDispatcherGroup } from "../../modules/HttpDispatcher.js";
+import { AJAX_METHODS_WITH_BODY } from "../script/api/Ajax.js";
 import oVenueDispatcher from "./VenueDispatcher.js";
 
 let oApiDispatcher = new class extends HttpDispatcherGroup {
@@ -10,18 +11,22 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 			return;
 		}
 
-		let sRequestBody = "";
-		request.on("data", (chunk) => sRequestBody += chunk);
-		request.on("end", () => {
-			try {
-				let oJson = JSON.parse(sRequestBody);
-				super.dispatch(sPath, request, response, oJson);
-			} catch(err) {
-				request.writeHead(400);
-				request.end("JSON error");
-			}
-		});
-
+		if(AJAX_METHODS_WITH_BODY.includes(request.method)) {
+			let sRequestBody = "";
+			request.on("data", (chunk) => sRequestBody += chunk);
+			request.on("end", () => {
+				try {
+					let oJson = JSON.parse(sRequestBody);
+					super.dispatch(sPath, request, response, oJson);
+				} catch(err) {
+					response.writeHead(400);
+					response.end("JSON error");
+				}
+			});
+		}
+		else {
+			super.dispatch(sPath, request, response, {});
+		}
 	}
 }(false);
 
