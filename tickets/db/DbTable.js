@@ -35,24 +35,20 @@ class DbTable {
 		//ORDER BY
 		if(Array.isArray(sortOrder)) {
 			let sOrderClause = "";
-			let aCols = [];
 			for(let sCol of sortOrder) {
 				if(this.constructor.COLUMNS.includes(sCol)) {
 					if(sOrderClause) {
 						sOrderClause += ", ";
 					}
-					sOrderClause += "?";
-					aCols.push(sCol);
+					sOrderClause += `"${sCol}"`;
 				}
 			}
-			if(aCols.length) {
+			if(sOrderClause) {
 				sQuery += " ORDER BY " + sOrderClause;
-				aValues.concat(aCols);
 			}
 		}
 		else if(typeof sortOrder === "object") {
 			let sOrderClause = "";
-			let aColValues = [];
 			let aDirections = ["ASC", "DESC"];
 			for(let sCol in sortOrder) {
 				if(this.constructor.COLUMNS.includes(sCol)) {
@@ -61,27 +57,25 @@ class DbTable {
 						if(sOrderClause) {
 							sOrderClause += ", ";
 						}
-						sOrderClause += "? ?";
-						aColValues.push(sCol, sDirection);
+						sOrderClause += `"${sCol}" ${sDirection}`;
 					}
 				}
 			}
-			if(aCols.length) {
+			if(sOrderClause) {
 				sQuery += " ORDER BY " + sOrderClause;
-				aValues.concat(aCols);
 			}
 		}
 		else if(typeof sortOrder === "string") {
 			if(this.constructor.COLUMNS.includes(sortOrder)) {
-				sQuery += " ORDER BY ?";
-				aValues.push(sortOrder);
+				sQuery += ` ORDER BY "${sortOrder}"`;
 			}
 		}
 
 		//LIMIT
-		if(!isNaN(parseInt(limit))) {
+		let iLimit = parseInt(limit);
+		if(!isNaN(iLimit) && iLimit > 0) {
 			sQuery += " LIMIT ?";
-			aValues.push(limit);
+			aValues.push(iLimit);
 		}
 		this.moDb.all(sQuery, aValues, callback);
 		return this;
