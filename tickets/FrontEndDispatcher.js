@@ -2,7 +2,7 @@ import HttpDispatcher from "../modules/HttpDispatcher.js";
 import { dirname } from "path";
 import serveFile from "../modules/ServeFile.js";
 
-let sCurDir = dirname(import.meta.url).replace(process.platform === "win32"? "file:///" : "file://", "");
+const sCurDir = dirname(import.meta.url).replace(process.platform === "win32"? "file:///" : "file://", "");
 
 
 function send404(response) {
@@ -11,7 +11,7 @@ function send404(response) {
 	response.end();
 }
 
-let oFrontEndDispatcher = new HttpDispatcher();
+const oFrontEndDispatcher = new HttpDispatcher();
 
 oFrontEndDispatcher.dispatch = function(sPath, request, response) {
 	console.log("frontend: ", sPath);
@@ -48,6 +48,10 @@ oFrontEndDispatcher.dispatch = function(sPath, request, response) {
 
 			case "SCRIPT":
 				sFilePath += "/script";
+				break;
+
+			case "IMAGE":
+				sFilePath += "/images";
 				break;
 
 			default:

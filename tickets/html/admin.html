@@ -5,12 +5,66 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-		<link type="text/css" rel="stylesheet" href="style/admin.css">
-		<script src="script/admin.js" async></script>
+		<link type="text/css" rel="stylesheet" href="./style/style.css">
+		<link type="text/css" rel="stylesheet" href="./style/admin.css">
+		<script src="./script/admin.js" type="module" async></script>
 	</head>
 	<body>
-		<main>
+		<header>
+			<h4>neue Veranstaltung</h4>
+			<form id="newVenueForm">
+				Datum:
+				<input id="newVenueDate" type="date" required>
+				<input id="newVenueTime" type="time" required>
+				<input id="newVenueName" type="text" required placeholder="Name">
+				<input type="submit" value="erstellen">
+			</form>
+			<script>
+				let oDate = new Date();
+				oDate.setHours(oDate.getHours()+1);
+				oDate.setMinutes(-oDate.getTimezoneOffset());
+				oDate.setMinutes(0);
+				oDate.setSeconds(0);
+				oDate.setMilliseconds(0);
+				document.getElementById("newVenueDate").valueAsDate = oDate;
+				document.getElementById("newVenueTime").valueAsDate = oDate;
+			</script>
+		</header>
 
+
+		<div id="tableHeader">
+			<h3>Veranstaltungen</h3>
+			<div>
+				<span class="name">Name</span>
+				<span class="date">Datum</span>
+				<span class="itemCount">Artikel</span>
+			</div>
+		</div>
+		<main>
+			<div id="venueTable"></div>
+
+			<aside id="itemEditor">
+				<h5 class="venueName"></h5>
+				<form id="newItemForm">
+					<input id="newItemName" type="text" required placeholder="Name">
+					<label>
+						<input id="newItemPrice" type="number" min="0" step="0.01" required placeholder="Preis">€
+					</label>
+					<input type="submit" value="erstellen">
+				</form>
+
+				<table id="itemTable">
+					<thead>
+						<tr>
+							<th class="button"></th>
+							<th class="button"></th>
+							<th class="name">Name</th>
+							<th class="price">Preis</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</aside>
 		</main>
 	</body>
 </html>
