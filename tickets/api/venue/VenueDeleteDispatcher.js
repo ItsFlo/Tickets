@@ -8,13 +8,14 @@ class VenueDeleteDispatcher extends HttpDispatcher {
 			response.end();
 			return;
 		}
-		if(!oPost.hasOwnProperty("id") || isNaN(parseInt(oPost.id))) {
+		let iID = parseInt(oPost.id);
+		if(isNaN(iID)) {
 			response.writeHead(400);
 			response.end("No id provided");
 			return;
 		}
 
-		TicketConfig.db.venue.delete(oPost.id, (err) => {
+		TicketConfig.db.venue.delete(iID, (err) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);

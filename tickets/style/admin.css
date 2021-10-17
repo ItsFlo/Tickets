@@ -88,7 +88,8 @@ header {
 
 
 .venue .buttons.edit button,
-#itemTable .item.edit button {
+#itemContainer .item-category.edit .header button,
+#itemContainer .item-category .item-table .item.edit button {
 	-webkit-appearance: none;
 	appearance: none;
 	border: none;
@@ -141,30 +142,83 @@ header {
 	margin-left: 0.5em;
 }
 
-#itemTable {
+
+
+#itemContainer .item-category {
+	margin-bottom: 1.7em;
+}
+#itemContainer .item-category .header {
+	margin-bottom: 0.2em;
+}
+#newItemCategoryForm:after,
+#itemContainer .item-category .header:after {
+	content: "";
+	display: block;
+	width: 75%;
+	height: 0;
+	border-bottom: 1px solid #ddd;
+}
+#newItemCategoryForm:after {
+	margin-top: 0.4em;
+}
+
+#itemContainer .item-category .category-name {
+	display: inline-block;
+	margin: 0;
+	margin-right: 0.3em;
+}
+
+#itemContainer .item-category .header img {
+	height: 1.4em;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	box-sizing: border-box;
+	vertical-align: bottom;
+	cursor: pointer;
+	opacity: 0.1;
+}
+#itemContainer .item-category .header img:hover {
+	opacity: 1;
+}
+
+
+#itemContainer .item-category.edit .header form,
+#itemContainer .item-category.edit .header .button:not(.edit),
+#itemContainer .item-category.edit .header .category-name:not(input) {
+	display: none;
+}
+#itemContainer .item-category.edit .header .button {
+	vertical-align: middle;
+}
+
+
+
+
+
+#itemContainer .item-category .item-table {
 	border-collapse: collapse;
 }
-#itemTable thead tr {
+#itemContainer .item-category .item-table thead tr {
 	border-bottom: solid 2px #777;
 }
-#itemTable td {
+#itemContainer .item-category .item-table td {
 	border-right: solid 1px #ccc;
 }
-#itemTable td.button,
-#itemTable td:last-of-type {
+#itemContainer .item-category .item-table td.button,
+#itemContainer .item-category .item-table td:last-of-type {
 	border-right: none;
 }
-#itemTable th {
+#itemContainer .item-category .item-table th {
 	padding: 0.2em 0.5em;
 }
-#itemTable td {
+#itemContainer .item-category .item-table td {
 	padding: 0.3em 0.5em;
 }
-#itemTable th.button,
-#itemTable td.button {
+#itemContainer .item-category .item-table th.button,
+#itemContainer .item-category .item-table td.button {
 	padding: 0;
 }
-#itemTable td.button img {
+#itemContainer .item-category .item-table td.button img {
 	height: 1.5em;
 	padding-top: 1px;
 	padding-bottom: 1px;
@@ -173,25 +227,25 @@ header {
 	cursor: pointer;
 	opacity: 0.1;
 }
-#itemTable td.button img:hover {
+#itemContainer .item-category .item-table td.button img:hover {
 	opacity: 1;
 }
-#itemTable td.price {
+#itemContainer .item-category .item-table td.price {
 	text-align: right;
 }
 
 
-#itemTable .item.edit .button:not(.edit),
-#itemTable .item.edit form,
-#itemTable .item.edit .name:not(.edit),
-#itemTable .item.edit .price:not(.edit) {
+#itemContainer .item-category .item-table .item.edit .button:not(.edit),
+#itemContainer .item-category .item-table .item.edit form,
+#itemContainer .item-category .item-table .item.edit .name:not(.edit),
+#itemContainer .item-category .item-table .item.edit .price:not(.edit) {
 	display: none;
 }
 
-#itemTable .item.edit .price.edit:after {
+#itemContainer .item-category .item-table .item.edit .price.edit:after {
 	content: "€";
 }
-#itemTable .item.edit .price.edit input {
+#itemContainer .item-category .item-table .item.edit .price.edit input {
 	width: 5em;
 	margin-right: 0.2em;
 	text-align: right;

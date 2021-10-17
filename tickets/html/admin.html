@@ -46,6 +46,9 @@
 			<aside id="itemEditor">
 				<h5 class="venueName"></h5>
 				<form id="newItemForm">
+					<select id="newItemCategory" required>
+						<option value="" disabled selected>Kategorie</option>
+					</select>
 					<input id="newItemName" type="text" required placeholder="Name">
 					<label>
 						<input id="newItemPrice" type="number" min="0" step="0.01" required placeholder="Preis">€
@@ -53,17 +56,13 @@
 					<input type="submit" value="erstellen">
 				</form>
 
-				<table id="itemTable">
-					<thead>
-						<tr>
-							<th class="button"></th>
-							<th class="button"></th>
-							<th class="name">Name</th>
-							<th class="price">Preis</th>
-						</tr>
-					</thead>
-					<tbody></tbody>
-				</table>
+				<div id="itemContainer"></div>
+
+				<form id="newItemCategoryForm">
+					+
+					<input id="newItemCategoryName" type="text" required placeholder="Kategoriename">
+					<input type="submit" value="Kategorie erstellen">
+				</form>
 			</aside>
 		</main>
 	</body>

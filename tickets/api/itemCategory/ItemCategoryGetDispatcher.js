@@ -1,9 +1,9 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import { getOrderDirection, getLimit } from "../functions.js";
-import Item from "../../db/Item.js";
+import ItemCategory from "../../db/ItemCategory.js";
 
-class ItemGetDispatcher extends HttpDispatcher {
+class ItemCategoryGetDispatcher extends HttpDispatcher {
 	dispatch(sPath, request, response) {
 		if(!sPath) {
 			response.writeHead(400);
@@ -53,7 +53,8 @@ class ItemGetDispatcher extends HttpDispatcher {
 			return;
 		}
 		let iID = parseInt(aPathElements[0]);
-		TicketConfig.db.item.getByID(iID, (err, row) => {
+
+		TicketConfig.db.itemCategory.getByID(iID, (err, row) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -70,7 +71,7 @@ class ItemGetDispatcher extends HttpDispatcher {
 	dispatchAll(response, aPathElements) {
 		let sOrderDirection = getOrderDirection(aPathElements, "ASC");;
 		let oOrder = {
-			[Item.COL_NAME]: sOrderDirection,
+			[ItemCategory.COL_NAME]: sOrderDirection,
 		};
 		let iLimit = getLimit(aPathElements, null);
 		let callback = (err, rows) => {
@@ -85,19 +86,19 @@ class ItemGetDispatcher extends HttpDispatcher {
 			}
 		};
 
-		let iItemCategoryID = NaN;
+		let iVenueID = NaN;
 		let iLen = aPathElements.length;
 		for(let ii=0;ii<iLen;++ii) {
-			if(ii+1 < iLen && aPathElements[ii].toUpperCase() === "ITEMCATEGORY") {
-				iItemCategoryID = parseInt(aPathElements[ii+1]);
+			if(ii+1 < iLen && aPathElements[ii].toUpperCase() === "VENUE") {
+				iVenueID = parseInt(aPathElements[ii+1]);
 				break;
 			}
 		}
-		if(isNaN(iItemCategoryID)) {
-			TicketConfig.db.item.getAll(callback, oOrder, iLimit);
+		if(isNaN(iVenueID)) {
+			TicketConfig.db.itemCategory.getAll(callback, oOrder, iLimit);
 		}
 		else {
-			TicketConfig.db.item.getAllByItemCategory(iItemCategoryID, callback, oOrder, iLimit);
+			TicketConfig.db.itemCategory.getAllByVenue(iVenueID, callback, oOrder, iLimit);
 		}
 	}
 
@@ -114,14 +115,14 @@ class ItemGetDispatcher extends HttpDispatcher {
 			response.end("No Name provided");
 			return;
 		}
-		let iItemCategoryID = parseInt(aPathElements[2]);
-		if(isNaN(iItemCategoryID) || aPathElements[1].toUpperCase() !== "ITEMCATEGORY") {
+		let iVenueID = parseInt(aPathElements[2]);
+		if(isNaN(iVenueID) || aPathElements[1].toUpperCase() !== "VENUE") {
 			response.writeHead(400);
 			response.end("No Venue provided");
 			return;
 		}
 
-		TicketConfig.db.item.getByName(iItemCategoryID, sName, (err, row) => {
+		TicketConfig.db.itemCategory.getByName(iVenueID, sName, (err, row) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -135,4 +136,4 @@ class ItemGetDispatcher extends HttpDispatcher {
 	}
 };
 
-export default ItemGetDispatcher;
+export default ItemCategoryGetDispatcher;

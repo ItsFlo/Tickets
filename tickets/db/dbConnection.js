@@ -1,8 +1,9 @@
 import sqlite3 from "sqlite3";
+import Venue from "./Venue.js";
+import ItemCategory from "./ItemCategory.js";
 import Item from "./Item.js";
 import Order from "./Order.js";
 import OrderItem from "./OrderItem.js";
-import Venue from "./Venue.js";
 
 
 class DbConnection extends sqlite3.Database {
@@ -20,6 +21,7 @@ class DbConnection extends sqlite3.Database {
 		});
 
 		this.venue = new Venue.Venue(this);
+		this.itemCategory = new ItemCategory.ItemCategory(this);
 		this.item = new Item.Item(this);
 		this.order = new Order.Order(this);
 		this.orderItem = new OrderItem.OrderItem(this);
@@ -34,6 +36,7 @@ class DbConnection extends sqlite3.Database {
 		this.serialize(() => {
 			this.run("PRAGMA foreign_keys = ON;");
 			this.venue.createTable();
+			this.itemCategory.createTable();
 			this.item.createTable();
 			this.order.createTable();
 			this.orderItem.createTable(initCallback);

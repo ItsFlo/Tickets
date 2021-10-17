@@ -1,17 +1,17 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 
-class ItemPutDispatcher extends HttpDispatcher {
+class ItemCategoryPutDispatcher extends HttpDispatcher {
 	dispatch(sPath, request, response, oPost) {
 		if(sPath) {
 			response.writeHead(404);
 			response.end();
 			return;
 		}
-		let iItemCategoryID = parseInt(oPost.itemCategory);
-		if(isNaN(iItemCategoryID)) {
+		let iVenueID = parseInt(oPost.venue);
+		if(isNaN(iVenueID)) {
 			response.writeHead(400);
-			response.end("No item-category provided");
+			response.end("No venue provided");
 			return;
 		}
 		if(!oPost.hasOwnProperty("name") || !oPost.name) {
@@ -19,14 +19,8 @@ class ItemPutDispatcher extends HttpDispatcher {
 			response.end("No name provided");
 			return;
 		}
-		let fPrice = parseFloat(oPost.price);
-		if(isNaN(fPrice)) {
-			response.writeHead(400);
-			response.end("No price provided");
-			return;
-		}
 
-		TicketConfig.db.item.create(iItemCategoryID, oPost.name, fPrice, (err, lastID) => {
+		TicketConfig.db.itemCategory.create(iVenueID, oPost.name, (err, lastID) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -42,4 +36,4 @@ class ItemPutDispatcher extends HttpDispatcher {
 	}
 };
 
-export default ItemPutDispatcher;
+export default ItemCategoryPutDispatcher;

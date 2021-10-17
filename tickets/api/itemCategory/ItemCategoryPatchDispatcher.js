@@ -1,8 +1,8 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
-import Item from "../../db/Item.js";
+import ItemCategory from "../../db/ItemCategory.js";
 
-class ItemPatchDispatcher extends HttpDispatcher {
+class ItemCategoryPatchDispatcher extends HttpDispatcher {
 	dispatch(sPath, request, response, oPost) {
 		if(sPath) {
 			response.writeHead(404);
@@ -24,17 +24,7 @@ class ItemPatchDispatcher extends HttpDispatcher {
 				response.end("Name must not be empty");
 				return;
 			}
-			oUpdates[Item.COL_NAME] = oPost.name;
-			bRowsUpdated = true;
-		}
-		if(oPost.hasOwnProperty("price")) {
-			let fPrice = parseFloat(oPost.price);
-			if(isNaN(fPrice)) {
-				response.writeHead(400);
-				response.end("No price provided");
-				return;
-			}
-			oUpdates[Item.COL_PRICE] = fPrice;
+			oUpdates[ItemCategory.COL_NAME] = oPost.name;
 			bRowsUpdated = true;
 		}
 
@@ -45,7 +35,7 @@ class ItemPatchDispatcher extends HttpDispatcher {
 			return;
 		}
 
-		TicketConfig.db.item.update(iID, oUpdates, (err) => {
+		TicketConfig.db.itemCategory.update(iID, oUpdates, (err) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -59,4 +49,4 @@ class ItemPatchDispatcher extends HttpDispatcher {
 	}
 };
 
-export default ItemPatchDispatcher;
+export default ItemCategoryPatchDispatcher;

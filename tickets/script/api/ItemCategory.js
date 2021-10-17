@@ -1,25 +1,25 @@
 import * as Ajax from './Ajax.js';
 import AjaxRequest from './Ajax.js';
 
-function create(sName, sDate, sTime) {
-	if(!sName || !sDate || !sTime) {
+function create(iVenueID, sName) {
+	iVenueID = parseInt(iVenueID);
+	if(isNaN(iVenueID) || !sName) {
 		return null;
 	}
 
 	let oRequestBody = {
+		venue: iVenueID,
 		name: sName,
-		date: sDate,
-		time: sTime,
 	};
 
 	let oAjax = new AjaxRequest(Ajax.PUT);
-	oAjax.open("/api/venue");
+	oAjax.open("/api/itemCategory");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
 }
 
 
-function deleteVenue(id) {
+function deleteItem(id) {
 	id = parseInt(id);
 	if(isNaN(id)) {
 		return null;
@@ -30,28 +30,21 @@ function deleteVenue(id) {
 	};
 
 	let oAjax = new AjaxRequest(Ajax.DELETE);
-	oAjax.open("/api/venue");
+	oAjax.open("/api/itemCategory");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
 }
 
 
-function update(id, sName, sDate, sTime) {
+function update(id, sName) {
 	let oRequestBody = {
 		id: id,
 	}
 
+
 	let bChanges = false;
 	if(sName) {
 		oRequestBody.name = sName;
-		bChanges = true;
-	}
-	if(sDate) {
-		oRequestBody.date = sDate;
-		bChanges = true;
-	}
-	if(sTime) {
-		oRequestBody.time = sTime;
 		bChanges = true;
 	}
 
@@ -60,19 +53,19 @@ function update(id, sName, sDate, sTime) {
 	}
 
 	let oAjax = new AjaxRequest(Ajax.PATCH);
-	oAjax.open("/api/venue");
+	oAjax.open("/api/itemCategory");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
 }
 
 
 
-function getAll(bWithItemCount=false) {
-	let sPath = "/api/venue/all";
-	if(bWithItemCount) {
-		sPath += "/itemCount";
+function getAll(iVenueID=null) {
+	iVenueID = parseInt(iVenueID);
+	let sPath = "/api/itemCategory/all";
+	if(!isNaN(iVenueID)) {
+		sPath += "/venue/" + iVenueID;
 	}
-	sPath += "/order/desc";
 
 	let oAjax = new AjaxRequest(Ajax.GET);
 	oAjax.open(sPath);
@@ -83,7 +76,7 @@ function getAll(bWithItemCount=false) {
 
 export {
 	create,
-	deleteVenue as delete,
+	deleteItem as delete,
 	update,
 	getAll,
 };

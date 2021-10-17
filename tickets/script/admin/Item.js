@@ -1,26 +1,40 @@
 import * as Api from '../Api.js';
 import * as Error from '../Error.js';
 import * as Venue from './Venue.js';
+import * as ItemCategory from './ItemCategory.js';
 import { SORT_ASC, insertSorted } from '../functions.js';
+
+function clearNewItemForm() {
+	ItemCategory.clearSelect();
+
+	let oNameInput = document.getElementById("newItemName");
+	let oPriceInput = document.getElementById("newItemPrice");
+
+	oNameInput.value = "";
+	oPriceInput.value = "";
+}
+
 
 function newItemListener(ev) {
 	ev.preventDefault();
-	let oEditor = document.getElementById("itemEditor");
-	if(!oEditor.classList.contains("visible")) {
+	if(!isEditorOpen()) {
 		return;
 	}
 
-	let iVenueID = parseInt(oEditor.dataset.venueId);
-	if(isNaN(iVenueID)) {
+	let iItemCategoryID = parseInt(document.getElementById("newItemCategory").value);
+	if(isNaN(iItemCategoryID)) {
 		return;
 	}
-	let sName = document.getElementById("newItemName").value;
+	let oNameInput = document.getElementById("newItemName");
+
+	let sName = oNameInput.value;
 	let fPrice = document.getElementById("newItemPrice").value;
 
-	Api.item.create(iVenueID, sName, fPrice).then((oResponse) => {
+	Api.item.create(iItemCategoryID, sName, fPrice).then((oResponse) => {
 		let iID = oResponse.json.id;
 		let oItemElement = createElement({
 			id: iID,
+			itemCategory: iItemCategoryID,
 			name: sName,
 			price: fPrice,
 		});
@@ -28,7 +42,10 @@ function newItemListener(ev) {
 
 		let oEditor = document.getElementById("itemEditor");
 		let iVenueID = parseInt(oEditor.dataset.venueId);
-		Venue.incrementUpdateCount(iVenueID);
+		Venue.incrementItemCount(iVenueID);
+
+		oNameInput.focus();
+		oNameInput.select();
 	}).catch((error) => {
 		Error.show(error);
 	});
@@ -36,11 +53,17 @@ function newItemListener(ev) {
 
 
 function clearEditor() {
-	let oItemTable = document.getElementById("itemTable");
-	let oBody = oItemTable.querySelector("tbody");
-	while(oBody.firstChild) {
-		oBody.firstChild.remove();
+	let oItemContainer = document.getElementById("itemContainer");
+	while(oItemContainer.firstChild) {
+		oItemContainer.firstChild.remove();
 	}
+	clearNewItemForm();
+	ItemCategory.clearNewItemCategoryForm();
+}
+
+function isEditorOpen() {
+	let oEditor = document.getElementById("itemEditor");
+	return oEditor.classList.contains("visible");
 }
 
 function openEditor(iVenueID) {
@@ -63,16 +86,21 @@ function openEditor(iVenueID) {
 		}
 
 		clearEditor();
-		Api.item.getAll(iVenueID).then((oResponse) => {
-			let oTableBody = oEditor.querySelector("#itemTable > tbody");
-
-			let aItems = oResponse.json;
-			for(let oItem of aItems) {
-				let oItemElement = createElement(oItem);
-				oTableBody.appendChild(oItemElement);
+		ItemCategory.loadItemCategories(iVenueID).then(() => {
+			let aPromises = [];
+			let aItemCategories = ItemCategory.getAllElements();
+			for(let oItemCategoryElement of aItemCategories) {
+				let oPromise = loadItemsForCategory(oItemCategoryElement);
+				if(oPromise) {
+					aPromises.push(oPromise);
+				}
 			}
-		}).catch((error) => {
-			Error.show(error);
+	
+			Promise.all(aPromises).then(() => {
+				updateItemCount();
+			}).catch(error => {
+				Error.show(error);
+			});
 		});
 	}
 	oEditor.classList.add("visible");
@@ -84,17 +112,38 @@ function closeEditor() {
 
 
 function updateVenueName() {
-	let oItemEditor = document.getElementById("itemEditor");
-	if(!oItemEditor.classList.contains("visible")) {
+	if(!isEditorOpen()) {
 		return;
 	}
+	let oItemEditor = document.getElementById("itemEditor");
 
 	let iVenueID = parseInt(oItemEditor.dataset.venueId);
 	if(isNaN(iVenueID)) {
 		return;
 	}
 	let oVenue = Venue.getElement(iVenueID);
-	oItemEditor.querySelector(".venueName").innerHTML = oVenue.querySelector(".name:not(input)").textContent;
+	if(oVenue) {
+		oItemEditor.querySelector(".venueName").innerHTML = oVenue.querySelector(".name:not(input)").textContent.trim();
+	}
+}
+function updateItemCount() {
+	if(!isEditorOpen()) {
+		return;
+	}
+	let oItemEditor = document.getElementById("itemEditor");
+
+	let iVenueID = parseInt(oItemEditor.dataset.venueId);
+	if(isNaN(iVenueID)) {
+		return;
+	}
+	let oVenue = Venue.getElement(iVenueID);
+	if(!oVenue) {
+		return;
+	}
+
+	let aItems = oItemEditor.querySelectorAll(".itemContainer .item-table .item");
+	let iItemCount = aItems.length;
+	Venue.updateItemCount(iVenueID, iItemCount);
 }
 
 
@@ -158,8 +207,19 @@ function abortEditListener(ev) {
 	abortEditItem(oItem);
 }
 
+function editEscapeKeyListener(ev) {
+	if(ev.key === "Escape") {
+		ev.stopPropagation();
+		let oItem = this.closest(".item");
+		abortEditItem(oItem);
+	}
+}
+
 
 function editItem(oItem) {
+	if(oItem.classList.contains("edit")) {
+		return;
+	}
 	let oName = oItem.querySelector(".name");
 	let iItemID = parseInt(oItem.dataset.itemId);
 	let sFormID = "editItemForm_" + iItemID;
@@ -199,6 +259,7 @@ function editItem(oItem) {
 	oNameInput.setAttribute("placeholder", "Name");
 	oNameInput.setAttribute("form", sFormID);
 	oNameInput.value = oName.textContent.trim();
+	oNameInput.addEventListener("keyup", editEscapeKeyListener);
 	oNameCell.appendChild(oNameInput);
 
 	let oPriceCell = document.createElement("td");
@@ -212,6 +273,7 @@ function editItem(oItem) {
 	oPriceInput.setAttribute("placeholder", "Preis");
 	oPriceInput.setAttribute("form", sFormID);
 	oPriceInput.value = parseFloat(oItem.querySelector(".price").textContent);
+	oPriceInput.addEventListener("keyup", editEscapeKeyListener);
 	oPriceCell.appendChild(oPriceInput);
 
 	oItem.insertBefore(oDoneButtonCell, oName);
@@ -220,6 +282,9 @@ function editItem(oItem) {
 	oItem.insertBefore(oNameCell, oName);
 	oItem.insertBefore(oPriceCell, oName);
 	oItem.classList.add("edit");
+
+	oNameInput.focus();
+	oNameInput.select();
 }
 function abortEditItem(oItem) {
 	let aButtons = Array.from(oItem.querySelectorAll(".button.edit"));
@@ -261,7 +326,7 @@ function deleteListener(ev) {
 
 			let oEditor = document.getElementById("itemEditor");
 			let iVenueID = parseInt(oEditor.dataset.venueId);
-			Venue.decrementUpdateCount(iVenueID);
+			Venue.decrementItemCount(iVenueID);
 		}).catch((error) => {
 			Error.show(error);
 		});
@@ -299,6 +364,7 @@ function createElement(oItem=null) {
 
 	if(oItem) {
 		oElement.dataset.itemId = oItem.id;
+		oElement.dataset.itemCategoryId = oItem.itemCategory;
 		oNameCell.innerHTML = oItem.name;
 		let fPrice = parseFloat(oItem.price);
 		if(!isNaN(fPrice)) {
@@ -314,15 +380,76 @@ function insertElement(oItemElement) {
 	if(!oItemElement.classList.contains("item")) {
 		return;
 	}
-	let oItemTableBody = document.getElementById("itemTable").querySelector("tbody");
+	let iItemCategoryID = parseInt(oItemElement.dataset.itemCategoryId);
+	if(isNaN(iItemCategoryID)) {
+		return;
+	}
+	let oItemTableBody = document.getElementById("itemContainer").querySelector(".item-category[data-item-category-id=\""+iItemCategoryID+"\"] .item-table > tbody");
 
-	insertSorted(oItemTableBody, oItemElement, SORT_ASC, ".name");
+	if(oItemTableBody) {
+		insertSorted(oItemTableBody, oItemElement, SORT_ASC, ".name");
+	}
 }
 
 function getElement(iItemID) {
-	return document.getElementById("itemTable").querySelector(".item[data-item-id=\""+iItemID+"\"");
+	return document.getElementById("itemContainer").querySelector(".item-table > tbody .item[data-item-id=\""+iItemID+"\"");
 }
 
+
+
+
+function createItemTable() {
+	let oTable = document.createElement("table");
+	oTable.classList.add("item-table");
+
+	let oThead = document.createElement("thead");
+	let oTbody = document.createElement("tbody");
+	oTable.appendChild(oThead);
+	oTable.appendChild(oTbody);
+
+	let oRow = document.createElement("tr");
+	oThead.appendChild(oRow);
+
+	let oButton = document.createElement("th");
+	oButton.classList.add("button");
+	oRow.appendChild(oButton);
+	oRow.appendChild(oButton.cloneNode());
+
+	let oName = document.createElement("th");
+	oName.classList.add("name");
+	oName.innerHTML = "Name";
+	oRow.appendChild(oName);
+
+	let oPrice = document.createElement("th");
+	oPrice.classList.add("price");
+	oPrice.innerHTML = "Preis";
+	oRow.appendChild(oPrice);
+
+	return oTable;
+}
+
+
+
+
+function loadItemsForCategory(oItemCategoryElement) {
+	let iItemCategoryID = parseInt(oItemCategoryElement.dataset.itemCategoryId);
+	if(isNaN(iItemCategoryID)) {
+		return null;
+	}
+
+	ItemCategory.clearItemCategory(oItemCategoryElement);
+	return Api.item.getAll(iItemCategoryID).then((oResponse) => {
+		let oTableBody = oItemCategoryElement.querySelector(".item-table > tbody");
+
+		let aItems = oResponse.json;
+		for(let oItem of aItems) {
+			let oItemElement = createElement(oItem);
+			oTableBody.appendChild(oItemElement);
+		}
+	}).catch((error) => {
+		Error.show(error);
+	});
+}
 
 
 
@@ -333,11 +460,19 @@ function init() {
 export {
 	init,
 
+	clearNewItemForm,
+
 	openEditor,
 	closeEditor,
+	clearEditor,
+	isEditorOpen,
+
 	updateVenueName,
+	updateItemCount,
 
 	createElement,
 	insertElement,
 	getElement,
+
+	createItemTable,
 };

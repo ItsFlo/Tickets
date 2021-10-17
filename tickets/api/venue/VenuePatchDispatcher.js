@@ -9,7 +9,8 @@ class VenuePatchDispatcher extends HttpDispatcher {
 			response.end();
 			return;
 		}
-		if(!oPost.hasOwnProperty("id") || isNaN(parseInt(oPost.id))) {
+		let iID = parseInt(oPost.id);
+		if(isNaN(iID)) {
 			response.writeHead(400);
 			response.end("No id provided");
 			return;
@@ -52,7 +53,7 @@ class VenuePatchDispatcher extends HttpDispatcher {
 			return;
 		}
 
-		TicketConfig.db.venue.update(oPost.id, oUpdates, (err) => {
+		TicketConfig.db.venue.update(iID, oUpdates, (err) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);

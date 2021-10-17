@@ -24,6 +24,7 @@ function newVenueListener(ev) {
 			itemCount: 0,
 		});
 		insertElement(oVenueElement);
+		document.getElementById("newVenueDate").focus();
 	}).catch((error) => {
 		Error.show(error);
 	});
@@ -109,8 +110,19 @@ function abortEditListener(ev) {
 	abortEditVenue(oVenue);
 }
 
+function editEscapeKeyListener(ev) {
+	if(ev.key === "Escape") {
+		ev.stopPropagation();
+		let oVenue = this.closest(".venue");
+		abortEditVenue(oVenue);
+	}
+}
+
 
 function editVenue(oVenue) {
+	if(oVenue.classList.contains("edit")) {
+		return;
+	}
 	let oName = oVenue.querySelector(".name");
 	let iVenueID = parseInt(oVenue.dataset.venueId);
 	let sFormID = "editVenueForm_" + iVenueID;
@@ -149,6 +161,7 @@ function editVenue(oVenue) {
 	oNameInput.setAttribute("placeholder", "Name");
 	oNameInput.setAttribute("form", sFormID);
 	oNameInput.addEventListener("click", stopPropagationListener);
+	oNameInput.addEventListener("keyup", editEscapeKeyListener);
 	oNameInput.value = oName.textContent.trim();
 
 	let oDateInput = document.createElement("input");
@@ -157,6 +170,7 @@ function editVenue(oVenue) {
 	oDateInput.setAttribute("required", "required");
 	oDateInput.addEventListener("click", stopPropagationListener);
 	oDateInput.setAttribute("form", sFormID);
+	oDateInput.addEventListener("keyup", editEscapeKeyListener);
 	oDateInput.value = oVenue.querySelector(".date").textContent.trim();
 
 	let oTimeInput = document.createElement("input");
@@ -165,6 +179,7 @@ function editVenue(oVenue) {
 	oTimeInput.setAttribute("required", "required");
 	oTimeInput.addEventListener("click", stopPropagationListener);
 	oTimeInput.setAttribute("form", sFormID);
+	oTimeInput.addEventListener("keyup", editEscapeKeyListener);
 	oTimeInput.value = oVenue.querySelector(".time").textContent.trim();
 
 
@@ -174,6 +189,9 @@ function editVenue(oVenue) {
 	oVenue.insertBefore(oDateInput, oName);
 	oVenue.insertBefore(oTimeInput, oName);
 	oVenue.classList.add("edit");
+
+	oNameInput.focus();
+	oNameInput.select();
 }
 
 function abortEditVenue(oVenue) {
@@ -300,19 +318,20 @@ function getElement(iVenueID) {
 }
 
 
-function updateItemCount(iVenueID, iDirection) {
+function setItemCount(iVenueID, iItemCount) {
+	let oVenue = getElement(iVenueID);
+	if(oVenue) {
+		let oItemCount = oVenue.querySelector(".itemCount");
+		oItemCount.innerHTML = iItemCount;
+	}
+}
+function updateItemCount(iVenueID, iAmount) {
 	let oVenue = getElement(iVenueID);
 	if(oVenue) {
 		let oItemCount = oVenue.querySelector(".itemCount");
 		let iItemCount = parseInt(oItemCount.textContent.trim());
 		if(!isNaN(iItemCount)) {
-			if(iDirection > 0) {
-				iItemCount += 1;
-			}
-			else if(iDirection < 0) {
-				iItemCount -= 1;
-			}
-
+			iItemCount += iAmount;
 			if(iItemCount < 0) {
 				iItemCount = 0;
 			}
@@ -320,10 +339,10 @@ function updateItemCount(iVenueID, iDirection) {
 		}
 	}
 }
-function incrementUpdateCount(iVenueID) {
+function incrementItemCount(iVenueID) {
 	updateItemCount(iVenueID, +1);
 }
-function decrementUpdateCount(iVenueID) {
+function decrementItemCount(iVenueID) {
 	updateItemCount(iVenueID, -1);
 }
 
@@ -368,6 +387,8 @@ export {
 	insertElement,
 	getElement,
 
-	incrementUpdateCount,
-	decrementUpdateCount,
+	setItemCount,
+	updateItemCount,
+	incrementItemCount,
+	decrementItemCount,
 };

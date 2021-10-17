@@ -1,15 +1,15 @@
 import * as Ajax from './Ajax.js';
 import AjaxRequest from './Ajax.js';
 
-function create(iVenueID, sName, fPrice) {
-	iVenueID = parseInt(iVenueID);
+function create(iItemCategoryID, sName, fPrice) {
+	iItemCategoryID = parseInt(iItemCategoryID);
 	fPrice = parseFloat(fPrice);
-	if(isNaN(iVenueID) || !sName || isNaN(fPrice)) {
+	if(isNaN(iItemCategoryID) || !sName || isNaN(fPrice)) {
 		return null;
 	}
 
 	let oRequestBody = {
-		venue: iVenueID,
+		itemCategory: iItemCategoryID,
 		name: sName,
 		price: fPrice,
 	};
@@ -50,15 +50,13 @@ function update(id, sName, fPrice) {
 		oRequestBody.name = sName;
 		bChanges = true;
 	}
-	if(typeof fPrice === "number" && !isNaN(fPrice)) {
+	if(!isNaN(fPrice)) {
 		oRequestBody.price = fPrice;
 		bChanges = true;
 	}
 
 	if(!bChanges) {
-		return new Promise((resolve, reject) => {
-			reject(new Error("No changes set"));
-		});
+		return Promise.reject("No changes set");
 	}
 
 	let oAjax = new AjaxRequest(Ajax.PATCH);
@@ -69,11 +67,11 @@ function update(id, sName, fPrice) {
 
 
 
-function getAll(iVenueID=null) {
-	iVenueID = parseInt(iVenueID);
+function getAll(iItemCategoryID=null) {
+	iItemCategoryID = parseInt(iItemCategoryID);
 	let sPath = "/api/item/all";
-	if(!isNaN(iVenueID)) {
-		sPath += "/venue/" + iVenueID;
+	if(!isNaN(iItemCategoryID)) {
+		sPath += "/itemCategory/" + iItemCategoryID;
 	}
 
 	let oAjax = new AjaxRequest(Ajax.GET);

@@ -1,7 +1,7 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 
-class ItemDeleteDispatcher extends HttpDispatcher {
+class ItemCategoryDeleteDispatcher extends HttpDispatcher {
 	dispatch(sPath, request, response, oPost) {
 		if(sPath) {
 			response.writeHead(404);
@@ -15,7 +15,7 @@ class ItemDeleteDispatcher extends HttpDispatcher {
 			return;
 		}
 
-		TicketConfig.db.item.delete(iID, (err) => {
+		TicketConfig.db.itemCategory.delete(iID, (err) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -29,4 +29,4 @@ class ItemDeleteDispatcher extends HttpDispatcher {
 	}
 };
 
-export default ItemDeleteDispatcher;
+export default ItemCategoryDeleteDispatcher;

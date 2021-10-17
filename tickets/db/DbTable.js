@@ -135,7 +135,10 @@ class DbTable {
 		let sValuePart = "";
 		let aValues = [];
 		for(let sCol of this.constructor.COLUMNS) {
-			if(sCol !== COL_ID && !values.hasOwnProperty(sCol)) {
+			if(sCol === COL_ID) {
+				continue;
+			}
+			if(!values.hasOwnProperty(sCol)) {
 				if(typeof callback === "function") {
 					callback(new Error("didn´t provide values for all columns: "+sCol));
 				}
