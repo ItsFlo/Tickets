@@ -1,0 +1,155 @@
+#venueSelect {
+	z-index: 1000;
+}
+#venueSelect.edit {
+	display: flex;
+	flex-direction: column;
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+
+	background-color: #fffa;
+}
+
+
+#selectedVenue {
+	margin: 0.2em;
+	margin-left: 0.5em;
+	margin-top: 0.4em;
+}
+#selectedVenue > * {
+	vertical-align: middle;
+}
+#selectedVenue .date,
+#selectedVenue .time {
+	font-size: 50%;
+	vertical-align: baseline;
+	color: #999;
+}
+#selectedVenue .date {
+	margin-left: 0.7em;
+}
+
+#selectedVenue .edit-button {
+	display: inline-block;
+	position: relative;
+	width: 1em;
+	height: 1em;
+	margin-right: 0.2em;
+
+	cursor: pointer;
+	border-color: #000;
+}
+#selectedVenue .edit-button:before,
+#selectedVenue .edit-button:after {
+	content: "";
+	display: block;
+	position: absolute;
+	box-sizing: border-box;
+	left: 0;
+	width: 100%;
+
+	border-style: solid;
+	border-color: inherit;
+
+	transform-origin: 50% 50%;
+	transition: all 0.2s cubic-bezier(0.79, 0.14, 0.15, 0.86);
+}
+#selectedVenue .edit-button:before {
+	top: 10%;
+	height: 80%;
+
+	border-width: 2px 0 2px 0;
+}
+#selectedVenue .edit-button:after {
+	top: 50%;
+	transform: translateY(-1px);
+	height: 0;
+
+	border-width: 1px 0 1px 0;
+}
+
+#venueSelect.edit #selectedVenue .edit-button:before {
+	top: 50%;
+	height: 0;
+	border-width: 1px 0 1px 0;
+	transform: rotate(-45deg);
+}
+#venueSelect.edit #selectedVenue .edit-button:after {
+	transform: translateY(-1px) rotate(45deg);
+}
+
+
+
+#venueSelect:not(.edit) .venue-options {
+	display: none;
+}
+#venueSelect .venue-options {
+	display: flex;
+	flex-direction: column;
+	overflow: auto;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	padding-bottom: 20vh;
+}
+#venueSelect .venue-options:empty:before {
+	content: "Keine Veranstaltungen";
+	padding: 0.5em;
+	text-align: center;
+	color: #aaa;
+}
+#venueSelect .venue-options option {
+	flex-shrink: 0;
+	padding: 0.5em;
+	text-align: center;
+	cursor: pointer;
+}
+#venueSelect .venue-options option.selected .name {
+	position: relative;
+}
+#venueSelect .venue-options option.selected .name:before {
+	content: ">";
+	left: -0.8em;
+	margin-right: 0.2em;
+}
+#venueSelect .venue-options option:hover {
+	background-color: #fafafa;
+}
+#venueSelect .venue-options option .name {
+	font-size: 150%;
+	font-weight: bold;
+}
+#venueSelect .venue-options option .date,
+#venueSelect .venue-options option .time {
+	position: relative;
+	top: -0.4em;
+	font-size: 0.7em;
+	color: #aaa;
+}
+#venueSelect .venue-options option .time {
+	margin-left: 0.8em;
+}
+
+
+
+@media screen and (min-width: 800px) {
+	#venueSelect .venue-options {
+		margin-right: auto;
+		padding-left: 3.5em;
+		padding-right: 1em;
+	}
+	#venueSelect .venue-options:empty:before {
+		text-align: left;
+	}
+	#venueSelect .venue-options option {
+		text-align: left;
+	}
+	#venueSelect .venue-options option.selected .name:before {
+		position: absolute;
+	}
+	#venueSelect .venue-options option .date {
+		margin-left: 0.5em;
+	}
+}

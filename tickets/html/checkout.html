@@ -5,12 +5,22 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-		<link type="text/css" rel="stylesheet" href="style/checkout.css">
-		<script src="script/checkout.js" async></script>
+		<link type="text/css" rel="stylesheet" href="./style/style.css">
+		<link type="text/css" rel="stylesheet" href="./style/checkout.css">
+		<link type="text/css" rel="stylesheet" href="./style/checkout/venueSelect.css">
+		<script src="./script/checkout.js" type="module" async></script>
 	</head>
 	<body>
 		<main>
-
+			<div id="venueSelect">
+				<h2 id="selectedVenue">
+					<div class="edit-button"></div>
+					<span class="name"></span>
+					<span class="date"></span>
+					<span class="time"></span>
+				</h2>
+				<div class="venue-options"></div>
+			</div>
 		</main>
 	</body>
 </html>

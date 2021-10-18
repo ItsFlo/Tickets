@@ -65,9 +65,25 @@ function insertSorted(oParent, oElement, sSortOrder, sSortElementSelector=null, 
 }
 
 
+function addLoadListener(listener) {
+	if(typeof listener !== "function") {
+		return;
+	}
+
+	if(document.readyState === "complete") {
+		listener();
+	}
+	else {
+		window.addEventListener("load", listener);
+	}
+}
+
+
 
 export {
 	SORT_ASC,
 	SORT_DESC,
 	insertSorted,
+
+	addLoadListener,
 };
