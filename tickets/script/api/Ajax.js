@@ -282,9 +282,8 @@ class AjaxRequest {
 };
 
 
-export default AjaxRequest;
-export {
-	AjaxRequest,
+export default {
+	Request: AjaxRequest,
 
 	HTTP_STATUS_CODES,
 	getHttpStatusMessage,

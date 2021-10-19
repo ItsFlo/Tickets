@@ -1,5 +1,4 @@
-import * as Ajax from './Ajax.js';
-import AjaxRequest from './Ajax.js';
+import Ajax from './Ajax.js';
 
 function create(sName, sDate, sTime) {
 	if(!sName || !sDate || !sTime) {
@@ -12,7 +11,7 @@ function create(sName, sDate, sTime) {
 		time: sTime,
 	};
 
-	let oAjax = new AjaxRequest(Ajax.PUT);
+	let oAjax = new Ajax.Request(Ajax.PUT);
 	oAjax.open("/api/venue");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
@@ -29,7 +28,7 @@ function deleteVenue(id) {
 		id: id,
 	};
 
-	let oAjax = new AjaxRequest(Ajax.DELETE);
+	let oAjax = new Ajax.Request(Ajax.DELETE);
 	oAjax.open("/api/venue");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
@@ -59,7 +58,7 @@ function update(id, sName, sDate, sTime) {
 		return Promise.reject("No changes set");
 	}
 
-	let oAjax = new AjaxRequest(Ajax.PATCH);
+	let oAjax = new Ajax.Request(Ajax.PATCH);
 	oAjax.open("/api/venue");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
@@ -74,16 +73,16 @@ function getAll(bWithItemCount=false) {
 	}
 	sPath += "/order/desc";
 
-	let oAjax = new AjaxRequest(Ajax.GET);
+	let oAjax = new Ajax.Request(Ajax.GET);
 	oAjax.open(sPath);
 	oAjax.setJsonEncoded();
 	return oAjax.send();
 }
 
 
-export {
+export default {
 	create,
-	deleteVenue as delete,
+	delete: deleteVenue,
 	update,
 	getAll,
 };

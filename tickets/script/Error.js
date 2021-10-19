@@ -2,6 +2,6 @@ function showError(sError) {
 	console.error(sError);
 }
 
-export {
-	showError as show,
+export default {
+	show: showError,
 };

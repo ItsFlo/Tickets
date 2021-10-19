@@ -1,6 +1,6 @@
-import * as Api from '../Api.js';
-import * as Error from '../Error.js';
-import * as Item from './Item.js';
+import Api from '../Api.js';
+import Error from '../Error.js';
+import Item from './Item.js';
 import { SORT_DESC, insertSorted } from '../functions.js';
 
 function stopPropagationListener(ev) {
@@ -380,7 +380,7 @@ function init() {
 
 
 
-export {
+export default {
 	init,
 
 	createElement,

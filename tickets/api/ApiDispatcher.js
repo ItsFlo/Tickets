@@ -1,5 +1,5 @@
 import { HttpDispatcherGroup } from "../../modules/HttpDispatcher.js";
-import { AJAX_METHODS_WITH_BODY } from "../script/api/Ajax.js";
+import Ajax from "../script/api/Ajax.js";
 import oVenueDispatcher from "./VenueDispatcher.js";
 import oItemCategoryDispatcher from "./ItemCategoryDispatcher.js";
 import oItemDispatcher from "./ItemDispatcher.js";
@@ -13,7 +13,7 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 			return;
 		}
 
-		if(AJAX_METHODS_WITH_BODY.includes(request.method)) {
+		if(Ajax.AJAX_METHODS_WITH_BODY.includes(request.method)) {
 			let sRequestBody = "";
 			request.on("data", (chunk) => sRequestBody += chunk);
 			request.on("end", () => {

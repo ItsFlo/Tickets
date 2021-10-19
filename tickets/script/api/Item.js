@@ -1,5 +1,4 @@
-import * as Ajax from './Ajax.js';
-import AjaxRequest from './Ajax.js';
+import Ajax from './Ajax.js';
 
 function create(iItemCategoryID, sName, fPrice) {
 	iItemCategoryID = parseInt(iItemCategoryID);
@@ -14,7 +13,7 @@ function create(iItemCategoryID, sName, fPrice) {
 		price: fPrice,
 	};
 
-	let oAjax = new AjaxRequest(Ajax.PUT);
+	let oAjax = new Ajax.Request(Ajax.PUT);
 	oAjax.open("/api/item");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
@@ -31,7 +30,7 @@ function deleteItem(id) {
 		id: id,
 	};
 
-	let oAjax = new AjaxRequest(Ajax.DELETE);
+	let oAjax = new Ajax.Request(Ajax.DELETE);
 	oAjax.open("/api/item");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
@@ -59,7 +58,7 @@ function update(id, sName, fPrice) {
 		return Promise.reject("No changes set");
 	}
 
-	let oAjax = new AjaxRequest(Ajax.PATCH);
+	let oAjax = new Ajax.Request(Ajax.PATCH);
 	oAjax.open("/api/item");
 	oAjax.setJsonEncoded();
 	return oAjax.send(JSON.stringify(oRequestBody));
@@ -74,16 +73,16 @@ function getAll(iItemCategoryID=null) {
 		sPath += "/itemCategory/" + iItemCategoryID;
 	}
 
-	let oAjax = new AjaxRequest(Ajax.GET);
+	let oAjax = new Ajax.Request(Ajax.GET);
 	oAjax.open(sPath);
 	oAjax.setJsonEncoded();
 	return oAjax.send();
 }
 
 
-export {
+export default {
 	create,
-	deleteItem as delete,
+	delete: deleteItem,
 	update,
 	getAll,
 };

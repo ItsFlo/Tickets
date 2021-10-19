@@ -1,4 +1,4 @@
-import * as VenueSelect from "./checkout/venueSelect.js"
+import VenueSelect from "./checkout/venueSelect.js"
 import { addLoadListener } from "./functions.js";
 
 function documentLoadListener() {

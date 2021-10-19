@@ -1,5 +1,5 @@
-import * as Api from "../Api.js";
-import * as Error from "../Error.js";
+import Api from "../Api.js";
+import Error from "../Error.js";
 import { SORT_DESC, insertSorted } from "../functions.js";
 
 
@@ -220,7 +220,7 @@ function init() {
 }
 
 
-export {
+export default {
 	init,
 
 	addListener,

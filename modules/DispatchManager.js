@@ -11,6 +11,6 @@ function init() {
 }
 
 export default {
-	dispatchManager: oDispatchManager,
 	init,
+	dispatchManager: oDispatchManager,
 };

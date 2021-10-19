@@ -1,7 +1,7 @@
-import * as Api from "../Api.js";
-import * as Error from "../Error.js";
-import * as Venue from "./Venue.js";
-import * as Item from "./Item.js";
+import Api from "../Api.js";
+import Error from "../Error.js";
+import Venue from "./Venue.js";
+import Item from "./Item.js";
 import { SORT_ASC, insertSorted } from "../functions.js";
 
 function clearNewItemCategoryForm() {
@@ -353,7 +353,7 @@ function init() {
 	document.getElementById("newItemCategoryForm").addEventListener("submit", newItemCategoryListener);
 }
 
-export {
+export default {
 	init,
 
 	clearNewItemCategoryForm,
