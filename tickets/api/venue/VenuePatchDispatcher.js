@@ -3,7 +3,7 @@ import TicketConfig from "../../TicketConfig.js";
 import Venue from "../../db/Venue.js";
 
 class VenuePatchDispatcher extends HttpDispatcher {
-	dispatch(sPath, request, response, oPost) {
+	request(sPath, request, response, oPost) {
 		if(sPath) {
 			response.writeHead(404);
 			response.end();

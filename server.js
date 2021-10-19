@@ -22,22 +22,41 @@ const httpsOptions = {
 };
 
 
-function requestListener(request, response) {
+function getPath(request) {
 	let oUrl = new URL(request.url, "https://"+request.headers.host);
-	let sPath = oUrl.pathname;
-
-	response.setHeader("Content-Type", "text/plain");
-	DispatchManager.dispatchManager.dispatch(sPath, request, response);
+	return oUrl.pathname;
 }
 
-const ticketServer = https.createServer(httpsOptions, requestListener);
+const ticketServer = https.createServer(httpsOptions);
 ticketServer.listen(oConfig.getElement("server.https.port", 443));
 
+ticketServer.on("request", (request, response) => {
+	let sPath = getPath(request);
+	response.setHeader("Content-Type", "text/plain");
+	DispatchManager.dispatchManager.request(sPath, request, response);
+});
+ticketServer.on("upgrade", (request, socket, head) => {
+	let sPath = getPath(request);
+	DispatchManager.dispatchManager.upgrade(sPath, request, socket, head);
+});
+ticketServer.on("connect", (request, socket, head) => {
+	let sPath = getPath(request);
+	DispatchManager.dispatchManager.connect(sPath, request, socket, head);
+});
+
+
 if(oConfig.getElement("server.http.enable", false)) {
-	const httpServer = http.createServer(function(request, response) {
-		response.writeHead(301, {
-			"Location": "https://"+request.headers.host+request.url,
-		});
+	const httpServer = http.createServer((request, response) => {
+		if(request.headers.upgrade === "websocket") {
+			response.writeHead(301, {
+				"Location": "wss://"+request.headers.host+request.url,
+			});
+		}
+		else {
+			response.writeHead(301, {
+				"Location": "https://"+request.headers.host+request.url,
+			});
+		}
 		response.end();
 	});
 	httpServer.listen(oConfig.getElement("server.http.port", 80));

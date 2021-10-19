@@ -3,7 +3,7 @@ import TicketConfig from "../../TicketConfig.js";
 import ItemCategory from "../../db/ItemCategory.js";
 
 class ItemCategoryPatchDispatcher extends HttpDispatcher {
-	dispatch(sPath, request, response, oPost) {
+	request(sPath, request, response, oPost) {
 		if(sPath) {
 			response.writeHead(404);
 			response.end();

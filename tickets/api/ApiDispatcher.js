@@ -5,7 +5,7 @@ import oItemCategoryDispatcher from "./ItemCategoryDispatcher.js";
 import oItemDispatcher from "./ItemDispatcher.js";
 
 let oApiDispatcher = new class extends HttpDispatcherGroup {
-	dispatch(sPath, request, response) {
+	request(sPath, request, response) {
 		response.setHeader("Cache-Control", "no-store");
 		if(request.headers["content-type"] !== "application/json") {
 			response.writeHead(400);
@@ -19,7 +19,7 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 			request.on("end", () => {
 				try {
 					let oJson = JSON.parse(sRequestBody);
-					super.dispatch(sPath, request, response, oJson);
+					super.request(sPath, request, response, oJson);
 				} catch(err) {
 					response.writeHead(400);
 					response.end("JSON error");
@@ -27,7 +27,7 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 			});
 		}
 		else {
-			super.dispatch(sPath, request, response, {});
+			super.request(sPath, request, response, {});
 		}
 	}
 }(false);

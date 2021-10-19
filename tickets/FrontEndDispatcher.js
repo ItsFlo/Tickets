@@ -13,7 +13,7 @@ function send404(response) {
 
 const oFrontEndDispatcher = new HttpDispatcher();
 
-oFrontEndDispatcher.dispatch = function(sPath, request, response) {
+oFrontEndDispatcher.request = function(sPath, request, response) {
 	console.log("frontend: ", sPath);
 	sPath = sPath.trim().replace(/^\/+|\/+$/g, "");
 	let aPathElements = sPath.split("/");

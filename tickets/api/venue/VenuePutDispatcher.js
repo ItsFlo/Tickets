@@ -2,7 +2,7 @@ import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 
 class VenuePutDispatcher extends HttpDispatcher {
-	dispatch(sPath, request, response, oPost) {
+	request(sPath, request, response, oPost) {
 		if(sPath) {
 			response.writeHead(404);
 			response.end();

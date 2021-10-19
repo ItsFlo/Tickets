@@ -4,7 +4,7 @@ import { getOrderDirection, getLimit } from "../functions.js";
 import Venue from "../../db/Venue.js";
 
 class VenueGetDispatcher extends HttpDispatcher {
-	dispatch(sPath, request, response) {
+	request(sPath, request, response) {
 		if(!sPath) {
 			response.writeHead(400);
 			response.end();

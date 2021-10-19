@@ -1,8 +1,20 @@
 class HttpDispatcher {
-	dispatch(sPath, request, response) {
+	request(sPath, request, response) {
 		response.writeHead(404);
 		response.end();
 	}
+
+	upgrade(sPath, request, socket, head) {
+		socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+		socket.destroy();
+	}
+
+	connect(sPath, request, socket, head) {
+		socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+		socket.destroy();
+	}
+
+
 
 	splitPath(sPath) {
 		if(typeof sPath !== "string") {
@@ -28,7 +40,11 @@ class HttpDispatcher {
 
 class HttpDispatcherGroup extends HttpDispatcher {
 	moDispatchers = {};
-	moFallbackDispatcher = null;
+	moFallbackDispatcher = {
+		request: null,
+		upgrade: null,
+		connect: null,
+	};
 	mbCaseSensitive;
 
 	constructor(bCaseSensitive=false) {
@@ -37,25 +53,66 @@ class HttpDispatcherGroup extends HttpDispatcher {
 	}
 
 	setFallbackDispatcher(oDispatcher) {
-		this.moFallbackDispatcher = (oDispatcher instanceof HttpDispatcher? oDispatcher : null);
+		this.setRequestFallbackDispatcher(oDispatcher);
+		this.setUpgradeFallbackDispatcher(oDispatcher);
+		this.setConnectFallbackDispatcher(oDispatcher);
 		return this;
 	}
-	dispatchFallback(sPath, request, response, ...args) {
-		if(this.moFallbackDispatcher instanceof HttpDispatcher) {
-			this.moFallbackDispatcher.dispatch(sPath, request, response, ...args);
+	setRequestFallbackDispatcher(oDispatcher) {
+		if(oDispatcher instanceof HttpDispatcher) {
+			this.moFallbackDispatcher.request = oDispatcher;
+		}
+		return this;
+	}
+	setUpgradeFallbackDispatcher(oDispatcher) {
+		if(oDispatcher instanceof HttpDispatcher) {
+			this.moFallbackDispatcher.upgrade = oDispatcher;
+		}
+		return this;
+	}
+	setConnectFallbackDispatcher(oDispatcher) {
+		if(oDispatcher instanceof HttpDispatcher) {
+			this.moFallbackDispatcher.connect = oDispatcher;
+		}
+		return this;
+	}
+
+	fallbackRequest(sPath, request, response, ...args) {
+		if(this.moFallbackDispatcher.request instanceof HttpDispatcher) {
+			this.moFallbackDispatcher.request.request(sPath, request, response, ...args);
 		}
 		else {
-			super.dispatch(sPath, request, response, ...args);
+			super.request(sPath, request, response, ...args);
+		}
+		return this;
+	}
+	fallbackUpgrade(sPath, request, socket, head) {
+		if(this.moFallbackDispatcher.upgrade instanceof HttpDispatcher) {
+			this.moFallbackDispatcher.upgrade.upgrade(sPath, request, socket, head);
+		}
+		else {
+			super.upgrade(sPath, request, socket, head);
+		}
+		return this;
+	}
+	fallbackConnect(sPath, request, socket, head) {
+		if(this.moFallbackDispatcher.connect instanceof HttpDispatcher) {
+			this.moFallbackDispatcher.connect.connect(sPath, request, socket, head);
+		}
+		else {
+			super.connect(sPath, request, socket, head);
 		}
 		return this;
 	}
 
 
 
-	dispatch(sPath, request, response, ...args) {
+	getDispatcher(sPath) {
 		if(typeof sPath !== "string") {
-			this.dispatchFallback(sPath, request, response, ...args);
-			return;
+			return {
+				dispatcher: null,
+				path: sPath,
+			};
 		}
 
 		let sPathCopy = sPath;
@@ -64,8 +121,10 @@ class HttpDispatcherGroup extends HttpDispatcher {
 		}
 		let aPathElements = this.splitPath(sPathCopy);
 		if(!aPathElements) {
-			this.dispatchFallback("", request, response, ...args);
-			return;
+			return {
+				dispatcher: null,
+				path: "",
+			};
 		}
 
 		let iLen = aPathElements.length - 1;
@@ -74,12 +133,15 @@ class HttpDispatcherGroup extends HttpDispatcher {
 			let sIndex = aPathElements[ii];
 			if(!oDispatcherParent.hasOwnProperty(sIndex)) {
 				if(!ii && this.moDispatchers.hasOwnProperty("/")) {
-					this.moDispatchers["/"].dispatch(sPath, request, response, ...args);
+					return {
+						dispatcher: this.moDispatchers["/"],
+						path: sPath,
+					};
 				}
-				else {
-					this.dispatchFallback(sPath, request, response, ...args);
-				}
-				return;
+				return {
+					dispatcher: null,
+					path: sPath,
+				};
 			}
 			oDispatcherParent = oDispatcherParent[sIndex];
 
@@ -88,20 +150,58 @@ class HttpDispatcherGroup extends HttpDispatcher {
 				for(let kk=ii+2;kk<=iLen;++kk) {
 					sNewPath += "/"+aPathElements[kk];
 				}
-				oDispatcherParent.dispatch(sNewPath, request, response, ...args);
-				return;
+				return {
+					dispatcher: oDispatcherParent,
+					path: sNewPath,
+				};
 			}
 		}
 		if(oDispatcherParent.hasOwnProperty(aPathElements[iLen]) && oDispatcherParent[aPathElements[iLen]] instanceof HttpDispatcher) {
-			oDispatcherParent[aPathElements[iLen]].dispatch("", request, response, ...args);
-			return;
+			return {
+				dispatcher: oDispatcherParent[aPathElements[iLen]],
+				path: "",
+			};
 		}
 
 		if(this.moDispatchers.hasOwnProperty("/")) {
-			this.moDispatchers["/"].dispatch(sPath, request, response, ...args);
+			return {
+				dispatcher: this.moDispatchers["/"],
+				path: sPath,
+			};
+		}
+		return {
+			dispatcher: null,
+			path: sPath,
+		};
+	}
+
+	request(sPath, request, response, ...args) {
+		let {dispatcher: oDispatcher, path: sNewPath} = this.getDispatcher(sPath);
+		if(oDispatcher) {
+			oDispatcher.request(sNewPath, request, response, ...args);
 		}
 		else {
-			this.dispatchFallback(sPath, request, response, ...args);
+			this.fallbackRequest(sNewPath, request, response, ...args);
+		}
+	}
+
+	upgrade(sPath, request, socket, head) {
+		let {dispatcher: oDispatcher, path: sNewPath} = this.getDispatcher(sPath);
+		if(oDispatcher) {
+			oDispatcher.upgrade(sNewPath, request, socket, head);
+		}
+		else {
+			this.fallbackUpgrade(sNewPath, request, socket, head);
+		}
+	}
+
+	connect(sPath, request, socket, head) {
+		let {dispatcher: oDispatcher, path: sNewPath} = this.getDispatcher(sPath);
+		if(oDispatcher) {
+			oDispatcher.connect(sNewPath, request, socket, head);
+		}
+		else {
+			this.fallbackConnect(sNewPath, request, socket, head);
 		}
 	}
 
@@ -139,14 +239,25 @@ class HttpDispatcherGroup extends HttpDispatcher {
 class HttpMethodDispatcher extends HttpDispatcher {
 	moDispatchers = {};
 
-	dispatch(sPath, request, response, ...args) {
-		if(this.moDispatchers.hasOwnProperty(request.method) && this.moDispatchers[request.method] instanceof HttpDispatcher) {
-			this.moDispatchers[request.method].dispatch(sPath, request, response, ...args);
+	request(sPath, request, response, ...args) {
+		if(this.moDispatchers[request.method] instanceof HttpDispatcher) {
+			this.moDispatchers[request.method].request(sPath, request, response, ...args);
 		}
 		else {
-			super.dispatch(sPath, request, response, ...args);
+			super.request(sPath, request, response, ...args);
 		}
 	}
+
+	connect(sPath, request, socket, head) {
+		if(this.moDispatchers["CONNECT"] instanceof HttpDispatcher) {
+			this.moDispatchers["CONNECT"].connect(sPath, request, socket, head);
+		}
+		else {
+			super.connect(sPath, request, socket, head);
+		}
+	}
+
+
 
 	setGetDispatcher(oDispatcher) {
 		if(oDispatcher instanceof HttpDispatcher) {

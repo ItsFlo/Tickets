@@ -4,7 +4,7 @@ import { getOrderDirection, getLimit } from "../functions.js";
 import Item from "../../db/Item.js";
 
 class ItemGetDispatcher extends HttpDispatcher {
-	dispatch(sPath, request, response) {
+	request(sPath, request, response) {
 		if(!sPath) {
 			response.writeHead(400);
 			response.end();
