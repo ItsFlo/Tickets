@@ -1,5 +1,6 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
+import Events from "../../Events.js";
 import Item from "../../db/Item.js";
 
 class ItemPatchDispatcher extends HttpDispatcher {
@@ -54,6 +55,9 @@ class ItemPatchDispatcher extends HttpDispatcher {
 				response.setHeader("Content-Type", "application/json");
 				response.writeHead(200);
 				response.end("{}");
+
+				oUpdates.id = iID;
+				Events.sendEvent(Item.TABLE, "update", JSON.stringify(oUpdates));
 			}
 		});
 	}

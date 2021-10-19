@@ -1,5 +1,6 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
+import Venue from "../../db/Venue.js";
 
 class VenuePutDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
@@ -34,6 +35,13 @@ class VenuePutDispatcher extends HttpDispatcher {
 				response.writeHead(201);
 				response.end(JSON.stringify({
 					id: lastID,
+				}));
+
+				Events.sendEvent(Venue.TABLE, "create", JSON.stringify({
+					id: lastID,
+					name: oPost.name,
+					date: oPost.date,
+					time: oPost.time,
 				}));
 			}
 		});

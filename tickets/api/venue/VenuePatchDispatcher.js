@@ -62,6 +62,9 @@ class VenuePatchDispatcher extends HttpDispatcher {
 				response.setHeader("Content-Type", "application/json");
 				response.writeHead(200);
 				response.end("{}");
+
+				oUpdates.id = iID;
+				Events.sendEvent(Venue.TABLE, "update", JSON.stringify(oUpdates));
 			}
 		});
 	}

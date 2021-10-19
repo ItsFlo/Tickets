@@ -1,5 +1,6 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
+import ItemCategory from "../../db/ItemCategory.js";
 
 class ItemCategoryPutDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
@@ -30,6 +31,12 @@ class ItemCategoryPutDispatcher extends HttpDispatcher {
 				response.writeHead(201);
 				response.end(JSON.stringify({
 					id: lastID,
+				}));
+
+				Events.sendEvent(ItemCategory.TABLE, "create", JSON.stringify({
+					id: lastID,
+					venue: iVenueID,
+					name: oPost.name,
 				}));
 			}
 		});

@@ -1,5 +1,6 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
+import Venue from "../../db/Venue.js";
 
 class VenueDeleteDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
@@ -24,6 +25,10 @@ class VenueDeleteDispatcher extends HttpDispatcher {
 				response.setHeader("Content-Type", "application/json");
 				response.writeHead(200);
 				response.end("{}");
+
+				Events.sendEvent(Venue.TABLE, "delete", JSON.stringify({
+					id: iID,
+				}));
 			}
 		});
 	}

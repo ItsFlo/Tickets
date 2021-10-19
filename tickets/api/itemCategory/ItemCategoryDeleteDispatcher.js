@@ -1,5 +1,6 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
+import ItemCategory from "../../db/ItemCategory.js";
 
 class ItemCategoryDeleteDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
@@ -24,6 +25,10 @@ class ItemCategoryDeleteDispatcher extends HttpDispatcher {
 				response.setHeader("Content-Type", "application/json");
 				response.writeHead(200);
 				response.end("{}");
+
+				Events.sendEvent(ItemCategory.TABLE, "delete", JSON.stringify({
+					id: iID,
+				}));
 			}
 		});
 	}

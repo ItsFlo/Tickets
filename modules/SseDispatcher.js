@@ -4,14 +4,19 @@ class SseDispatcher extends HttpDispatcher {
 	maConnections = [];
 
 	request(sPath, request, response, ...args) {
-		if(sPath || request.headers.accept !== "text/event-stream") {
+		if(sPath) {
 			super.request(sPath, request, response, ...args);
+			return;
+		}
+		if(request.headers.accept !== "text/event-stream") {
+			response.writeHead(400);
+			response.end();
 			return;
 		}
 		response.setHeader("Cache-Control", "no-cache");
 		response.setHeader("Content-Type", "text/event-stream");
 		response.writeHead(200);
-		response.write("");
+		response.write(":\n\n");
 
 		response.on("close", () => {
 			let iIndex = this.maConnections.indexOf(response);
