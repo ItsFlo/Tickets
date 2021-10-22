@@ -27,7 +27,7 @@ class OrderItem extends DbTable {
 			"${COL_ID}" INTEGER PRIMARY KEY,
 			"${COL_ORDER}" INTEGER NOT NULL,
 			"${COL_ITEM}" INTEGER NOT NULL,
-			"${COL_COUNT}" INTEGER,
+			"${COL_COUNT}" INTEGER DEFAULT 1,
 			"${COL_STATUS}" TEXT,
 
 			UNIQUE("${COL_ORDER}", "${COL_ITEM}"),

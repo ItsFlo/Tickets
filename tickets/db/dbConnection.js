@@ -56,6 +56,18 @@ class DbConnection extends sqlite3.Database {
 			}
 		});
 	}
+
+
+
+	startTransaction() {
+		super.run("BEGIN TRANSACTION");
+	}
+	commitTransaction() {
+		super.run("COMMIT TRANSACTION");
+	}
+	rollbackTransaction() {
+		super.run("ROLLBACK TRANSACTION");
+	}
 }
 
 export default DbConnection;

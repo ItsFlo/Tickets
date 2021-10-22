@@ -8,19 +8,31 @@
 		<link type="text/css" rel="stylesheet" href="./style/style.css">
 		<link type="text/css" rel="stylesheet" href="./style/checkout.css">
 		<link type="text/css" rel="stylesheet" href="./style/checkout/venueSelect.css">
+		<link type="text/css" rel="stylesheet" href="./style/checkout/newOrder.css">
 		<script src="./script/checkout.js" type="module" async></script>
 	</head>
 	<body>
+		<div id="venueSelect">
+			<h2 id="selectedVenue">
+				<div class="edit-button"></div>
+				<span class="name"></span>
+				<span class="date"></span>
+				<span class="time"></span>
+			</h2>
+			<div class="venue-options"></div>
+		</div>
+
 		<main>
-			<div id="venueSelect">
-				<h2 id="selectedVenue">
-					<div class="edit-button"></div>
-					<span class="name"></span>
-					<span class="date"></span>
-					<span class="time"></span>
-				</h2>
-				<div class="venue-options"></div>
+			<div id="newOrder">
+				<h2>neue Bestellung</h2>
+				<div class="item-categories"></div>
+				<div class="order-sum">
+					<input type="button" value="Bestellung aufgeben">
+					<span class="sum"></span>
+				</div>
 			</div>
+
+			<div class="open-orders"></div>
 		</main>
 	</body>
 </html>

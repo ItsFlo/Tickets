@@ -1,0 +1,112 @@
+#newOrder {
+	margin: 1em;
+	padding: 1em;
+	border: solid 2px #ddd;
+	border-radius: 1em;
+}
+
+#newOrder > h2 {
+	margin: 0;
+	padding-left: 1em;
+	padding-right: 1em;
+	padding-bottom: 0.1em;
+	text-align: center;
+	border-bottom: 1px solid #eee;
+}
+
+#newOrder .items .item {
+	min-height: calc(1.2em + 2px);
+	padding-left: 1em;
+	margin-bottom: 1em;
+}
+#newOrder .items .item .price {
+	margin-left: 0.3em;
+	margin-right: 0.3em;
+	color: #999;
+	font-size: 75%;
+}
+#newOrder .items .item .price:before {
+	content: "(";
+}
+#newOrder .items .item .price:after {
+	content: " €)";
+	margin-right: 1em;
+}
+
+#newOrder .items .item .count {
+	float: right;
+}
+#newOrder .items .item .count input {
+	z-index: 1;
+	position: relative;
+	width: 2em;
+	height: 1.2em;
+	margin: 0;
+	padding: 0;
+	-webkit-appearance: none;
+	-moz-appearance: textfield;
+
+	border: 1px solid #888;
+	border-left-width: 0;
+	border-right-width: 0;
+	outline: none;
+	background: none;
+
+	font-size: 100%;
+	text-align: center;
+	vertical-align: middle;
+}
+#newOrder .items .item .count .button {
+	display: inline-block;
+	width: 1.2em;
+	height: 1.2em;
+	border: 1px solid #888;
+	font-size: 100%;
+	text-align: center;
+	vertical-align: middle;
+	cursor: pointer;
+}
+#newOrder .items .item .count .button.plus {
+	margin-left: -1px;
+	border-radius: 0 0.3em 0.3em 0;
+	border-left-color: #eee;
+}
+#newOrder .items .item .count .button.minus {
+	margin-right: -1px;
+	border-radius: 0.3em 0 0 0.3em;
+	border-right-color: #eee;
+}
+#newOrder .items .item .count .button.plus:before {
+	content: "+";
+}
+#newOrder .items .item .count .button.minus:before {
+	content: "-";
+}
+
+#newOrder .items .item .count .sum {
+	display: inline-block;
+	width: 4.5em;
+	text-align: right;
+	vertical-align: middle;
+}
+
+
+
+#newOrder > .order-sum {
+	margin-top: 1.7em;
+	text-align: right;
+}
+#newOrder > .order-sum input {
+	margin-right: 0.7em;
+	cursor: pointer;
+}
+#newOrder > .order-sum .sum {
+	padding-top: 0.3em;
+	padding-left: 0.7em;
+	padding-right: 0.5em;
+	border-top: 2px solid #555;
+}
+#newOrder > .order-sum .sum:after,
+#newOrder .items .item .count .sum:after {
+	content: " €";
+}

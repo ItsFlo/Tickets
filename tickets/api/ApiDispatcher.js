@@ -3,6 +3,7 @@ import Ajax from "../script/api/Ajax.js";
 import oVenueDispatcher from "./VenueDispatcher.js";
 import oItemCategoryDispatcher from "./ItemCategoryDispatcher.js";
 import oItemDispatcher from "./ItemDispatcher.js";
+import oOrderDispatcher from "./OrderDispatcher.js";
 
 let oApiDispatcher = new class extends HttpDispatcherGroup {
 	request(sPath, request, response) {
@@ -35,6 +36,7 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 oApiDispatcher.addDispatcher("venue", oVenueDispatcher);
 oApiDispatcher.addDispatcher("item", oItemDispatcher);
 oApiDispatcher.addDispatcher("itemCategory", oItemCategoryDispatcher);
+oApiDispatcher.addDispatcher("order", oOrderDispatcher);
 
 
 

@@ -1,5 +1,6 @@
 import { DbTable, COL_ID, addConstants } from "./DbTable.js";
 import ItemCategory from "./ItemCategory.js";
+import OrderItem from "./OrderItem.js";
 
 const TABLE = "item";
 
@@ -49,6 +50,14 @@ class Item extends DbTable {
 			sortOrder = COL_NAME;
 		}
 		return this.getAllWhere(sWhere, [itemCategory], callback, sortOrder, limit);
+	}
+
+	getAllForOrder(orderID, callback, sortOrder, limit) {
+		let sQuery = `SELECT it.* FROM "${TABLE}" it INNER JOIN "${OrderItem.TABLE}" oi ON it."${COL_ID}" = oi."${OrderItem.COL_ITEM}"`
+					+ ` WHERE oi."${OrderItem.COL_ORDER}" = ?`;
+		sQuery += this.getOrderClause(sortOrder);
+		sQuery += this.getLimitClause(limit);
+		this.moDb.all(sQuery, [orderID], callback);
 	}
 
 	create(itemCategory, name, price, callback) {

@@ -1,5 +1,7 @@
 import { DbTable, COL_ID, addConstants } from "./DbTable.js";
 import Venue from "./Venue.js";
+import Item from "./Item.js";
+import OrderItem from "./OrderItem.js";
 
 const TABLE = "order";
 
@@ -75,6 +77,24 @@ class Order extends DbTable {
 	updateByOrderNumber(venue, orderNumber, updates, callback) {
 		let sWhere = `"${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
 		return this.updateWhere(sWhere, [venue, orderNumber], updates, callback);
+	}
+
+	recalculatePrice(id, callback) {
+		id = parseInt(id);
+		if(isNaN(id)) {
+			if(typeof callback === "function") {
+				callback(Error("No id provided"));
+			}
+			return;
+		}
+
+		let sSubQuery = `SELECT SUM(it."${Item.COL_PRICE}" * oi."${OrderItem.COL_COUNT}") FROM "${OrderItem.TABLE}" oi INNER JOIN "${Item.TABLE}" it ON oi."${OrderItem.COL_ITEM}" = it."${Item.COL_ID}"`
+					+ ` WHERE oi."${OrderItem.COL_ORDER}" = ?`;
+
+		let sQuery = `UPDATE "${TABLE}" SET "${COL_PRICE}" = (${sSubQuery}) WHERE "${COL_ID}" = ?`;
+		let aValues = [id, id];
+
+		this.moDb.run(sQuery, aValues, callback);
 	}
 
 	create(venue, price, status, callback) {
