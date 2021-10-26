@@ -3,6 +3,7 @@ import TicketConfig from "../../TicketConfig.js";
 import Events from "../../Events.js";
 import Order from "../../db/Order.js";
 import Item from "../../db/Item.js";
+import OrderGetter from "./OrderGetter.js";
 
 class OrderPutDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
@@ -48,7 +49,7 @@ class OrderPutDispatcher extends HttpDispatcher {
 				let iOrderID = lastID;
 				this.createOrderItems(response, iOrderID, aItems);
 			}
-		})
+		});
 	}
 
 
@@ -73,7 +74,7 @@ class OrderPutDispatcher extends HttpDispatcher {
 			for(let oResult of aResults) {
 				if(oResult.status === "rejected") {
 					response.writeHead(500);
-					response.end(err.message);
+					response.end(oResult.reason.message);
 					TicketConfig.db.rollbackTransaction();
 					return;
 				}
@@ -106,21 +107,9 @@ class OrderPutDispatcher extends HttpDispatcher {
 
 
 	sendCreateEvent(iOrderID) {
-		TicketConfig.db.order.getByID(iOrderID, (err, row) => {
-			if(err) {
-				return;
-			}
-			let oEventData = row;
-
-			TicketConfig.db.item.getAllForOrder(iOrderID, (err, rows) => {
-				if(err) {
-					return;
-				}
-
-				oEventData.items = rows;
-				Events.sendEvent(Order.TABLE, "create", JSON.stringify(oEventData));
-			}, Item.COL_NAME);
-		})
+		OrderGetter.getOrder(iOrderID).then(oOrder => {
+			Events.sendEvent(Order.TABLE, "create", oOrder);
+		});
 	}
 };
 

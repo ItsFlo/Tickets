@@ -21,15 +21,15 @@ function addEventDispatcher(sEventCategory, oSseDispatcher) {
 
 
 
-function sendEvent(sEventCategory, sEventName, sData) {
-	if(!sEventCategory || typeof sEventCategory !== "string" || !sEventName || typeof sEventName !== "string" || !sData || typeof sData !== "string") {
+function sendEvent(sEventCategory, sEventName, data) {
+	if(!sEventCategory || typeof sEventCategory !== "string" || !sEventName || typeof sEventName !== "string" || !data) {
 		return;
 	}
 
 	if(oEventQueue[sEventCategory]) {
 		oEventQueue[sEventCategory].push({
 			event: sEventName,
-			data: sData,
+			data: data,
 		});
 	}
 }

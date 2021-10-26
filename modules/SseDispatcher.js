@@ -13,16 +13,21 @@ class SseDispatcher extends HttpDispatcher {
 			response.end();
 			return;
 		}
+		this.initConnection(response);
+		response.on("close", () => {
+			let iIndex = this.maConnections.indexOf(response);
+			if(iIndex > -1) {
+				this.maConnections.splice(iIndex, 1);
+			}
+		});
+
+		this.maConnections.push(response);
+	}
+	initConnection(response) {
 		response.setHeader("Cache-Control", "no-cache");
 		response.setHeader("Content-Type", "text/event-stream");
 		response.writeHead(200);
 		response.write(":\n\n");
-
-		response.on("close", () => {
-			let iIndex = this.maConnections.indexOf(response);
-			this.maConnections.splice(iIndex, 1);
-		});
-		this.maConnections.push(response);
 	}
 
 
@@ -35,15 +40,21 @@ class SseDispatcher extends HttpDispatcher {
 	}
 
 
-	formatEvent(sEvent) {
-		let iNewLineIndex = sEvent.indexOf("\n");
+	formatEvent(sEventName) {
+		let iNewLineIndex = sEventName.indexOf("\n");
 		if(iNewLineIndex !== -1) {
-			sEvent = sEvent.substring(0, iNewLineIndex);
+			sEventName = sEventName.substring(0, iNewLineIndex);
 		}
-		return "event: " + sEvent;
+		return "event: " + sEventName;
 	}
 	formatData(sData) {
 		return "data: " + sData.split("\n").join("\ndata: ");
+	}
+	formatMessage(sEventName, sData) {
+		let sMessage = this.formatEvent(sEventName);
+		sMessage += "\n" + this.formatData(sData);
+		sMessage += "\n\n";
+		return sMessage;
 	}
 
 	send(sData) {
@@ -58,13 +69,21 @@ class SseDispatcher extends HttpDispatcher {
 		}
 	}
 	sendEvent(sEventName, sData) {
-		if(!sEventName || typeof sEventName !== "string" || !sData || typeof sData !== "string") {
+		if(!sEventName || typeof sEventName !== "string" || !sData) {
 			return;
 		}
-		let sMessage = this.formatEvent(sEventName);
-		sMessage += "\n" + this.formatData(sData);
+		if(typeof sData !== "string") {
+			try {
+				sData = JSON.stringify(sData);
+			} catch (err) {
+				return;
+			}
+			if(!sData) {
+				return;
+			}
+		}
 
-		sMessage += "\n\n";
+		let sMessage = this.formatMessage(sEventName, sData);
 		for(let oConnection of this.maConnections) {
 			oConnection.write(sMessage);
 		}

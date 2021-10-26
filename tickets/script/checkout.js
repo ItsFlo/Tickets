@@ -1,6 +1,7 @@
 import VenueSelect from "./checkout/venueSelect.js"
 import { addLoadListener } from "./functions.js";
 import NewOrder from "./checkout/newOrder.js";
+import OpenOrders from "./checkout/openOrders.js";
 
 function documentLoadListener() {
 	VenueSelect.init();
@@ -11,6 +12,7 @@ function documentLoadListener() {
 		}
 		else {
 			NewOrder.loadItemCategories(iVenueID);
+			OpenOrders.loadOrders(iVenueID);
 		}
 	});
 

@@ -35,7 +35,7 @@ class ItemCategoryPatchDispatcher extends HttpDispatcher {
 			return;
 		}
 
-		TicketConfig.db.itemCategory.update(iID, oUpdates, (err) => {
+		TicketConfig.db.itemCategory.update(iID, oUpdates, (err, changes) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -45,8 +45,10 @@ class ItemCategoryPatchDispatcher extends HttpDispatcher {
 				response.writeHead(200);
 				response.end("{}");
 
-				oUpdates.id = iID;
-				Events.sendEvent(ItemCategory.TABLE, "update", JSON.stringify(oUpdates));
+				if(changes) {
+					oUpdates.id = iID;
+					Events.sendEvent(ItemCategory.TABLE, "update", JSON.stringify(oUpdates));
+				}
 			}
 		});
 	}

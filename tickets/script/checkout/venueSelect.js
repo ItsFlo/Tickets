@@ -130,7 +130,7 @@ function getClosestOption(oDate) {
 		let oOptionDate = new Date(oOption.dataset.dateTime);
 		if(oOptionDate < oDate) {
 			if(iLastDistance !== null) {
-				if(oDate - oOption < iLastDistance) {
+				if(oDate - oOptionDate < iLastDistance) {
 					return oOption;
 				}
 				return oLastOption;

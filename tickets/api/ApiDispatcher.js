@@ -8,13 +8,14 @@ import oOrderDispatcher from "./OrderDispatcher.js";
 let oApiDispatcher = new class extends HttpDispatcherGroup {
 	request(sPath, request, response) {
 		response.setHeader("Cache-Control", "no-store");
-		if(request.headers["content-type"] !== "application/json") {
-			response.writeHead(400);
-			response.end("Content-Type 'application/json' expected");
-			return;
-		}
 
 		if(Ajax.AJAX_METHODS_WITH_BODY.includes(request.method)) {
+			if(request.headers["content-type"] !== "application/json") {
+				response.writeHead(400);
+				response.end("Content-Type 'application/json' expected");
+				return;
+			}
+
 			let sRequestBody = "";
 			request.on("data", (chunk) => sRequestBody += chunk);
 			request.on("end", () => {

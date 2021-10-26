@@ -16,7 +16,7 @@ class VenueDeleteDispatcher extends HttpDispatcher {
 			return;
 		}
 
-		TicketConfig.db.venue.delete(iID, (err) => {
+		TicketConfig.db.venue.delete(iID, (err, changes) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -26,9 +26,11 @@ class VenueDeleteDispatcher extends HttpDispatcher {
 				response.writeHead(200);
 				response.end("{}");
 
-				Events.sendEvent(Venue.TABLE, "delete", JSON.stringify({
-					id: iID,
-				}));
+				if(changes) {
+					Events.sendEvent(Venue.TABLE, "delete", JSON.stringify({
+						id: iID,
+					}));
+				}
 			}
 		});
 	}

@@ -118,9 +118,9 @@ class DbTable {
 		sQuery += ` WHERE ` + where;
 		aValues = aValues.concat(aWhereValues);
 
-		this.moDb.run(sQuery, aValues, (err) => {
+		this.moDb.run(sQuery, aValues, function(err) {
 			if(typeof callback === "function") {
-				callback(err);
+				callback(err, this? this.changes : undefined);
 			}
 		});
 		return this;
@@ -171,7 +171,11 @@ class DbTable {
 			callback = undefined;
 		}
 		let sQuery = `DELETE FROM "${this.constructor.TABLE}" WHERE "${COL_ID}" = ?`;
-		this.moDb.run(sQuery, [id], callback);
+		this.moDb.run(sQuery, [id], function(err) {
+			if(typeof callback === "function") {
+				callback(err, this? this.changes : undefined);
+			}
+		});
 		return this;
 	}
 };

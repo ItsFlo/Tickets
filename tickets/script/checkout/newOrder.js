@@ -84,7 +84,8 @@ function recalculateItemPrice(oItem) {
 
 	recalculateOrderSum();
 }
-function plusListener() {
+function plusListener(ev) {
+	ev.preventDefault();
 	let oInput = this.parentNode.querySelector("input");
 	let fCurPrice = parseFloat(oInput.value) ?? 0;
 	++fCurPrice;
@@ -93,7 +94,8 @@ function plusListener() {
 	let oItem = oInput.closest(".item");
 	recalculateItemPrice(oItem);
 }
-function minusListener() {
+function minusListener(ev) {
+	ev.preventDefault();
 	let oInput = this.parentNode.querySelector("input");
 	let fCurPrice = parseFloat(oInput.value) ?? 0;
 	if(fCurPrice > 0) {
@@ -113,6 +115,9 @@ function inputListener() {
 	let oItem = this.closest(".item");
 	recalculateItemPrice(oItem);
 }
+function dblclickListener(ev) {
+	ev.preventDefault();
+}
 function createItem(oItem) {
 	let oElement = document.createElement("div");
 	oElement.classList.add("item");
@@ -123,6 +128,9 @@ function createItem(oItem) {
 	let oPrice = document.createElement("span");
 	oPrice.classList.add("price");
 	oPrice.innerHTML = oItem.price.toFixed(2);
+
+	let oDots = document.createElement("span");
+	oDots.classList.add("dots");
 
 	let oCount = document.createElement("div");
 	oCount.classList.add("count");
@@ -139,10 +147,12 @@ function createItem(oItem) {
 	oPlusButton.classList.add("button");
 	oPlusButton.classList.add("plus");
 	oPlusButton.addEventListener("click", plusListener);
+	oPlusButton.addEventListener("dblclick", dblclickListener);
 	let oMinusButton = document.createElement("span");
 	oMinusButton.classList.add("button");
 	oMinusButton.classList.add("minus");
 	oMinusButton.addEventListener("click", minusListener);
+	oMinusButton.addEventListener("dblclick", dblclickListener);
 
 	let oSum = document.createElement("span");
 	oSum.classList.add("sum");
@@ -157,6 +167,7 @@ function createItem(oItem) {
 
 	oElement.appendChild(oName);
 	oElement.appendChild(oPrice);
+	oElement.appendChild(oDots);
 	oElement.appendChild(oCount);
 
 	oElement.dataset.itemId = oItem.id;

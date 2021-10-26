@@ -1,5 +1,4 @@
 #newOrder {
-	margin: 1em;
 	padding: 1em;
 	border: solid 2px #ddd;
 	border-radius: 1em;
@@ -15,26 +14,32 @@
 }
 
 #newOrder .items .item {
+	display: flex;
 	min-height: calc(1.2em + 2px);
 	padding-left: 1em;
 	margin-bottom: 1em;
 }
 #newOrder .items .item .price {
 	margin-left: 0.3em;
-	margin-right: 0.3em;
 	color: #999;
 	font-size: 75%;
+	white-space: nowrap;
 }
 #newOrder .items .item .price:before {
 	content: "(";
 }
 #newOrder .items .item .price:after {
 	content: " €)";
-	margin-right: 1em;
+}
+
+#newOrder .items .item .dots {
+	flex-grow: 1;
+	border-bottom: 1px dotted #aaa;
+	margin: 0 1em;
 }
 
 #newOrder .items .item .count {
-	float: right;
+	white-space: nowrap;
 }
 #newOrder .items .item .count input {
 	z-index: 1;

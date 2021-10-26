@@ -17,7 +17,7 @@ class ItemDeleteDispatcher extends HttpDispatcher {
 			return;
 		}
 
-		TicketConfig.db.item.delete(iID, (err) => {
+		TicketConfig.db.item.delete(iID, (err, changes) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -27,9 +27,11 @@ class ItemDeleteDispatcher extends HttpDispatcher {
 				response.writeHead(200);
 				response.end("{}");
 
-				Events.sendEvent(Item.TABLE, "delete", JSON.stringify({
-					id: iID,
-				}));
+				if(changes) {
+					Events.sendEvent(Item.TABLE, "delete", JSON.stringify({
+						id: iID,
+					}));
+				}
 			}
 		});
 	}

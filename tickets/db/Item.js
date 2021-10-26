@@ -53,7 +53,7 @@ class Item extends DbTable {
 	}
 
 	getAllForOrder(orderID, callback, sortOrder, limit) {
-		let sQuery = `SELECT it.* FROM "${TABLE}" it INNER JOIN "${OrderItem.TABLE}" oi ON it."${COL_ID}" = oi."${OrderItem.COL_ITEM}"`
+		let sQuery = `SELECT it.*, oi."${OrderItem.COL_COUNT}" FROM "${TABLE}" it INNER JOIN "${OrderItem.TABLE}" oi ON it."${COL_ID}" = oi."${OrderItem.COL_ITEM}"`
 					+ ` WHERE oi."${OrderItem.COL_ORDER}" = ?`;
 		sQuery += this.getOrderClause(sortOrder);
 		sQuery += this.getLimitClause(limit);

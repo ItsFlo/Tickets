@@ -1,6 +1,7 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import ItemCategory from "../../db/ItemCategory.js";
+import Events from "../../Events.js";
 
 class ItemCategoryDeleteDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
@@ -16,7 +17,7 @@ class ItemCategoryDeleteDispatcher extends HttpDispatcher {
 			return;
 		}
 
-		TicketConfig.db.itemCategory.delete(iID, (err) => {
+		TicketConfig.db.itemCategory.delete(iID, (err, changes) => {
 			if(err) {
 				response.writeHead(500);
 				response.end(err.message);
@@ -26,9 +27,11 @@ class ItemCategoryDeleteDispatcher extends HttpDispatcher {
 				response.writeHead(200);
 				response.end("{}");
 
-				Events.sendEvent(ItemCategory.TABLE, "delete", JSON.stringify({
-					id: iID,
-				}));
+				if(changes) {
+					Events.sendEvent(ItemCategory.TABLE, "delete", JSON.stringify({
+						id: iID,
+					}));
+				}
 			}
 		});
 	}

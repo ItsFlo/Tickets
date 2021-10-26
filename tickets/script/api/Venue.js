@@ -75,7 +75,6 @@ function getAll(bWithItemCount=false) {
 
 	let oAjax = new Ajax.Request(Ajax.GET);
 	oAjax.open(sPath);
-	oAjax.setJsonEncoded();
 	return oAjax.send();
 }
 
