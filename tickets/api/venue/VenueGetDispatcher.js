@@ -33,7 +33,7 @@ class VenueGetDispatcher extends HttpDispatcher {
 
 		if(dispatchFunction) {
 			aPathElements.shift();
-			dispatchFunction.call(this, response, aPathElements);
+			dispatchFunction.call(this, request, response, aPathElements);
 		}
 		else {
 			response.writeHead("400");
@@ -44,7 +44,7 @@ class VenueGetDispatcher extends HttpDispatcher {
 
 
 
-	dispatchId(response, aPathElements) {
+	dispatchId(request, response, aPathElements) {
 		if(!aPathElements.length || isNaN(parseInt(aPathElements[0]))) {
 			response.writeHead(400);
 			response.end("No ID provided");
@@ -70,13 +70,16 @@ class VenueGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchAll(response, aPathElements) {
-		let sOrderDirection = getOrderDirection(aPathElements, "DESC");;
-		let oOrder = {
-			[Venue.COL_DATE]: sOrderDirection,
-			[Venue.COL_TIME]: sOrderDirection,
+	dispatchAll(request, response, pathElements) {
+		let searchParams = this.getSearchParams(request, false);
+
+		let orderDirection = getOrderDirection(searchParams, "DESC");;
+		let order = {
+			[Venue.COL_DATE]: orderDirection,
+			[Venue.COL_TIME]: orderDirection,
 		};
-		let iLimit = getLimit(aPathElements, null);
+		let limit = getLimit(searchParams, null);
+
 		let callback = (err, rows) => {
 			if(err) {
 				response.writeHead(500);
@@ -89,23 +92,16 @@ class VenueGetDispatcher extends HttpDispatcher {
 			}
 		};
 
-		let bWithItemCount = false;
-		for(let sPart of aPathElements) {
-			if(sPart.toUpperCase() === "ITEMCOUNT") {
-				bWithItemCount = true;
-				break;
-			}
-		}
-		if(bWithItemCount) {
-			TicketConfig.db.venue.getAllWithItemCount(callback, oOrder, iLimit);
+		if(searchParams.has("itemCount")) {
+			TicketConfig.db.venue.getAllWithItemCount(callback, order, limit);
 		}
 		else {
-			TicketConfig.db.venue.getAll(callback, oOrder, iLimit);
+			TicketConfig.db.venue.getAll(callback, order, limit);
 		}
 	}
 
 
-	dispatchName(response, aPathElements) {
+	dispatchName(request, response, aPathElements) {
 		if(!aPathElements.length || !aPathElements[0]) {
 			response.writeHead(400);
 			response.end("No Name provided");
@@ -130,7 +126,7 @@ class VenueGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchDate(response, aPathElements) {
+	dispatchDate(request, response, aPathElements) {
 		if(!aPathElements.length || !aPathElements[0]) {
 			response.writeHead(400);
 			response.end("No Name provided");

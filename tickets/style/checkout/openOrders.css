@@ -16,7 +16,7 @@
 	border: 1px solid #f0f0f0;
 	border-radius: 0.5em;
 }
-#openOrders .order.done:before {
+#openOrders .order.prepared:before {
 	content: "abholbereit";
 	display: block;
 	position: absolute;
@@ -25,7 +25,7 @@
 	color: #333;
 
 }
-#openOrders .order.pickup {
+#openOrders .order.pickedup {
 	display: none;
 }
 
@@ -42,7 +42,7 @@
 	text-align: center;
 	color: hsl(30, 100%, 25%);
 }
-#openOrders .order.done .order-number {
+#openOrders .order.prepared .order-number {
 	background-color: hsla(100, 65%, 60%, 10%);
 	border: 1px solid hsl(100, 65%, 60%);
 	color: hsl(100, 65%, 25%);
@@ -88,8 +88,8 @@
 	margin-left: 0.7em;
 	cursor: pointer;
 }
-#openOrders .order:not(.done) input.pickup,
-#openOrders .order.done input.done {
+#openOrders .order:not(.prepared) input.pickedup,
+#openOrders .order.prepared input.prepared {
 	display: none;
 }
 

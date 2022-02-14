@@ -1,39 +1,25 @@
-function getOrderDirection(aPathElements, sDefaultOrderDirection = "ASC") {
-	let sOrder = null;
-	let iLen = aPathElements.length;
-	for(let ii=0;ii<iLen;++ii) {
-		if(ii+1 < iLen && aPathElements[ii].toUpperCase() === "ORDER") {
-			sOrder = aPathElements[ii+1].toUpperCase();
-			break;
-		}
-	}
+const ORDER_DIRECTIONS = ["ASC", "DESC"];
 
-	let aOrderDirections = ["ASC", "DESC"];
-	if(sOrder && aOrderDirections.includes(sOrder)) {
-		return sOrder;
+function getOrderDirection(searchParams, defaultOrder="ASC") {
+	if(!searchParams.has("order")) {
+		return defaultOrder;
 	}
-	if(aOrderDirections.includes(sDefaultOrderDirection)) {
-		return sDefaultOrderDirection;
+	let order = searchParams.get("order").toUpperCase();
+	if(ORDER_DIRECTIONS.includes(order)) {
+		return order;
 	}
-	return "ASC";
+	return defaultOrder;
 }
-function getLimit(aPathElements, iDefaultLimit = null) {
-	let iLimit = NaN;
-	let iLen = aPathElements.length;
-	for(let ii=0;ii<iLen;++ii) {
-		if(ii+1 < iLen && aPathElements[ii].toUpperCase() === "LIMIT") {
-			iLimit = parseInt(aPathElements[ii+1]);
-			break;
-		}
-	}
 
-	if(!isNaN(iLimit) && iLimit > 0) {
-		return iLimit;
+function getLimit(searchParams, defaultLimit=null) {
+	if(!searchParams.has("limit")) {
+		return defaultLimit;
 	}
-	if(!isNaN(iDefaultLimit) && iDefaultLimit > 0) {
-		return iDefaultLimit;
+	let limit = parseInt(searchParams.get("limit"));
+	if(!isNaN(limit) && limit > 0) {
+		return limit;
 	}
-	return null;
+	return defaultLimit;
 }
 
 

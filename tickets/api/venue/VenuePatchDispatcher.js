@@ -1,5 +1,6 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
+import Events from "../../Events.js";
 import Venue from "../../db/Venue.js";
 
 class VenuePatchDispatcher extends HttpDispatcher {

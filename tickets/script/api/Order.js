@@ -1,62 +1,71 @@
-import Ajax from "./Ajax.js";
+import Ajax from "../Ajax.js";
 
-function create(iVenueID, aItems) {
-	iVenueID = parseInt(iVenueID);
-	if(isNaN(iVenueID)) {
+const API_ENDPOINT = "/api/order";
+
+const STATUS_OPEN = "OPEN";
+const STATUS_PREPARED = "PREPARED";
+const STATUS_PICKEDUP = "PICKEDUP";
+const STATUS = [
+	STATUS_OPEN,
+	STATUS_PREPARED,
+	STATUS_PICKEDUP,
+];
+
+function create(venueID, items) {
+	venueID = parseInt(venueID);
+	if(isNaN(venueID)) {
 		return Promise.reject();
 	}
 
-	let oRequestBody = {
-		venue: iVenueID,
-		items: aItems,
+	let requestBody = {
+		venue: venueID,
+		items: items,
 	};
 
-	let oAjax = new Ajax.Request(Ajax.PUT);
-	oAjax.open("/api/order");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.PUT, requestBody);
 }
 
 
-function setDone(iOrderID) {
-	let oRequestBody = {
-		id: iOrderID,
+function setOrderStatus(orderID, status) {
+	let requestBody = {
+		id: orderID,
 	};
 
-	let oAjax = new Ajax.Request(Ajax.PATCH);
-	oAjax.open("/api/order/done");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	let path = API_ENDPOINT + "/" + status.toLowerCase();
+	return Ajax.sendJson(path, Ajax.PATCH, requestBody);
 }
-function setPickup(iOrderID) {
-	let oRequestBody = {
-		id: iOrderID,
-	};
-
-	let oAjax = new Ajax.Request(Ajax.PATCH);
-	oAjax.open("/api/order/pickup");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+function setPrepared(orderID) {
+	return setOrderStatus(orderID, STATUS_PREPARED);
+}
+function setPickedUp(orderID) {
+	return setOrderStatus(orderID, STATUS_PICKEDUP);
 }
 
 
-function getAllOpenAndDoneOrders(iVenueID=null) {
-	iVenueID = parseInt(iVenueID);
+function getAll(venueID=null, status=[]) {
+	let params = {};
 
-	let sPath = "/api/order/all/status/open/status/done";
-	if(!isNaN(iVenueID)) {
-		sPath += "/venue/" + iVenueID;
+	venueID = parseInt(venueID);
+	if(!isNaN(venueID)) {
+		params.venue = venueID;
+	}
+	if(Array.isArray(status) && status.length) {
+		params.status = status;
 	}
 
-	let oAjax = new Ajax.Request(Ajax.GET);
-	oAjax.open(sPath);
-	return oAjax.send();
+	let path = Ajax.createUrl(API_ENDPOINT+"/all", params);
+	return Ajax.send(path, Ajax.GET);
 }
 
 export default {
-	create,
-	setDone,
-	setPickup,
+	STATUS_OPEN,
+	STATUS_PREPARED,
+	STATUS_PICKEDUP,
+	STATUS,
 
-	getAllOpenAndDoneOrders,
+	create,
+	setPrepared,
+	setPickedUp,
+
+	getAll,
 };

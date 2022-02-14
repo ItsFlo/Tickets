@@ -1,83 +1,59 @@
-import HttpDispatcher from "../modules/HttpDispatcher.js";
+import { HttpDispatcher, HttpDispatcherGroup, HttpDirectoryDispatcher, sendStatus } from "../modules/HttpDispatcher.js";
 import { dirname } from "path";
 import serveFile from "../modules/ServeFile.js";
 
 const sCurDir = dirname(import.meta.url).replace(process.platform === "win32"? "file:///" : "file://", "");
 
 
-function send404(response) {
-	response.setHeader("Cache-Control", "public, max-age=31536000");
-	response.writeHead(404);
-	response.end();
-}
+const oFrontEndDispatcher = new HttpDispatcherGroup();
 
-const oFrontEndDispatcher = new HttpDispatcher();
+const oStaticDispatcher = new class extends HttpDispatcher {
+	request(sPath, request, response) {
+		sPath = sPath.trim().replace(/^\/+|\/+$/g, "");
+		let aPathElements = sPath.split("/");
 
-oFrontEndDispatcher.request = function(sPath, request, response) {
-	console.log("frontend: ", sPath);
-	sPath = sPath.trim().replace(/^\/+|\/+$/g, "");
-	let aPathElements = sPath.split("/");
+		if(aPathElements.length > 1) {
+			sendStatus(response, 404);
+			return;
+		}
 
-	if(aPathElements.length === 1) {
-		let sFilePath = sCurDir+"/html/view.html";
-		switch(sPath.toUpperCase()) {
+		switch(aPathElements[0].toUpperCase()) {
 			case "FAVICON.ICO":
-				sFilePath = sCurDir+"/favicon.svg";
-				break;
+				serveFile(sCurDir+"/favicon.svg", response);
+				return;
 
 			case "ADMIN":
-				sFilePath = sCurDir+"/html/admin.html";
-				break;
+				serveFile(sCurDir+"/html/admin.html", response);
+				return;
 
 			case "KITCHEN":
-				sFilePath = sCurDir+"/html/kitchen.html";
-				break;
+				serveFile(sCurDir+"/html/kitchen.html", response);
+				return;
 
 			case "CHECKOUT":
-				sFilePath = sCurDir+"/html/checkout.html";
-				break;
-		}
-		serveFile(sFilePath, response);
-	}
-	else if(aPathElements.length > 1) {
-		let sFilePath = sCurDir;
-		switch(aPathElements[0].toUpperCase()) {
-			case "STYLE":
-				sFilePath += "/style";
-				break;
-
-			case "SCRIPT":
-				sFilePath += "/script";
-				break;
-
-			case "IMAGE":
-				sFilePath += "/images";
-				break;
+				serveFile(sCurDir+"/html/checkout.html", response);
+				return;
 
 			default:
-				send404(response);
+				serveFile(sCurDir+"/html/view.html", response);
 				return;
 		}
-
-		for(let ii=1;ii<aPathElements.length;++ii) {
-			switch(aPathElements[ii]) {
-				case "..":
-					send404(response);
-					return;
-
-				case ".":
-					continue;
-
-				default:
-					sFilePath += "/"+aPathElements[ii];
-			}
-		}
-		serveFile(sFilePath, response);
-	}
-	else {
-		send404(response);
 	}
 }
+
+oFrontEndDispatcher.addDispatcher("", oStaticDispatcher);
+
+
+
+const oScriptDispatcher = new HttpDirectoryDispatcher(sCurDir+"/script");
+const oStyleDispatcher = new HttpDirectoryDispatcher(sCurDir+"/style");
+const oImageDispatcher = new HttpDirectoryDispatcher(sCurDir+"/images");
+const oTemplateDispatcher = new HttpDirectoryDispatcher(sCurDir+"/html/templates");
+
+oFrontEndDispatcher.addDispatcher("script", oScriptDispatcher);
+oFrontEndDispatcher.addDispatcher("style", oStyleDispatcher);
+oFrontEndDispatcher.addDispatcher("image", oImageDispatcher);
+oFrontEndDispatcher.addDispatcher("template", oTemplateDispatcher);
 
 
 export default {

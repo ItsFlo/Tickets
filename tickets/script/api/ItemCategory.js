@@ -1,20 +1,19 @@
-import Ajax from './Ajax.js';
+import Ajax from "../Ajax.js";
 
-function create(iVenueID, sName) {
-	iVenueID = parseInt(iVenueID);
-	if(isNaN(iVenueID) || !sName) {
+const API_ENDPOINT = "/api/itemCategory";
+
+function create(venueID, name) {
+	venueID = parseInt(venueID);
+	if(isNaN(venueID) || !name) {
 		return null;
 	}
 
-	let oRequestBody = {
-		venue: iVenueID,
-		name: sName,
+	let requestBody = {
+		venue: venueID,
+		name: name,
 	};
 
-	let oAjax = new Ajax.Request(Ajax.PUT);
-	oAjax.open("/api/itemCategory");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.PUT, requestBody);
 }
 
 
@@ -24,51 +23,46 @@ function deleteItem(id) {
 		return null;
 	}
 
-	let oRequestBody = {
+	let requestBody = {
 		id: id,
 	};
 
-	let oAjax = new Ajax.Request(Ajax.DELETE);
-	oAjax.open("/api/itemCategory");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.DELETE, requestBody);
 }
 
 
-function update(id, sName) {
-	let oRequestBody = {
+function update(id, name) {
+	let requestBody = {
 		id: id,
 	}
 
 
-	let bChanges = false;
-	if(sName) {
-		oRequestBody.name = sName;
-		bChanges = true;
+	let hasChanges = false;
+	if(name) {
+		requestBody.name = name;
+		hasChanges = true;
 	}
 
-	if(!bChanges) {
+	if(!hasChanges) {
 		return Promise.reject("No changes set");
 	}
 
-	let oAjax = new Ajax.Request(Ajax.PATCH);
-	oAjax.open("/api/itemCategory");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.PATCH, requestBody);
 }
 
 
 
-function getAll(iVenueID=null) {
-	iVenueID = parseInt(iVenueID);
-	let sPath = "/api/itemCategory/all";
-	if(!isNaN(iVenueID)) {
-		sPath += "/venue/" + iVenueID;
-	}
+function getAll(venueID=null) {
+	let path = API_ENDPOINT+"/all";
+	let params = {};
 
-	let oAjax = new Ajax.Request(Ajax.GET);
-	oAjax.open(sPath);
-	return oAjax.send();
+	venueID = parseInt(venueID);
+	if(!isNaN(venueID)) {
+		params.venue = venueID;
+	}
+	path = Ajax.createUrl(path, params);
+
+	return Ajax.send(path, Ajax.GET);
 }
 
 

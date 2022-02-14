@@ -1,7 +1,7 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
-import Order from "../../db/Order.js";
 import Events from "../../Events.js";
+import Order from "../../db/Order.js";
 
 class OrderPatchDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
@@ -29,12 +29,12 @@ class OrderPatchDispatcher extends HttpDispatcher {
 		};
 
 		switch(sPath.toUpperCase()) {
-			case "DONE":
-				TicketConfig.db.order.updateDone(iID, callback);
+			case Order.STATUS_PREPARED:
+				TicketConfig.db.order.updatePrepared(iID, callback);
 				break;
 
-			case "PICKUP":
-				TicketConfig.db.order.updatePickup(iID, callback);
+			case Order.STATUS_PICKEDUP:
+				TicketConfig.db.order.updatePickedUp(iID, callback);
 				break;
 
 			default:

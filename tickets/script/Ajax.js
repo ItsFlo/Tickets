@@ -85,6 +85,28 @@ function getHttpStatusMessage(iStatus) {
 }
 
 
+function createUrl(url, params) {
+	let getParameters = [];
+	for(let index in params) {
+		let index_encoded = encodeURIComponent(index);
+		let value = params[index];
+		if(Array.isArray(value)) {
+			for(let val of value) {
+				getParameters.push(index_encoded + "=" + encodeURIComponent(val));
+			}
+		}
+		else {
+			getParameters.push(index_encoded + "=" + encodeURIComponent(value));
+		}
+	}
+
+	if(!getParameters.length) {
+		return url;
+	}
+	return url + "?" + getParameters.join("&");
+}
+
+
 const GET = "GET";
 const HEAD = "HEAD";
 const POST = "POST";
@@ -131,6 +153,7 @@ class AjaxRequest {
 
 		this._successListeners = [];
 		this._errorListeners = [];
+		this._progressListeners = [];
 
 		let oXmlhttp;
 		if(window.XMLHttpRequest) {
@@ -140,10 +163,13 @@ class AjaxRequest {
 		}
 
 		this._xmlHttp = oXmlhttp;
+		this._xmlHttp.upload.addEventListener("progress", event => this.callProgressListeners(event));
 		this._xmlHttp.addEventListener("readystatechange", () => {
 			switch(this._xmlHttp.readyState) {
 				case 0:
-					this.callErrorListeners("Übertragung abgebrochen", null);
+					let oError = new Error(getHttpStatusMessage(0));
+					oError.aborted = true;
+					this.callErrorListeners(oError, null);
 					this._sending = false;
 					break;
 
@@ -152,12 +178,14 @@ class AjaxRequest {
 						let bSuccess = true;
 						let oJson;
 						let sError = "";
-						try {
-							oJson = JSON.parse(this._xmlHttp.responseText);
-						} catch(err) {
-							oJson = null;
-							bSuccess = false;
-							sError = "JSON error: " + err.message;
+						if(this._xmlHttp.getResponseHeader("Content-Type") === "application/json") {
+							try {
+								oJson = JSON.parse(this._xmlHttp.responseText);
+							} catch(err) {
+								oJson = null;
+								bSuccess = false;
+								sError = "JSON error: " + err.message;
+							}
 						}
 
 						if(bSuccess) {
@@ -168,14 +196,18 @@ class AjaxRequest {
 						}
 					}
 					else {
-						let sError;
-						if(this._xmlHttp.responseText) {
-							sError = this._xmlHttp.responseText;
+						let oError;
+						if(this._xmlHttp.status === 0) {
+							oError = new Error(getHttpStatusMessage(this._xmlHttp.status));
+							oError.aborted = true;
+						}
+						else if(this._xmlHttp.responseText) {
+							oError = new Error(this._xmlHttp.responseText);
 						}
 						else {
-							sError = getHttpStatusMessage(this._xmlHttp.status) || "Übertragung fehlgeschlagen";
+							oError = getHttpStatusMessage(this._xmlHttp.status) || "Übertragung fehlgeschlagen";
 						}
-						this.callErrorListeners(sError, this._xmlHttp.responseText);
+						this.callErrorListeners(oError, this._xmlHttp.responseText);
 					}
 					this._sending = false;
 					break;
@@ -235,6 +267,24 @@ class AjaxRequest {
 		return this;
 	}
 
+	addProgressListener(listener) {
+		if(!this._progressListeners.includes(listener)) {
+			this._progressListeners.push(listener);
+		}
+		return this;
+	}
+	removeProgressListener(listener) {
+		let iIndex = this._progressListeners.indexOf(listener);
+		if(iIndex > -1) {
+			this._progressListeners.splice(iIndex, 1);
+		}
+		return this;
+	}
+	clearProgressListeners() {
+		this._progressListeners = [];
+		return this;
+	}
+
 	callSuccessListeners(json, text) {
 		for(let listener of this._successListeners) {
 			listener.call(this, json, text);
@@ -265,6 +315,12 @@ class AjaxRequest {
 		}
 		return this;
 	}
+	callProgressListeners(event) {
+		for(let listener of this._progressListeners) {
+			listener.call(this, event);
+		}
+		return this;
+	}
 
 
 	send(data) {
@@ -272,21 +328,42 @@ class AjaxRequest {
 			return null;
 		}
 		this._sending = true;
-		return new Promise((resolve, reject) => {
+		let promise = new Promise((resolve, reject) => {
 			this._resolve = resolve;
 			this._reject = reject;
 
 			this._xmlHttp.send(data);
 		});
+		promise.request = this;
+		return promise;
+	}
+	abort() {
+		this._xmlHttp.abort();
 	}
 };
+
+function send(url, method=GET, data=undefined) {
+	let ajax = new AjaxRequest(method);
+	ajax.open(url);
+	return ajax.send(data);
+}
+function sendJson(url, method=GET, data={}) {
+	let ajax = new AjaxRequest(method);
+	ajax.open(url);
+	ajax.setJsonEncoded();
+	return ajax.send(JSON.stringify(data));
+}
 
 
 export default {
 	Request: AjaxRequest,
 
+	send,
+	sendJson,
+
 	HTTP_STATUS_CODES,
 	getHttpStatusMessage,
+	createUrl,
 
 	GET,
 	HEAD,

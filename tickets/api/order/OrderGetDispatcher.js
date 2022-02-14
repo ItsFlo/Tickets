@@ -24,7 +24,7 @@ class OrderGetDispatcher extends HttpDispatcher {
 
 		if(dispatchFunction) {
 			aPathElements.shift();
-			dispatchFunction.call(this, response, aPathElements);
+			dispatchFunction.call(this, request, response, aPathElements);
 		}
 		else {
 			response.writeHead("400");
@@ -33,7 +33,7 @@ class OrderGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchId(response, aPathElements) {
+	dispatchId(request, response, aPathElements) {
 		if(!aPathElements.length || isNaN(parseInt(aPathElements[0]))) {
 			response.writeHead(400);
 			response.end("No ID provided");
@@ -59,34 +59,23 @@ class OrderGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchAll(response, aPathElements) {
-		let iVenueID = NaN;
-		let aStatus = [];
-		let iLen = aPathElements.length;
-		for(let ii=0;ii<iLen;++ii) {
-			if(ii+1 < iLen) {
-				switch (aPathElements[ii].toUpperCase()) {
-					case "VENUE":
-						iVenueID = parseInt(aPathElements[ii+1]);
-						++ii;
-						break;
+	dispatchAll(request, response, pathElements) {
+		let searchParams = this.getSearchParams(request, false);
 
-					case "STATUS":
-						aStatus.push(aPathElements[ii+1].toUpperCase());
-						++ii;
-						break;
-				}
-			}
+		let venueID = searchParams.get("venue", null);
+		let status = [];
+		for(let searchParamStatus of searchParams.getAll("status")) {
+			status.push(searchParamStatus.toUpperCase());
 		}
 
-		OrderGetter.getAll(iVenueID, aStatus).then(aOrders => {
+		OrderGetter.getAll(venueID, status).then(orders => {
 			response.setHeader("Content-Type", "application/json");
 			response.writeHead(200);
-			response.end(JSON.stringify(aOrders));
+			response.end(JSON.stringify(orders));
 		}, (err) => {
 			response.writeHead(500);
 			response.end(err.message);
-		})
+		});
 	}
 };
 

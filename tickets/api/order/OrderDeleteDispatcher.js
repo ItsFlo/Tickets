@@ -1,7 +1,7 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
-import Order from "../../db/Order.js"
 import Events from "../../Events.js";
+import Order from "../../db/Order.js"
 
 class OrderDeleteDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {

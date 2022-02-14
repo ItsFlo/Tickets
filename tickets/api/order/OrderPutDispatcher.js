@@ -2,7 +2,6 @@ import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import Events from "../../Events.js";
 import Order from "../../db/Order.js";
-import Item from "../../db/Item.js";
 import OrderGetter from "./OrderGetter.js";
 
 class OrderPutDispatcher extends HttpDispatcher {

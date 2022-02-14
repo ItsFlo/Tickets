@@ -16,9 +16,9 @@ function openEventSource(iVenueID) {
 	oEventSource = new EventSource("/events/orders/"+iVenueID);
 
 	oEventSource.addEventListener("create", newOrderEventListener);
-	oEventSource.addEventListener("DONE", orderDoneEventListener);
-	oEventSource.addEventListener("PICKUP", orderPickupEventListener);
-	oEventSource.addEventListener("delete", orderPickupEventListener);
+	oEventSource.addEventListener(Api.order.STATUS_PREPARED, orderPreparedEventListener);
+	oEventSource.addEventListener(Api.order.STATUS_PICKEDUP, orderPickedUpEventListener);
+	oEventSource.addEventListener("delete", orderPickedUpEventListener);
 }
 
 
@@ -31,18 +31,18 @@ function newOrderEventListener(ev) {
 		Error.show(err);
 	}
 }
-function orderDoneEventListener(ev) {
+function orderPreparedEventListener(ev) {
 	try {
 		let oOrder = JSON.parse(ev.data);
 		let oOrderElement = getOrderByID(oOrder.id);
 		if(oOrderElement) {
-			oOrderElement.classList.add("done");
+			oOrderElement.classList.add("prepared");
 		}
 	} catch(err) {
 		Error.show(err);
 	}
 }
-function orderPickupEventListener(ev) {
+function orderPickedUpEventListener(ev) {
 	try {
 		let oOrder = JSON.parse(ev.data);
 		let oOrderElement = getOrderByID(oOrder.id);
@@ -60,23 +60,23 @@ function orderPickupEventListener(ev) {
 
 
 
-function doneListener() {
+function preparedListener() {
 	let oOrder = this.closest(".order");
 	let iOrderID = parseInt(oOrder.dataset.orderId);
 	if(isNaN(iOrderID)) {
 		return;
 	}
 
-	Api.order.setDone(iOrderID).catch(err => Error.show(err.message));
+	Api.order.setPrepared(iOrderID).catch(err => Error.show(err.message));
 }
-function pickupListener() {
+function pickedUpListener() {
 	let oOrder = this.closest(".order");
 	let iOrderID = parseInt(oOrder.dataset.orderId);
 	if(isNaN(iOrderID)) {
 		return;
 	}
 
-	Api.order.setPickup(iOrderID).catch(err => Error.show(err.message));
+	Api.order.setPickedUp(iOrderID).catch(err => Error.show(err.message));
 }
 
 function getOrderByID(iOrderID) {
@@ -122,25 +122,28 @@ function createElement(oOrder) {
 	oElement.appendChild(oPrice);
 
 
-	let oDoneButton = document.createElement("input");
-	oDoneButton.classList.add("done");
-	oDoneButton.setAttribute("type", "button");
-	oDoneButton.setAttribute("value", "abholbereit");
-	oDoneButton.addEventListener("click", doneListener);
-	oElement.appendChild(oDoneButton);
+	let oPreparedButton = document.createElement("input");
+	oPreparedButton.classList.add("prepared");
+	oPreparedButton.setAttribute("type", "button");
+	oPreparedButton.setAttribute("value", "abholbereit");
+	oPreparedButton.addEventListener("click", preparedListener);
+	oElement.appendChild(oPreparedButton);
 
-	let oPickupButton = document.createElement("input");
-	oPickupButton.classList.add("pickup");
-	oPickupButton.setAttribute("type", "button");
-	oPickupButton.setAttribute("value", "abgeholt");
-	oPickupButton.addEventListener("click", pickupListener);
-	oElement.appendChild(oPickupButton);
+	let oPickedUpButton = document.createElement("input");
+	oPickedUpButton.classList.add("pickedup");
+	oPickedUpButton.setAttribute("type", "button");
+	oPickedUpButton.setAttribute("value", "abgeholt");
+	oPickedUpButton.addEventListener("click", pickedUpListener);
+	oElement.appendChild(oPickedUpButton);
 
 
 
 	oElement.dataset.orderId = oOrder.id;
 	oElement.dataset.orderNumber = oOrder.orderNumber;
 	oElement.dataset.status = oOrder.status;
+	if(oOrder.status === Api.order.STATUS_PREPARED) {
+		oElement.classList.add("prepared");
+	}
 	oOrderNumber.innerHTML = oOrder.orderNumber;
 	if(oOrder.orderTimestamp) {
 		let tempDate = new Date(oOrder.orderTimestamp);
@@ -196,7 +199,11 @@ function loadOrders(iVenueID) {
 	closeEventSource();
 
 	clearItems();
-	Api.order.getAllOpenAndDoneOrders(iVenueID).then(oResponse => {
+	let status = [
+		Api.order.STATUS_OPEN,
+		Api.order.STATUS_PREPARED,
+	]
+	Api.order.getAll(iVenueID, status).then(oResponse => {
 		for(let oOrder of oResponse.json) {
 			let oOrderElement = createElement(oOrder);
 			insertElement(oOrderElement);

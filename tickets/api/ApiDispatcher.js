@@ -1,5 +1,5 @@
 import { HttpDispatcherGroup } from "../../modules/HttpDispatcher.js";
-import Ajax from "../script/api/Ajax.js";
+import Ajax from "../script/Ajax.js";
 import oVenueDispatcher from "./VenueDispatcher.js";
 import oItemCategoryDispatcher from "./ItemCategoryDispatcher.js";
 import oItemDispatcher from "./ItemDispatcher.js";

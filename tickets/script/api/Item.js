@@ -1,22 +1,21 @@
-import Ajax from './Ajax.js';
+import Ajax from "../Ajax.js";
 
-function create(iItemCategoryID, sName, fPrice) {
-	iItemCategoryID = parseInt(iItemCategoryID);
-	fPrice = parseFloat(fPrice);
-	if(isNaN(iItemCategoryID) || !sName || isNaN(fPrice)) {
+const API_ENDPOINT = "/api/item";
+
+function create(itemCategoryID, name, price) {
+	itemCategoryID = parseInt(itemCategoryID);
+	price = parseFloat(price);
+	if(isNaN(itemCategoryID) || !name || isNaN(price)) {
 		return null;
 	}
 
-	let oRequestBody = {
-		itemCategory: iItemCategoryID,
-		name: sName,
-		price: fPrice,
+	let requestBody = {
+		itemCategory: itemCategoryID,
+		name: name,
+		price: price,
 	};
 
-	let oAjax = new Ajax.Request(Ajax.PUT);
-	oAjax.open("/api/item");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.PUT, requestBody);
 }
 
 
@@ -26,56 +25,51 @@ function deleteItem(id) {
 		return null;
 	}
 
-	let oRequestBody = {
+	let requestBody = {
 		id: id,
 	};
 
-	let oAjax = new Ajax.Request(Ajax.DELETE);
-	oAjax.open("/api/item");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.DELETE, requestBody);
 }
 
 
-function update(id, sName, fPrice) {
-	let oRequestBody = {
+function update(id, name, price) {
+	let requestBody = {
 		id: id,
 	}
-	fPrice = parseFloat(fPrice);
+	price = parseFloat(price);
 
 
-	let bChanges = false;
-	if(sName) {
-		oRequestBody.name = sName;
-		bChanges = true;
+	let hasChanges = false;
+	if(name) {
+		requestBody.name = name;
+		hasChanges = true;
 	}
-	if(!isNaN(fPrice)) {
-		oRequestBody.price = fPrice;
-		bChanges = true;
+	if(!isNaN(price)) {
+		requestBody.price = price;
+		hasChanges = true;
 	}
 
-	if(!bChanges) {
+	if(!hasChanges) {
 		return Promise.reject("No changes set");
 	}
 
-	let oAjax = new Ajax.Request(Ajax.PATCH);
-	oAjax.open("/api/item");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.PATCH, requestBody);
 }
 
 
 
-function getAll(iItemCategoryID=null) {
-	iItemCategoryID = parseInt(iItemCategoryID);
-	let sPath = "/api/item/all";
-	if(!isNaN(iItemCategoryID)) {
-		sPath += "/itemCategory/" + iItemCategoryID;
-	}
+function getAll(itemCategoryID=null) {
+	let path = API_ENDPOINT+"/all";
+	let params = {};
 
-	let oAjax = new Ajax.Request(Ajax.GET);
-	oAjax.open(sPath);
-	return oAjax.send();
+	itemCategoryID = parseInt(itemCategoryID);
+	if(!isNaN(itemCategoryID)) {
+		params.itemCategory = itemCategoryID;
+	}
+	path = Ajax.createUrl(path, params);
+
+	return Ajax.send(path, Ajax.GET);
 }
 
 

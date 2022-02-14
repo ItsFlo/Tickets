@@ -29,7 +29,7 @@ class ItemCategoryGetDispatcher extends HttpDispatcher {
 
 		if(dispatchFunction) {
 			aPathElements.shift();
-			dispatchFunction.call(this, response, aPathElements);
+			dispatchFunction.call(this, request, response, aPathElements);
 		}
 		else {
 			response.writeHead("400");
@@ -41,7 +41,7 @@ class ItemCategoryGetDispatcher extends HttpDispatcher {
 
 
 
-	dispatchId(response, aPathElements) {
+	dispatchId(request, response, aPathElements) {
 		if(!aPathElements.length || isNaN(parseInt(aPathElements[0]))) {
 			response.writeHead(400);
 			response.end("No ID provided");
@@ -68,12 +68,15 @@ class ItemCategoryGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchAll(response, aPathElements) {
-		let sOrderDirection = getOrderDirection(aPathElements, "ASC");;
-		let oOrder = {
-			[ItemCategory.COL_NAME]: sOrderDirection,
+	dispatchAll(request, response, pathElements) {
+		let searchParams = this.getSearchParams(request, false);
+
+		let orderDirection = getOrderDirection(searchParams, "ASC");;
+		let order = {
+			[ItemCategory.COL_NAME]: orderDirection,
 		};
-		let iLimit = getLimit(aPathElements, null);
+		let limit = getLimit(searchParams, null);
+
 		let callback = (err, rows) => {
 			if(err) {
 				response.writeHead(500);
@@ -86,24 +89,17 @@ class ItemCategoryGetDispatcher extends HttpDispatcher {
 			}
 		};
 
-		let iVenueID = NaN;
-		let iLen = aPathElements.length;
-		for(let ii=0;ii<iLen;++ii) {
-			if(ii+1 < iLen && aPathElements[ii].toUpperCase() === "VENUE") {
-				iVenueID = parseInt(aPathElements[ii+1]);
-				break;
-			}
-		}
-		if(isNaN(iVenueID)) {
-			TicketConfig.db.itemCategory.getAll(callback, oOrder, iLimit);
+		let venueID = parseInt(searchParams.get("venue", null));
+		if(isNaN(venueID)) {
+			TicketConfig.db.itemCategory.getAll(callback, order, limit);
 		}
 		else {
-			TicketConfig.db.itemCategory.getAllByVenue(iVenueID, callback, oOrder, iLimit);
+			TicketConfig.db.itemCategory.getAllByVenue(venueID, callback, order, limit);
 		}
 	}
 
 
-	dispatchName(response, aPathElements) {
+	dispatchName(request, response, aPathElements) {
 		if(aPathElements.length < 3) {
 			response.writeHead(400);
 			response.end("Too few arguments");

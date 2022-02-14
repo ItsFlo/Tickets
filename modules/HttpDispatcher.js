@@ -1,3 +1,13 @@
+import serveFile from "./ServeFile.js";
+import URLSearchParamsCaseInsensitive from "./URLSearchParamsCaseInsensitive.js";
+
+function sendStatus(response, statusCode) {
+	response.setHeader("Cache-Control", "public, max-age=31536000");
+	response.writeHead(statusCode);
+	response.end();
+}
+
+
 class HttpDispatcher {
 	request(sPath, request, response) {
 		response.writeHead(404);
@@ -15,6 +25,24 @@ class HttpDispatcher {
 	}
 
 
+
+	getUrlObject(request) {
+		return new URL(request.url, "https://"+request.headers.host);
+	}
+	getSearchParams(request, caseSensitive=true) {
+		let searchParams = caseSensitive? new URLSearchParams() : new URLSearchParamsCaseInsensitive();
+		let url = this.getUrlObject(request);
+		for(let [key, value] of url.searchParams) {
+			searchParams.append(key, value);
+		}
+		searchParams.get = function(name, defaultValue=null) {
+			if(this.has(name)) {
+				return this.constructor.prototype.get.call(this, name);
+			}
+			return defaultValue;
+		}
+		return searchParams;
+	}
 
 	splitPath(sPath) {
 		if(typeof sPath !== "string") {
@@ -115,11 +143,7 @@ class HttpDispatcherGroup extends HttpDispatcher {
 			};
 		}
 
-		let sPathCopy = sPath;
-		if(!this.mbCaseSensitive) {
-			sPathCopy = sPathCopy.toUpperCase();
-		}
-		let aPathElements = this.splitPath(sPathCopy);
+		let aPathElements = this.splitPath(sPath);
 		if(!aPathElements) {
 			return {
 				dispatcher: null,
@@ -131,6 +155,10 @@ class HttpDispatcherGroup extends HttpDispatcher {
 		let oDispatcherParent = this.moDispatchers;
 		for(let ii=0;ii<iLen;++ii) {
 			let sIndex = aPathElements[ii];
+			if(!this.mbCaseSensitive) {
+				sIndex = sIndex.toUpperCase();
+			}
+
 			if(!oDispatcherParent.hasOwnProperty(sIndex)) {
 				if(!ii && this.moDispatchers.hasOwnProperty("/")) {
 					return {
@@ -156,9 +184,13 @@ class HttpDispatcherGroup extends HttpDispatcher {
 				};
 			}
 		}
-		if(oDispatcherParent.hasOwnProperty(aPathElements[iLen]) && oDispatcherParent[aPathElements[iLen]] instanceof HttpDispatcher) {
+		let sLastIndex = aPathElements[iLen];
+		if(!this.mbCaseSensitive) {
+			sLastIndex = sLastIndex.toUpperCase();
+		}
+		if(oDispatcherParent.hasOwnProperty(sLastIndex) && oDispatcherParent[sLastIndex] instanceof HttpDispatcher) {
 			return {
-				dispatcher: oDispatcherParent[aPathElements[iLen]],
+				dispatcher: oDispatcherParent[sLastIndex],
 				path: "",
 			};
 		}
@@ -307,5 +339,53 @@ class HttpMethodDispatcher extends HttpDispatcher {
 }
 
 
-export { HttpDispatcher, HttpDispatcherGroup, HttpMethodDispatcher };
+class HttpDirectoryDispatcher extends HttpDispatcher {
+	msDirectory;
+
+	constructor(sDirectory) {
+		super();
+		this.msDirectory = sDirectory;
+	}
+
+	cleanFilePath(sPath) {
+		let aPathElements = sPath.split("/");
+		let sFilePath = "";
+		for(let ii=0;ii<aPathElements.length;++ii) {
+			switch(aPathElements[ii]) {
+				case "..":
+					return null;
+
+				case ".":
+					continue;
+
+				default:
+					sFilePath += "/"+aPathElements[ii];
+			}
+		}
+		return sFilePath;
+	}
+
+	request(sPath, request, response, ...args) {;
+		if(request.method !== "GET") {
+			sendStatus(response, 405);
+			return;
+		}
+		let sCleanFilePath = this.cleanFilePath(sPath);
+		if(!sCleanFilePath) {
+			sendStatus(response, 404);
+			return;
+		}
+		serveFile(this.msDirectory + sCleanFilePath, response);
+	}
+}
+
+
+export {
+	HttpDispatcher,
+	HttpDispatcherGroup,
+	HttpMethodDispatcher,
+	HttpDirectoryDispatcher,
+
+	sendStatus
+};
 export default HttpDispatcher;

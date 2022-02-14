@@ -1,7 +1,7 @@
 import HttpDispatcher from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
-import ItemCategory from "../../db/ItemCategory.js";
 import Events from "../../Events.js";
+import ItemCategory from "../../db/ItemCategory.js";
 
 class ItemCategoryDeleteDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {

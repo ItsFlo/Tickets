@@ -24,12 +24,12 @@ const COLUMNS = [
 ];
 
 const STATUS_OPEN = "OPEN";
-const STATUS_DONE = "DONE";
-const STATUS_PICKUP = "PICKUP";
+const STATUS_PREPARED = "PREPARED";
+const STATUS_PICKEDUP = "PICKEDUP";
 const STATUS = [
 	STATUS_OPEN,
-	STATUS_DONE,
-	STATUS_PICKUP,
+	STATUS_PREPARED,
+	STATUS_PICKEDUP,
 ];
 
 
@@ -118,26 +118,26 @@ class Order extends DbTable {
 		let sWhere = `"${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
 		return this.updateWhere(sWhere, [venue, orderNumber], updates, callback);
 	}
-	updateDone(iID, callback) {
+	updatePrepared(iID, callback) {
 		let sWhere = `"${COL_ID}" = ? AND "${COL_STATUS}" = ?`;
 		let aValues = [
 			iID,
 			STATUS_OPEN,
 		];
 		let oUpdates = {
-			[COL_STATUS]: STATUS_DONE,
+			[COL_STATUS]: STATUS_PREPARED,
 			[COL_DONE_TIMESTAMP]: this.formatDate(new Date()),
 		};
 		return this.updateWhere(sWhere, aValues, oUpdates, callback);
 	}
-	updatePickup(iID, callback) {
+	updatePickedUp(iID, callback) {
 		let sWhere = `"${COL_ID}" = ? AND "${COL_STATUS}" = ?`;
 		let aValues = [
 			iID,
-			STATUS_DONE,
+			STATUS_PREPARED,
 		];
 		let oUpdates = {
-			[COL_STATUS]: STATUS_PICKUP,
+			[COL_STATUS]: STATUS_PICKEDUP,
 			[COL_PICKUP_TIMESTAMP]: this.formatDate(new Date()),
 		};
 		return this.updateWhere(sWhere, aValues, oUpdates, callback);
@@ -233,7 +233,7 @@ export default {
 	Order,
 
 	STATUS_OPEN,
-	STATUS_DONE,
-	STATUS_PICKUP,
+	STATUS_PREPARED,
+	STATUS_PICKEDUP,
 	STATUS,
 };

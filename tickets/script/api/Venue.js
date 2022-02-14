@@ -1,20 +1,19 @@
-import Ajax from './Ajax.js';
+import Ajax from "../Ajax.js";
 
-function create(sName, sDate, sTime) {
-	if(!sName || !sDate || !sTime) {
+const API_ENDPOINT = "/api/venue";
+
+function create(name, date, time) {
+	if(!name || !date || !time) {
 		return null;
 	}
 
-	let oRequestBody = {
-		name: sName,
-		date: sDate,
-		time: sTime,
+	let requestBody = {
+		name: name,
+		date: date,
+		time: time,
 	};
 
-	let oAjax = new Ajax.Request(Ajax.PUT);
-	oAjax.open("/api/venue");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.PUT, requestBody);
 }
 
 
@@ -24,58 +23,51 @@ function deleteVenue(id) {
 		return null;
 	}
 
-	let oRequestBody = {
+	let requestBody = {
 		id: id,
 	};
 
-	let oAjax = new Ajax.Request(Ajax.DELETE);
-	oAjax.open("/api/venue");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.DELETE, requestBody);
 }
 
 
 function update(id, sName, sDate, sTime) {
-	let oRequestBody = {
+	let requestBody = {
 		id: id,
 	}
 
-	let bChanges = false;
+	let hasChanges = false;
 	if(sName) {
-		oRequestBody.name = sName;
-		bChanges = true;
+		requestBody.name = sName;
+		hasChanges = true;
 	}
 	if(sDate) {
-		oRequestBody.date = sDate;
-		bChanges = true;
+		requestBody.date = sDate;
+		hasChanges = true;
 	}
 	if(sTime) {
-		oRequestBody.time = sTime;
-		bChanges = true;
+		requestBody.time = sTime;
+		hasChanges = true;
 	}
 
-	if(!bChanges) {
+	if(!hasChanges) {
 		return Promise.reject("No changes set");
 	}
 
-	let oAjax = new Ajax.Request(Ajax.PATCH);
-	oAjax.open("/api/venue");
-	oAjax.setJsonEncoded();
-	return oAjax.send(JSON.stringify(oRequestBody));
+	return Ajax.sendJson(API_ENDPOINT, Ajax.PATCH, requestBody);
 }
 
 
 
-function getAll(bWithItemCount=false) {
-	let sPath = "/api/venue/all";
-	if(bWithItemCount) {
-		sPath += "/itemCount";
-	}
-	sPath += "/order/desc";
+function getAll(withItemCount=false) {
+	let path = API_ENDPOINT+"/all";
+	let params = {
+		itemCount: withItemCount,
+		order: "desc",
+	};
+	path = Ajax.createUrl(path, params);
 
-	let oAjax = new Ajax.Request(Ajax.GET);
-	oAjax.open(sPath);
-	return oAjax.send();
+	return Ajax.send(path, Ajax.GET);
 }
 
 
