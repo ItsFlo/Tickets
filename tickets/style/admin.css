@@ -1,3 +1,14 @@
+body {
+	margin: 8px;
+}
+
+#siteLinks {
+	margin-bottom: 0.8em;
+}
+#siteLinks a {
+	margin-right: 0.6em;
+}
+
 header h4 {
 	margin: 0;
 	margin-bottom: 0.5em;

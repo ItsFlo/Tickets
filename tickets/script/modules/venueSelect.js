@@ -1,6 +1,9 @@
+import Ajax from "../Ajax.js";
 import Api from "../Api.js";
 import Error from "../Error.js";
 import { SORT_DESC, insertSorted } from "../functions.js";
+
+const STYLE_HREF = "/style/modules/venueSelect.css";
 
 
 let aListeners = [];
@@ -214,13 +217,39 @@ function editButtonListener() {
 	toggleOpenClosed();
 }
 
+function loadTemplate() {
+	return Ajax.send("/template/venueSelect.html").then(response => {
+		let parser = new DOMParser();
+		let doc = parser.parseFromString(response.text, "text/html");
+		return doc.body.firstElementChild;
+	});
+}
+
+let bInitialized = false;
 function init() {
-	document.querySelector("#selectedVenue .edit-button").addEventListener("click", editButtonListener);
-	loadVenues();
+	if(bInitialized) {
+		return;
+	}
+	bInitialized = true;
+
+	let styleLink = document.createElement("link");
+	styleLink.setAttribute("type", "text/css");
+	styleLink.setAttribute("rel", "stylesheet");
+	styleLink.setAttribute("href", STYLE_HREF);
+	document.head.appendChild(styleLink);
+
+	loadTemplate().then(element => {
+		let oVenueSelect = document.getElementById("venueSelect");
+		oVenueSelect.replaceWith(element);
+
+		document.querySelector("#selectedVenue .edit-button").addEventListener("click", editButtonListener);
+		loadVenues();
+	});
 }
 
 
 export default {
+	loadTemplate,
 	init,
 
 	addListener,

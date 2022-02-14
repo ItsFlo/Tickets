@@ -1,6 +1,6 @@
 import Api from "../Api.js";
 import Error from "../Error.js";
-import VenueSelect from "./venueSelect.js"
+import VenueSelect from "./../modules/venueSelect.js"
 
 function clearItems() {
 	let oNewOrder = document.getElementById("newOrder");

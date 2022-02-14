@@ -11,24 +11,32 @@
 	</head>
 	<body>
 		<header>
-			<h4>neue Veranstaltung</h4>
-			<form id="newVenueForm">
-				Datum:
-				<input id="newVenueDate" type="date" required>
-				<input id="newVenueTime" type="time" required>
-				<input id="newVenueName" type="text" required placeholder="Name">
-				<input type="submit" value="erstellen">
-			</form>
-			<script>
-				let oDate = new Date();
-				oDate.setHours(oDate.getHours()+1);
-				oDate.setMinutes(-oDate.getTimezoneOffset());
-				oDate.setMinutes(0);
-				oDate.setSeconds(0);
-				oDate.setMilliseconds(0);
-				document.getElementById("newVenueDate").valueAsDate = oDate;
-				document.getElementById("newVenueTime").valueAsDate = oDate;
-			</script>
+			<div id="siteLinks">
+				<a href="/menu">Menü</a>
+				<a href="/checkout">Kasse</a>
+				<a href="/kitchen">Küche</a>
+				<a href="/">Anzeige</a>
+			</div>
+			<div>
+				<h4>neue Veranstaltung</h4>
+				<form id="newVenueForm">
+					Datum:
+					<input id="newVenueDate" type="date" required>
+					<input id="newVenueTime" type="time" required>
+					<input id="newVenueName" type="text" required placeholder="Name">
+					<input type="submit" value="erstellen">
+				</form>
+				<script>
+					let oDate = new Date();
+					oDate.setHours(oDate.getHours()+1);
+					oDate.setMinutes(-oDate.getTimezoneOffset());
+					oDate.setMinutes(0);
+					oDate.setSeconds(0);
+					oDate.setMilliseconds(0);
+					document.getElementById("newVenueDate").valueAsDate = oDate;
+					document.getElementById("newVenueTime").valueAsDate = oDate;
+				</script>
+			</div>
 		</header>
 
 
