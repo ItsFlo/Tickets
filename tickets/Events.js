@@ -69,8 +69,16 @@ function flushQueue() {
 
 
 let iInterval = null;
-function init() {
+function stopInterval() {
+	clearInterval(iInterval);
+	iInterval = null;
+}
+function startInterval() {
+	stopInterval();
 	iInterval = setInterval(flushQueue, 10);
+}
+function init() {
+	startInterval();
 }
 
 

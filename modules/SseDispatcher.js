@@ -1,4 +1,4 @@
-import HttpDispatcher from "./HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "./HttpDispatcher.js";
 
 class SseDispatcher extends HttpDispatcher {
 	maConnections = [];
@@ -9,8 +9,7 @@ class SseDispatcher extends HttpDispatcher {
 			return;
 		}
 		if(request.headers.accept !== "text/event-stream") {
-			response.writeHead(400);
-			response.end();
+			sendStatus(response, 400);
 			return;
 		}
 		this.initConnection(response);

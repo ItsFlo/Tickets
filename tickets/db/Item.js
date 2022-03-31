@@ -20,7 +20,7 @@ class Item extends DbTable {
 		super(oDb);
 	}
 
-	createTable(callback) {
+	createTable() {
 		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
 			"${COL_ID}" INTEGER PRIMARY KEY,
 			"${COL_ITEM_CATEGORY}" INTEGER NOT NULL,
@@ -30,42 +30,67 @@ class Item extends DbTable {
 			UNIQUE("${COL_ITEM_CATEGORY}", "${COL_NAME}"),
 			FOREIGN KEY("${COL_ITEM_CATEGORY}") REFERENCES "${ItemCategory.TABLE}"("${ItemCategory.COL_ID}") ON DELETE CASCADE
 		)`;
-		this.moDb.run(sQuery, callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.run(sQuery, err => {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve();
+				}
+			});
+		});
 	}
 
 
-	getByName(itemCategory, name, callback) {
-		if(typeof callback !== "function") {
-			return this;
-		}
+	getByName(itemCategory, name) {
 		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_ITEM_CATEGORY}" = ? and "${COL_NAME}" = ?`;
-		this.moDb.get(sQuery, [itemCategory, name], callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.get(sQuery, [itemCategory, name], (err, rows) => {
+				if(err) {
+					reject(err);
+				}
+				else if(rows.length) {
+					resolve(rows[0]);
+				}
+				else {
+					resolve(null);
+				}
+			});
+		});
 	}
 
-	getAllByItemCategory(itemCategory, callback, sortOrder, limit) {
+	getAllByItemCategory(itemCategory, sortOrder, limit) {
 		let sWhere = `"${COL_ITEM_CATEGORY}" = ?`;
 		if(!sortOrder) {
 			sortOrder = COL_NAME;
 		}
-		return this.getAllWhere(sWhere, [itemCategory], callback, sortOrder, limit);
+		return this.getAllWhere(sWhere, [itemCategory], sortOrder, limit);
 	}
 
-	getAllForOrder(orderID, callback, sortOrder, limit) {
+	getAllForOrder(orderID, sortOrder, limit) {
 		let sQuery = `SELECT it.*, oi."${OrderItem.COL_COUNT}" FROM "${TABLE}" it INNER JOIN "${OrderItem.TABLE}" oi ON it."${COL_ID}" = oi."${OrderItem.COL_ITEM}"`
 					+ ` WHERE oi."${OrderItem.COL_ORDER}" = ?`;
 		sQuery += this.getOrderClause(sortOrder);
 		sQuery += this.getLimitClause(limit);
-		this.moDb.all(sQuery, [orderID], callback);
+		return new Promise((resolve, reject) => {
+			this.moDb.all(sQuery, [orderID], (err, rows) => {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve(rows);
+				}
+			});
+		});
 	}
 
-	create(itemCategory, name, price, callback) {
+	create(itemCategory, name, price) {
 		return super.create({
 			[COL_ITEM_CATEGORY]: itemCategory,
 			[COL_NAME]: name,
 			[COL_PRICE]: price,
-		}, callback);
+		});
 	}
 }
 

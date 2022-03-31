@@ -1,4 +1,4 @@
-import HttpDispatcher from "../../../modules/HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import { getOrderDirection, getLimit } from "../functions.js";
 import Venue from "../../db/Venue.js";
@@ -6,8 +6,7 @@ import Venue from "../../db/Venue.js";
 class VenueGetDispatcher extends HttpDispatcher {
 	request(sPath, request, response) {
 		if(!sPath) {
-			response.writeHead(400);
-			response.end();
+			sendStatus(response, 400);
 			return;
 		}
 		let aPathElements = this.splitPath(sPath);
@@ -36,8 +35,7 @@ class VenueGetDispatcher extends HttpDispatcher {
 			dispatchFunction.call(this, request, response, aPathElements);
 		}
 		else {
-			response.writeHead("400");
-			response.end();
+			sendStatus(response, 400);
 		}
 	}
 
@@ -46,26 +44,24 @@ class VenueGetDispatcher extends HttpDispatcher {
 
 	dispatchId(request, response, aPathElements) {
 		if(!aPathElements.length || isNaN(parseInt(aPathElements[0]))) {
-			response.writeHead(400);
-			response.end("No ID provided");
+			sendStatus(response, 400, "No ID provided");
 			return;
 		}
 		if(aPathElements.length > 1) {
-			response.writeHead(400);
-			response.end("Too many arguments");
+			sendStatus(response, 400, "Too many arguments");
 			return;
 		}
 		let iID = parseInt(aPathElements[0]);
-		TicketConfig.db.venue.getByID(iID, (err, row) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
+		TicketConfig.db.venue.getByID(iID).then(row => {
+			if(!row) {
+				sendStatus(response, 404);
+				return;
 			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end(JSON.stringify(row));
-			}
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(row));
+		}, err => {
+			sendStatus(response, 500, err.message);
 		});
 	}
 
@@ -80,56 +76,50 @@ class VenueGetDispatcher extends HttpDispatcher {
 		};
 		let limit = getLimit(searchParams, null);
 
-		let callback = (err, rows) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
-			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end(JSON.stringify(rows));
-			}
-		};
-
+		let promise;
 		if(searchParams.has("itemCount")) {
-			TicketConfig.db.venue.getAllWithItemCount(callback, order, limit);
+			promise = TicketConfig.db.venue.getAllWithItemCount(order, limit);
 		}
 		else {
-			TicketConfig.db.venue.getAll(callback, order, limit);
+			promise = TicketConfig.db.venue.getAll(order, limit);
 		}
+
+		promise.then(rows => {
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(rows));
+		}, err => {
+			sendStatus(response, 500, err.message);
+		});
 	}
 
 
 	dispatchName(request, response, aPathElements) {
 		if(!aPathElements.length || !aPathElements[0]) {
-			response.writeHead(400);
-			response.end("No Name provided");
+			sendStatus(response, 400, "No Name provided");
 			return;
 		}
 		if(aPathElements.length > 1) {
-			response.writeHead(400);
-			response.end("Too many arguments");
+			sendStatus(response, 400, "Too many arguments");
 			return;
 		}
-		TicketConfig.db.venue.getByName(aPathElements[0], (err, row) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
+		TicketConfig.db.venue.getByName(aPathElements[0]).then(row => {
+			if(!row) {
+				sendStatus(response, 404);
+				return;
 			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end(JSON.stringify(row));
-			}
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(row));
+		}, err => {
+			sendStatus(response, 500, err.message);
 		});
 	}
 
 
 	dispatchDate(request, response, aPathElements) {
 		if(!aPathElements.length || !aPathElements[0]) {
-			response.writeHead(400);
-			response.end("No Name provided");
+			sendStatus(response, 400, "No Name provided");
 			return;
 		}
 		let sDate = aPathElements.shift();
@@ -140,17 +130,13 @@ class VenueGetDispatcher extends HttpDispatcher {
 			[Venue.COL_TIME]: sOrderDirection,
 		};
 		let iLimit = getLimit(aPathElements, null);
-		TicketConfig.db.venue.getAllByDate(sDate, (err, rows) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
-			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end(JSON.stringify(rows));
-			}
-		}, oOrder, iLimit);
+		TicketConfig.db.venue.getAllByDate(sDate, oOrder, iLimit).then(rows => {
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(rows));
+		}, err => {
+			sendStatus(response, 500, err.message);
+		});
 	}
 };
 

@@ -1,4 +1,4 @@
-import HttpDispatcher from "../../../modules/HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import Events from "../../Events.js";
 import Order from "../../db/Order.js";
@@ -7,47 +7,45 @@ class OrderPatchDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
 		let iID = parseInt(oPost.id);
 		if(isNaN(iID)) {
-			response.writeHead(400);
-			response.end("No id provided");
+			sendStatus(response, 400, "No id provided");
 			return;
 		}
 
-		let callback = (err, changes) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
-			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end("{}");
-
-				if(changes) {
-					this.sendUpdateEvent(iID);
-				}
-			}
-		};
-
+		let promise = null;
 		switch(sPath.toUpperCase()) {
 			case Order.STATUS_PREPARED:
-				TicketConfig.db.order.updatePrepared(iID, callback);
+				promise = TicketConfig.db.order.updatePrepared(iID);
 				break;
 
 			case Order.STATUS_PICKEDUP:
-				TicketConfig.db.order.updatePickedUp(iID, callback);
+				promise = TicketConfig.db.order.updatePickedUp(iID);
 				break;
 
 			default:
-				response.writeHead(400);
-				response.end("Invalid status");
+				sendStatus(response, 400, "Invalid status");
 				break;
 		}
+		if(!promise) {
+			return;
+		}
+
+		promise.then(changes => {
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end("{}");
+
+			if(changes) {
+				this.sendUpdateEvent(iID);
+			}
+		}, err => {
+			sendStatus(response, 500, err.message);
+		});
 	}
 
 	sendUpdateEvent(iOrderID) {
-		TicketConfig.db.order.getByID(iOrderID, (err, oOrder) => {
-			if(!err) {
-				Events.sendEvent(Order.TABLE, oOrder[Order.COL_STATUS], oOrder);
+		return TicketConfig.db.order.getByID(iOrderID).then(order => {
+			if(order) {
+				Events.sendEvent(Order.TABLE, order[Order.COL_STATUS], order);
 			}
 		});
 	}

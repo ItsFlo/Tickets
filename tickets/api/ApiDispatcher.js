@@ -1,4 +1,4 @@
-import { HttpDispatcherGroup } from "../../modules/HttpDispatcher.js";
+import { HttpDispatcherGroup, sendStatus } from "../../modules/HttpDispatcher.js";
 import Ajax from "../script/Ajax.js";
 import oVenueDispatcher from "./VenueDispatcher.js";
 import oItemCategoryDispatcher from "./ItemCategoryDispatcher.js";
@@ -11,8 +11,7 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 
 		if(Ajax.AJAX_METHODS_WITH_BODY.includes(request.method)) {
 			if(request.headers["content-type"] !== "application/json") {
-				response.writeHead(400);
-				response.end("Content-Type 'application/json' expected");
+				sendStatus(response, 400, "Content-Type 'application/json' expected");
 				return;
 			}
 
@@ -23,8 +22,7 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 					let oJson = JSON.parse(sRequestBody);
 					super.request(sPath, request, response, oJson);
 				} catch(err) {
-					response.writeHead(400);
-					response.end("JSON error");
+					sendStatus(response, 400, "JSON error");
 				}
 			});
 		}

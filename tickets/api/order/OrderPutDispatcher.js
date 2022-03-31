@@ -1,4 +1,4 @@
-import HttpDispatcher from "../../../modules/HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import Events from "../../Events.js";
 import Order from "../../db/Order.js";
@@ -7,14 +7,12 @@ import OrderGetter from "./OrderGetter.js";
 class OrderPutDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
 		if(sPath) {
-			response.writeHead(404);
-			response.end();
+			sendStatus(response, 404);
 			return;
 		}
 		let iVenueID = parseInt(oPost.venue);
 		if(isNaN(iVenueID)) {
-			response.writeHead(400);
-			response.end("No venue provided");
+			sendStatus(response, 400, "No venue provided");
 			return;
 		}
 		let aItems = [];
@@ -32,74 +30,65 @@ class OrderPutDispatcher extends HttpDispatcher {
 			}
 		}
 		if(!aItems.length) {
-			response.writeHead(400);
-			response.end("No items provided");
+			sendStatus(response, 400, "No items provided");
 			return;
 		}
 
-		TicketConfig.db.startTransaction();
-		TicketConfig.db.order.create(iVenueID, null, "OPEN", (err, lastID) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
-				TicketConfig.db.rollbackTransaction();
-			}
-			else {
+		TicketConfig.db.startTransaction(true).then(transactionDb => {
+			transactionDb.order.create(iVenueID, null, Order.STATUS_OPEN).then(lastID => {
 				let iOrderID = lastID;
-				this.createOrderItems(response, iOrderID, aItems);
-			}
+				this.createOrderItems(transactionDb, response, iOrderID, aItems);
+			}, err => {
+				sendStatus(response, 500, err.message);
+				transactionDb.rollback();
+			});
+		}, err => {
+			sendStatus(response, 500, err.message);
 		});
 	}
 
 
 
-	createOrderItems(response, iOrderID, aItems) {
+	createOrderItems(transactionDb, response, iOrderID, aItems) {
 		let aPromises = [];
 		for(let oItem of aItems) {
-			let oPromise = new Promise((resolve, reject) => {
-				TicketConfig.db.orderItem.create(iOrderID, oItem.id, oItem.count, "OPEN", (err, lastID) => {
-					if(err) {
-						reject(err);
-					}
-					else {
-						resolve(lastID);
-					}
-				});
-			});
+			let oPromise = transactionDb.orderItem.create(iOrderID, oItem.id, oItem.count, Order.STATUS_OPEN);
 			aPromises.push(oPromise);
 		}
 
 		Promise.allSettled(aPromises).then(aResults => {
 			for(let oResult of aResults) {
 				if(oResult.status === "rejected") {
-					response.writeHead(500);
-					response.end(oResult.reason.message);
-					TicketConfig.db.rollbackTransaction();
+					sendStatus(response, 500, oResult.reason.message);
+					transactionDb.rollback();
 					return;
 				}
 			}
 
-			TicketConfig.db.order.recalculatePrice(iOrderID, err => {
-				if(err) {
-					response.writeHead(500);
-					response.end(err.message);
-					TicketConfig.db.rollbackTransaction();
-					return;
-				}
-
-				TicketConfig.db.commitTransaction();
-				TicketConfig.db.order.getByID(iOrderID, (err, row) => {
-					if(err) {
-						response.writeHead(500);
-						response.end(err.message);
-						return;
-					}
-
-					response.writeHead(200);
-					response.end(JSON.stringify(row));
+			transactionDb.order.recalculatePrice(iOrderID).then(changes => {
+				transactionDb.commit(false).then(() => {
+					transactionDb.order.getByID(iOrderID).then(row => {
+						if(!row) {
+							sendStatus(response, 500, "Couldn´t fetch new order");
+							transactionDb.close().catch(err => {});
+							return;
+						}
+						response.writeHead(201);
+						response.end(JSON.stringify(row));
+					}, err => {
+						sendStatus(response, 500, err.message);
+					}).finally(() => {
+						transactionDb.close();
+					});
+					this.sendCreateEvent(iOrderID);
+				}, err => {
+					sendStatus(response, 500, err.message);
+					transactionDb.rollback().catch(err => {});
 				});
 
-				this.sendCreateEvent(iOrderID);
+			}, err => {
+				sendStatus(response, 500, err.message);
+				transactionDb.rollback().catch(err => {});
 			});
 		});
 	}
@@ -108,7 +97,7 @@ class OrderPutDispatcher extends HttpDispatcher {
 	sendCreateEvent(iOrderID) {
 		OrderGetter.getOrder(iOrderID).then(oOrder => {
 			Events.sendEvent(Order.TABLE, "create", oOrder);
-		});
+		}, err => {});
 	}
 };
 

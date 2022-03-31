@@ -1,4 +1,4 @@
-import HttpDispatcher from "../../../modules/HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import Events from "../../Events.js";
 import Item from "../../db/Item.js";
@@ -6,14 +6,12 @@ import Item from "../../db/Item.js";
 class ItemPatchDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
 		if(sPath) {
-			response.writeHead(404);
-			response.end();
+			sendStatus(response, 404);
 			return;
 		}
 		let iID = parseInt(oPost.id);
 		if(isNaN(iID)) {
-			response.writeHead(400);
-			response.end("No id provided");
+			sendStatus(response, 400, "No id provided");
 			return;
 		}
 
@@ -21,8 +19,7 @@ class ItemPatchDispatcher extends HttpDispatcher {
 		let bRowsUpdated = false;
 		if(oPost.hasOwnProperty("name")) {
 			if(!oPost.name) {
-				response.writeHead(400);
-				response.end("Name must not be empty");
+				sendStatus(response, 400, "Name must not be empty");
 				return;
 			}
 			oUpdates[Item.COL_NAME] = oPost.name;
@@ -31,8 +28,7 @@ class ItemPatchDispatcher extends HttpDispatcher {
 		if(oPost.hasOwnProperty("price")) {
 			let fPrice = parseFloat(oPost.price);
 			if(isNaN(fPrice)) {
-				response.writeHead(400);
-				response.end("No price provided");
+				sendStatus(response, 400, "No price provided");
 				return;
 			}
 			oUpdates[Item.COL_PRICE] = fPrice;
@@ -41,26 +37,21 @@ class ItemPatchDispatcher extends HttpDispatcher {
 
 
 		if(!bRowsUpdated) {
-			response.writeHead(400);
-			response.end("no rows set to update");
+			sendStatus(response, 400, "no rows set to update");
 			return;
 		}
 
-		TicketConfig.db.item.update(iID, oUpdates, (err, changes) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
+		TicketConfig.db.item.update(iID, oUpdates).then(changes => {
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end("{}");
+	
+			if(changes) {
+				oUpdates.id = iID;
+				Events.sendEvent(Item.TABLE, "update", JSON.stringify(oUpdates));
 			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end("{}");
-
-				if(changes) {
-					oUpdates.id = iID;
-					Events.sendEvent(Item.TABLE, "update", JSON.stringify(oUpdates));
-				}
-			}
+		}, err => {
+			sendStatus(response, 500, err.message);
 		});
 	}
 };

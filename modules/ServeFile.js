@@ -1,5 +1,6 @@
 import { extname } from "path";
 import { readFile } from "fs";
+import { sendStatus } from "./HttpDispatcher.js";
 
 const MIME_TYPES = {
 	".html": "text/html",
@@ -32,12 +33,10 @@ function serveFile(sFilePath, response, mimeType) {
 		if(err) {
 			if(err.code == "ENOENT") {
 				response.setHeader("Cache-Control", "public, max-age=31536000");
-				response.writeHead(404);
-				response.end();
+				sendStatus(response, 404);
 			}
 			else {
-				response.writeHead(500);
-				response.end();
+				sendStatus(response, 500);
 			}
 		}
 		else {

@@ -3,35 +3,21 @@ import Order from "../../db/Order.js";
 import Item from "../../db/Item.js";
 
 function getOrder(iOrderID) {
-	return new Promise((resolve, reject) => {
-		TicketConfig.db.order.getByID(iOrderID, (err, row) => {
-			if(err) {
-				reject(err);
-			}
-			let oOrder = row;
+	return TicketConfig.db.order.getByID(iOrderID).then(order => {
+		if(!order) {
+			throw new Error("Not Found");
+		}
 
-			TicketConfig.db.item.getAllForOrder(iOrderID, (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-
-				oOrder.items = rows;
-				resolve(oOrder);
-			}, Item.COL_NAME);
+		return TicketConfig.db.item.getAllForOrder(iOrderID, Item.COL_NAME).then(rows => {
+			order.items = rows;
+			return order;
 		});
 	});
 }
 
 
 function getAllItems(iOrderID) {
-	return new Promise((resolve, reject) => {
-		TicketConfig.db.item.getAllForOrder(iOrderID, (err, rows) => {
-			if(err) {
-				reject(err);
-			}
-			resolve(rows);
-		}, Item.COL_NAME);
-	})
+	return TicketConfig.db.item.getAllForOrder(iOrderID, Item.COL_NAME);
 }
 function addItemsToOrder(oOrder) {
 	return getAllItems(oOrder.id).then(aItems => {
@@ -46,30 +32,21 @@ function getAll(iVenueID=null, aStatus=null, sortOrder=null, limit=null) {
 	if(!sortOrder) {
 		sortOrder = Order.COL_ORDER_TIMESTAMP;
 	}
-	return new Promise((resolve, reject) => {
-		let callback = (err, aOrders) => {
-			if(err) {
-				reject(err);
-			}
-
-			let aPromises = [];
-			for(let oOrder of aOrders) {
-				let oPromise = addItemsToOrder(oOrder);
-				aPromises.push(oPromise);
-			}
-
-			Promise.allSettled(aPromises).then(aResults => {
-				for(let oResult of aResults) {
-					if(oResult.status === "rejected") {
-						reject(oResult.reason);
-						return;
-					}
-				}
-				resolve(aOrders);
-			}, reject);
+	return TicketConfig.db.order.getAllByVenueStatus(iVenueID, aStatus, sortOrder, limit).then(orders => {
+		let promises = [];
+		for(let order of orders) {
+			let promise = addItemsToOrder(order);
+			promises.push(promise);
 		}
 
-		TicketConfig.db.order.getAllByVenueStatus(iVenueID, aStatus, callback, sortOrder, limit);
+		return Promise.allSettled(promises).then(results => {
+			for(let result of results) {
+				if(result.status === "rejected") {
+					throw result.reason;
+				}
+			}
+			return orders;
+		});
 	});
 }
 

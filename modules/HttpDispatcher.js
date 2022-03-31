@@ -1,17 +1,15 @@
 import serveFile from "./ServeFile.js";
 import URLSearchParamsCaseInsensitive from "./URLSearchParamsCaseInsensitive.js";
 
-function sendStatus(response, statusCode) {
-	response.setHeader("Cache-Control", "public, max-age=31536000");
+function sendStatus(response, statusCode, data=undefined) {
 	response.writeHead(statusCode);
-	response.end();
+	response.end(data);
 }
 
 
 class HttpDispatcher {
 	request(sPath, request, response) {
-		response.writeHead(404);
-		response.end();
+		sendStatus(response, 404);
 	}
 
 	upgrade(sPath, request, socket, head) {

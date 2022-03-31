@@ -22,7 +22,7 @@ class OrderItem extends DbTable {
 		super(oDb);
 	}
 
-	createTable(callback) {
+	createTable() {
 		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
 			"${COL_ID}" INTEGER PRIMARY KEY,
 			"${COL_ORDER}" INTEGER NOT NULL,
@@ -34,49 +34,70 @@ class OrderItem extends DbTable {
 			FOREIGN KEY("${COL_ORDER}") REFERENCES "${Order.TABLE}"("${Order.COL_ID}") ON DELETE CASCADE,
 			FOREIGN KEY("${COL_ITEM}") REFERENCES "${Item.TABLE}"("${Item.COL_ID}") ON DELETE CASCADE
 		)`;
-		this.moDb.run(sQuery, callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.run(sQuery, err => {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve();
+				}
+			});
+		});
 	}
 
 
-	get(order, item, callback) {
-		if(typeof callback !== "function") {
-			return this;
-		}
+	get(order, item) {
 		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_ORDER}" = ? AND "${COL_ITEM}" = ?`;
-		this.moDb.get(sQuery, [order, item], callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.get(sQuery, [order, item], (err, rows) => {
+				if(err) {
+					reject(err);
+				}
+				else if(rows.length) {
+					resolve(rows[0]);
+				}
+				else {
+					resolve(null);
+				}
+			});
+		});
 	}
 
-	getAllByOrder(order, callback, sortOrder, limit) {
+	getAllByOrder(order, sortOrder, limit) {
 		let sWhere = `"${COL_ORDER}" = ?`;
-		return this.getAllWhere(sWhere, [order], callback, sortOrder, limit);
+		return this.getAllWhere(sWhere, [order], sortOrder, limit);
 	}
-	getAllByStatus(order, status, callback, sortOrder, limit) {
+	getAllByStatus(order, status, sortOrder, limit) {
 		let sWhere = `"${COL_ORDER}" = ? AND "${COL_STATUS}" = ?`;
-		return this.getAllWhere(sWhere, [order, status], callback, sortOrder, limit);
+		return this.getAllWhere(sWhere, [order, status], sortOrder, limit);
 	}
 
-	updateByOrderItem(order, item, updates, callback) {
+	updateByOrderItem(order, item, updates) {
 		let sWhere = `"${COL_ORDER}" = ? AND "${COL_ITEM}" = ?`;
-		return this.updateWhere(sWhere, [order, item], updates, callback);
+		return this.updateWhere(sWhere, [order, item], updates);
 	}
 
-	create(order, item, count, status, callback) {
+	create(order, item, count, status) {
 		return super.create({
 			[COL_ORDER]: order,
 			[COL_ITEM]: item,
 			[COL_COUNT]: count,
 			[COL_STATUS]: status,
-		}, callback);
+		});
 	}
-	deleteByOrderItem(order, item, callback) {
-		if(typeof callback !== "function") {
-			callback = undefined;
-		}
+	deleteByOrderItem(order, item) {
 		let sQuery = `DELETE FROM "${TABLE}" WHERE "${COL_ORDER}" = ? AND "${COL_ITEM}" = ?`;
-		this.moDb.run(sQuery, [order, item], callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.run(sQuery, [order, item], function(err) {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve(this.changes);
+				}
+			});
+		});
 	}
 }
 

@@ -17,7 +17,7 @@ class ItemCategory extends DbTable {
 		super(oDb);
 	}
 
-	createTable(callback) {
+	createTable() {
 		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
 			"${COL_ID}" INTEGER PRIMARY KEY,
 			"${COL_VENUE}" INTEGER NOT NULL,
@@ -26,33 +26,49 @@ class ItemCategory extends DbTable {
 			UNIQUE("${COL_VENUE}", "${COL_NAME}"),
 			FOREIGN KEY("${COL_VENUE}") REFERENCES "${Venue.TABLE}"("${Venue.COL_ID}") ON DELETE CASCADE
 		)`;
-		this.moDb.run(sQuery, callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.run(sQuery, err => {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve();
+				}
+			});
+		});
 	}
 
 
-	getByName(venue, name, callback) {
-		if(typeof callback !== "function") {
-			return this;
-		}
+	getByName(venue, name) {
 		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? and "${COL_NAME}" = ?`;
-		this.moDb.get(sQuery, [venue, name], callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.get(sQuery, [venue, name], (err, rows) => {
+				if(err) {
+					reject(err);
+				}
+				else if(rows.length) {
+					resolve(rows[0]);
+				}
+				else {
+					resolve(null);
+				}
+			});
+		});
 	}
 
-	getAllByVenue(venue, callback, sortOrder, limit) {
+	getAllByVenue(venue, sortOrder, limit) {
 		let sWhere = `"${COL_VENUE}" = ?`;
 		if(!sortOrder) {
 			sortOrder = COL_NAME;
 		}
-		return this.getAllWhere(sWhere, [venue], callback, sortOrder, limit);
+		return this.getAllWhere(sWhere, [venue], sortOrder, limit);
 	}
 
-	create(venue, name, callback) {
+	create(venue, name) {
 		return super.create({
 			[COL_VENUE]: venue,
 			[COL_NAME]: name,
-		}, callback);
+		});
 	}
 }
 

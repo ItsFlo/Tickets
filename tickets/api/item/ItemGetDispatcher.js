@@ -1,4 +1,4 @@
-import HttpDispatcher from "../../../modules/HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import { getOrderDirection, getLimit } from "../functions.js";
 import Item from "../../db/Item.js";
@@ -6,8 +6,7 @@ import Item from "../../db/Item.js";
 class ItemGetDispatcher extends HttpDispatcher {
 	request(sPath, request, response) {
 		if(!sPath) {
-			response.writeHead(400);
-			response.end();
+			sendStatus(response, 400);
 			return;
 		}
 		let aPathElements = this.splitPath(sPath);
@@ -32,8 +31,7 @@ class ItemGetDispatcher extends HttpDispatcher {
 			dispatchFunction.call(this, request, response, aPathElements);
 		}
 		else {
-			response.writeHead("400");
-			response.end();
+			sendStatus(response, 400);
 		}
 	}
 
@@ -43,26 +41,24 @@ class ItemGetDispatcher extends HttpDispatcher {
 
 	dispatchId(request, response, aPathElements) {
 		if(!aPathElements.length || isNaN(parseInt(aPathElements[0]))) {
-			response.writeHead(400);
-			response.end("No ID provided");
+			sendStatus(response, 400, "No ID provided");
 			return;
 		}
 		if(aPathElements.length > 1) {
-			response.writeHead(400);
-			response.end("Too many arguments");
+			sendStatus(response, 400, "Too many arguments");
 			return;
 		}
 		let iID = parseInt(aPathElements[0]);
-		TicketConfig.db.item.getByID(iID, (err, row) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
+		TicketConfig.db.item.getByID(iID).then(row => {
+			if(!row) {
+				sendStatus(response, 404);
+				return;
 			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end(JSON.stringify(row));
-			}
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(row));
+		}).catch(err => {
+			sendStatus(response, 500, err.message);
 		});
 	}
 
@@ -75,58 +71,52 @@ class ItemGetDispatcher extends HttpDispatcher {
 			[Item.COL_NAME]: orderDirection,
 		};
 		let limit = getLimit(searchParams, null);
-
-		let callback = (err, rows) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
-			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end(JSON.stringify(rows));
-			}
-		};
-
 		let itemCategoryID = parseInt(searchParams.get("itemCategory", null));
+
+		let promise;
 		if(isNaN(itemCategoryID)) {
-			TicketConfig.db.item.getAll(callback, order, limit);
+			promise = TicketConfig.db.item.getAll(order, limit);
 		}
 		else {
-			TicketConfig.db.item.getAllByItemCategory(itemCategoryID, callback, order, limit);
+			promise = TicketConfig.db.item.getAllByItemCategory(itemCategoryID, order, limit);
 		}
+
+		promise.then(rows => {
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(rows));
+		}, err => {
+			sendStatus(response, 500, err.message);
+		});
 	}
 
 
 	dispatchName(request, response, aPathElements) {
 		if(aPathElements.length < 3) {
-			response.writeHead(400);
-			response.end("Too few arguments");
+			sendStatus(response, 400, "Too few arguments");
 			return;
 		}
 		let sName = aPathElements[0];
 		if(!sName) {
-			response.writeHead(400);
-			response.end("No Name provided");
+			sendStatus(response, 400, "No Name provided");
 			return;
 		}
 		let iItemCategoryID = parseInt(aPathElements[2]);
 		if(isNaN(iItemCategoryID) || aPathElements[1].toUpperCase() !== "ITEMCATEGORY") {
-			response.writeHead(400);
-			response.end("No Venue provided");
+			sendStatus(response, 400, "No Venue provided");
 			return;
 		}
 
-		TicketConfig.db.item.getByName(iItemCategoryID, sName, (err, row) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
+		TicketConfig.db.item.getByName(iItemCategoryID, sName).then(row => {
+			if(!row) {
+				sendStatus(response, 404);
+				return;
 			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end(JSON.stringify(row));
-			}
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(row));
+		}, err => {
+			sendStatus(response, 500, err.message);
 		});
 	}
 };

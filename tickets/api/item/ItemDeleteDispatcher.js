@@ -1,4 +1,4 @@
-import HttpDispatcher from "../../../modules/HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import Events from "../../Events.js";
 import Item from "../../db/Item.js";
@@ -6,33 +6,27 @@ import Item from "../../db/Item.js";
 class ItemDeleteDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
 		if(sPath) {
-			response.writeHead(404);
-			response.end();
+			sendStatus(response, 404);
 			return;
 		}
 		let iID = parseInt(oPost.id);
 		if(isNaN(iID)) {
-			response.writeHead(400);
-			response.end("No id provided");
+			sendStatus(response, 400, "No id provided");
 			return;
 		}
 
-		TicketConfig.db.item.delete(iID, (err, changes) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
-			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end("{}");
+		TicketConfig.db.item.delete(iID).then(changes => {
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end("{}");
 
-				if(changes) {
-					Events.sendEvent(Item.TABLE, "delete", JSON.stringify({
-						id: iID,
-					}));
-				}
+			if(changes) {
+				Events.sendEvent(Item.TABLE, "delete", JSON.stringify({
+					id: iID,
+				}));
 			}
+		}, err => {
+			sendStatus(response, 500, err.message);
 		});
 	}
 };

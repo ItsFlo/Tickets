@@ -1,3 +1,4 @@
+import { sendStatus } from "../../modules/HttpDispatcher.js";
 import SseDispatcher from "../../modules/SseDispatcher.js";
 import Order from "../db/Order.js";
 import Events from "../Events.js";
@@ -18,8 +19,7 @@ class OrderEventDispatcher extends SseDispatcher {
 
 		let iVenueID = parseInt(sPath);
 		if(isNaN(iVenueID)) {
-			response.writeHead(400);
-			response.end();
+			sendStatus(response, 400);
 			return;
 		}
 

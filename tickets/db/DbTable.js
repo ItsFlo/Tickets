@@ -9,13 +9,21 @@ class DbTable {
 
 
 
-	getByID(id, callback) {
-		if(typeof callback !== "function") {
-			return this;
-		}
+	getByID(id) {
 		let sQuery = `SELECT * FROM "${this.constructor.TABLE}" WHERE "${COL_ID}" = ? LIMIT 1`;
-		this.moDb.get(sQuery, [id], callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.get(sQuery, [id], (err, rows) => {
+				if(err) {
+					reject(err);
+				}
+				else if(rows.length) {
+					resolve(rows[0]);
+				}
+				else {
+					resolve(null);
+				}
+			});
+		});
 	}
 
 	getOrderClause(sortOrder) {
@@ -65,11 +73,7 @@ class DbTable {
 		}
 		return "";
 	}
-	getAllWhere(sWhere, aWhereValues, callback, sortOrder, limit) {
-		if(typeof callback !== "function") {
-			return this;
-		}
-
+	getAllWhere(sWhere, aWhereValues, sortOrder, limit) {
 		let aValues = [];
 		let sQuery = `SELECT * FROM "${this.constructor.TABLE}"`;
 
@@ -85,14 +89,22 @@ class DbTable {
 		//LIMIT
 		sQuery += this.getLimitClause(limit);
 
-		this.moDb.all(sQuery, aValues, callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.all(sQuery, aValues, (err, rows) => {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve(rows);
+				}
+			});
+		});
 	}
-	getAll(callback, sortOrder, limit) {
+	getAll(sortOrder, limit) {
 		return this.getAllWhere(null, null, callback, sortOrder, limit);
 	}
 
-	updateWhere(where, aWhereValues, updates, callback) {
+	updateWhere(where, aWhereValues, updates) {
 		let sQuery = `UPDATE "${this.constructor.TABLE}" SET `;
 		let aValues = [];
 
@@ -109,28 +121,29 @@ class DbTable {
 			bRowUpdated = true;
 		}
 		if(!bRowUpdated) {
-			if(typeof callback === "function") {
-				callback(new Error("no rows set for update"));
-			}
-			return this;
+			return Promise.reject(new Error("no rows set for update"));
 		}
 
 		sQuery += ` WHERE ` + where;
 		aValues = aValues.concat(aWhereValues);
 
-		this.moDb.run(sQuery, aValues, function(err) {
-			if(typeof callback === "function") {
-				callback(err, this? this.changes : undefined);
-			}
+		return new Promise((resolve, reject) => {
+			this.moDb.run(sQuery, aValues, function(err) {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve(this.changes);
+				}
+			});
 		});
-		return this;
 	}
-	update(id, updates, callback) {
+	update(id, updates) {
 		let sWhere = `"${COL_ID}" = ?`;
-		return this.updateWhere(sWhere, [id], updates, callback);
+		return this.updateWhere(sWhere, [id], updates);
 	}
 
-	create(values, callback) {
+	create(values) {
 		let sColumnPart = "";
 		let sValuePart = "";
 		let aValues = [];
@@ -139,10 +152,7 @@ class DbTable {
 				continue;
 			}
 			if(!values.hasOwnProperty(sCol)) {
-				if(typeof callback === "function") {
-					callback(new Error("didn´t provide values for all columns: "+sCol));
-				}
-				return this;
+				return Promise.reject(new Error("didn´t provide values for all columns: "+sCol));
 			}
 
 			if(sColumnPart) {
@@ -159,24 +169,29 @@ class DbTable {
 		}
 
 		let sQuery = `INSERT INTO "${this.constructor.TABLE}" (` + sColumnPart + ") VALUES (" + sValuePart + ")";
-		this.moDb.run(sQuery, aValues, function(err) {
-			if(typeof callback === "function") {
-				callback(err, this? this.lastID : undefined);
-			}
+		return new Promise((resolve, reject) => {
+			this.moDb.run(sQuery, aValues, function(err) {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve(this.lastID);
+				}
+			});
 		});
-		return this;
 	}
-	delete(id, callback) {
-		if(typeof callback !== "function") {
-			callback = undefined;
-		}
+	delete(id) {
 		let sQuery = `DELETE FROM "${this.constructor.TABLE}" WHERE "${COL_ID}" = ?`;
-		this.moDb.run(sQuery, [id], function(err) {
-			if(typeof callback === "function") {
-				callback(err, this? this.changes : undefined);
-			}
+		return new Promise((resolve, reject) => {
+			this.moDb.run(sQuery, [id], function(err) {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve(this.changes);
+				}
+			});
 		});
-		return this;
 	}
 };
 

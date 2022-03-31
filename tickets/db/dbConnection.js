@@ -8,17 +8,27 @@ import OrderItem from "./OrderItem.js";
 
 class DbConnection extends sqlite3.Database {
 	mbDbReady = false;
+	msFile;
 
-	constructor(file, initCallback) {
+	constructor(file, initCallback, createTables=true) {
 		super(file, sqlite3.OPEN_CREATE | sqlite3.OPEN_READWRITE, (err) => {
 			if(err) {
 				console.error(err);
 			}
 			else {
 				this.mbDbReady = true;
-				this.init(initCallback);
+				if(createTables) {
+					let initPromise = this.init();
+					if(typeof initCallback === "function") {
+						initPromise.then(initCallback, initCallback);
+					}
+				}
+				else if(typeof initCallback === "function") {
+					initCallback();
+				}
 			}
 		});
+		this.msFile = file;
 
 		this.venue = new Venue.Venue(this);
 		this.itemCategory = new ItemCategory.ItemCategory(this);
@@ -28,18 +38,30 @@ class DbConnection extends sqlite3.Database {
 	}
 
 
-	init(initCallback) {
+	init() {
 		if(!this.mbDbReady) {
 			return;
 		}
 
-		this.serialize(() => {
-			this.run("PRAGMA foreign_keys = ON;");
-			this.venue.createTable();
-			this.itemCategory.createTable();
-			this.item.createTable();
-			this.order.createTable();
-			this.orderItem.createTable(initCallback);
+		return new Promise((resolve, reject) => {
+			this.serialize(() => {
+				let promises = [];
+				this.run("PRAGMA foreign_keys = ON;");
+				promises.push(this.venue.createTable());
+				promises.push(this.itemCategory.createTable());
+				promises.push(this.item.createTable());
+				promises.push(this.order.createTable());
+				promises.push(this.orderItem.createTable());
+				Promise.allSettled(promises).then(results => {
+					for(let result of results) {
+						if(result.status === "rejected") {
+							reject(result.reason);
+							return;
+						}
+						resolve();
+					}
+				}, reject);
+			});
 		});
 	}
 
@@ -47,27 +69,103 @@ class DbConnection extends sqlite3.Database {
 
 
 	close() {
-		super.close((err) => {
-			if(err) {
-				console.error(err);
-			}
-			else {
-				this.mbDbReady = false;
-			}
+		return new Promise((resolve, reject) => {
+			super.close((err) => {
+				if(err) {
+					console.error(err);
+					reject(err);
+				}
+				else {
+					this.mbDbReady = false;
+					resolve();
+				}
+			});
 		});
 	}
 
 
 
-	startTransaction() {
-		super.run("BEGIN TRANSACTION");
-	}
-	commitTransaction() {
-		super.run("COMMIT TRANSACTION");
-	}
-	rollbackTransaction() {
-		super.run("ROLLBACK TRANSACTION");
+	startTransaction(immediate=false) {
+		return new Promise((resolve, reject) => {
+			let db = new TransactionDbConnection(this.msFile, err => {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve(db);
+				}
+			}, immediate);
+		});
 	}
 }
+
+
+class TransactionDbConnection extends DbConnection {
+	constructor(file, initCallback, immediate=false) {
+		super(file, err => {
+			if(err) {
+				initCallback(err);
+				return;
+			}
+
+			this.serialize();
+			let query = immediate? "BEGIN IMMEDIATE TRANSACTION" : "BEGIN TRANSACTION";
+			this.run(query, err => {
+				if(err) {
+					initCallback(err);
+				}
+				else {
+					initCallback();
+				}
+			});
+		}, false);
+	}
+
+	commit(closeConnection=true) {
+		return new Promise((resolve, reject) => {
+			this.run("COMMIT TRANSACTION", err => {
+				if(err) {
+					if(closeConnection) {
+						this.close().catch(() => {}).finally(() => reject(err));
+					}
+					else {
+						reject(err);
+					}
+				}
+				else {
+					console.log("close connection:", closeConnection);
+					if(closeConnection) {
+						this.close().catch(() => {}).then(resolve, reject);
+					}
+					else {
+						resolve();
+					}
+				}
+			});
+		});
+	}
+	rollback(closeConnection=true) {
+		return new Promise((resolve, reject) => {
+			this.run("ROLLBACK TRANSACTION", err => {
+				if(err) {
+					if(closeConnection) {
+						this.close().finally(() => reject(err));
+					}
+					else {
+						reject(err);
+					}
+				}
+				else {
+					if(closeConnection) {
+						this.close().then(resolve, reject);
+					}
+					else {
+						resolve();
+					}
+				}
+			});
+		});
+	}
+};
 
 export default DbConnection;

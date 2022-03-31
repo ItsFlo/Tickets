@@ -1,4 +1,4 @@
-import HttpDispatcher from "../../../modules/HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import Events from "../../Events.js";
 import Order from "../../db/Order.js"
@@ -6,44 +6,39 @@ import Order from "../../db/Order.js"
 class OrderDeleteDispatcher extends HttpDispatcher {
 	request(sPath, request, response, oPost) {
 		if(sPath) {
-			response.writeHead(404);
-			response.end();
+			sendStatus(response, 404);
 			return;
 		}
 		let iID = parseInt(oPost.id);
 		if(isNaN(iID)) {
-			response.writeHead(400);
-			response.end("No id provided");
+			sendStatus(response, 400, "No id provided");
 			return;
 		}
 
-		TicketConfig.db.order.getByID((err, row) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
+		let errCallback = (err) => {
+			sendStatus(response, 500, err.message);
+		};
+		TicketConfig.db.order.getByID(iID).then(row => {
+			if(!row) {
+				response.setHeader("Content-Type", "application/json");
+				response.writeHead(200);
+				response.end("{}");
 				return;
 			}
-
 			let iVenueID = row[Order.COL_VENUE];
-			TicketConfig.db.order.delete(iID, (err, changes) => {
-				if(err) {
-					response.writeHead(500);
-					response.end(err.message);
+			TicketConfig.db.order.delete(iID).then(changes => {
+				response.setHeader("Content-Type", "application/json");
+				response.writeHead(200);
+				response.end("{}");
+
+				if(changes) {
+					Events.sendEvent(Order.TABLE, "delete", {
+						[Order.COL_ID]: iID,
+						[Order.COL_VENUE]: iVenueID,
+					});
 				}
-				else {
-					response.setHeader("Content-Type", "application/json");
-					response.writeHead(200);
-					response.end("{}");
-	
-					if(changes) {
-						Events.sendEvent(Order.TABLE, "delete", {
-							[Order.COL_ID]: iID,
-							[Order.COL_VENUE]: iVenueID,
-						});
-					}
-				}
-			});
-		});
+			}, errCallback);
+		}, errCallback);
 	}
 };
 

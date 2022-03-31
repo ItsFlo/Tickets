@@ -1,12 +1,11 @@
-import HttpDispatcher from "../../../modules/HttpDispatcher.js";
+import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import OrderGetter from "./OrderGetter.js";
 
 class OrderGetDispatcher extends HttpDispatcher {
 	request(sPath, request, response) {
 		if(!sPath) {
-			response.writeHead(400);
-			response.end();
+			sendStatus(response, 400);
 			return;
 		}
 		let aPathElements = this.splitPath(sPath);
@@ -27,34 +26,31 @@ class OrderGetDispatcher extends HttpDispatcher {
 			dispatchFunction.call(this, request, response, aPathElements);
 		}
 		else {
-			response.writeHead("400");
-			response.end();
+			sendStatus(response, 400);
 		}
 	}
 
 
 	dispatchId(request, response, aPathElements) {
 		if(!aPathElements.length || isNaN(parseInt(aPathElements[0]))) {
-			response.writeHead(400);
-			response.end("No ID provided");
+			sendStatus(response, 400, "No ID provided");
 			return;
 		}
 		if(aPathElements.length > 1) {
-			response.writeHead(400);
-			response.end("Too many arguments");
+			sendStatus(response, 400, "Too many arguments");
 			return;
 		}
 		let iID = parseInt(aPathElements[0]);
-		TicketConfig.db.order.getByID(iID, (err, row) => {
-			if(err) {
-				response.writeHead(500);
-				response.end(err.message);
+		TicketConfig.db.order.getByID(iID).then(row => {
+			if(!row) {
+				sendStatus(response, 404);
+				return;
 			}
-			else {
-				response.setHeader("Content-Type", "application/json");
-				response.writeHead(200);
-				response.end(JSON.stringify(row));
-			}
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(row));
+		}, err => {
+			sendStatus(response, 500, err.message);
 		});
 	}
 
@@ -73,8 +69,7 @@ class OrderGetDispatcher extends HttpDispatcher {
 			response.writeHead(200);
 			response.end(JSON.stringify(orders));
 		}, (err) => {
-			response.writeHead(500);
-			response.end(err.message);
+			sendStatus(response, 500, err.message);
 		});
 	}
 };

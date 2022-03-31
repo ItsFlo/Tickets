@@ -27,21 +27,37 @@ class Venue extends DbTable {
 			"${COL_DATE}" TEXT,
 			"${COL_TIME}" TEXT
 		)`;
-		this.moDb.run(sQuery, callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.run(sQuery, err => {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve();
+				}
+			});
+		});
 	}
 
 
-	getByName(name, callback) {
-		if(typeof callback !== "function") {
-			return this;
-		}
+	getByName(name) {
 		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_NAME}" = ?`;
-		this.moDb.get(sQuery, [name], callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.get(sQuery, [name], (err, rows) => {
+				if(err) {
+					reject(err);
+				}
+				else if(rows.length) {
+					resolve(rows[0]);
+				}
+				else {
+					resolve(null);
+				}
+			});
+		});
 	}
 
-	getAllWithItemCount(callback, sortOrder, limit) {
+	getAllWithItemCount(sortOrder, limit) {
 		let sGroupColumns = 'v."' + COLUMNS.join('", v."') + '"';
 		let sQuery = `SELECT v.*, COUNT(DISTINCT it."${Item.COL_ID}") as "itemCount"
 			FROM "${TABLE}" v
@@ -52,20 +68,28 @@ class Venue extends DbTable {
 			GROUP BY ${sGroupColumns}`;
 		sQuery += this.getOrderClause(sortOrder);
 		sQuery += this.getLimitClause(limit);
-		this.moDb.all(sQuery, [], callback);
-		return this;
+		return new Promise((resolve, reject) => {
+			this.moDb.all(sQuery, [], (err, rows) => {
+				if(err) {
+					reject(err);
+				}
+				else {
+					resolve(rows);
+				}
+			});
+		});
 	}
-	getAllByDate(date, callback, sortOrder, limit) {
+	getAllByDate(date, sortOrder, limit) {
 		let sWhere = `"${COL_DATE}" = ?`;
-		return this.getAllWhere(sWhere, [date], callback, sortOrder, limit);
+		return this.getAllWhere(sWhere, [date], sortOrder, limit);
 	}
 
-	create(name, date, time, callback) {
+	create(name, date, time) {
 		return super.create({
 			[COL_NAME]: name,
 			[COL_DATE]: date,
 			[COL_TIME]: time,
-		}, callback);
+		});
 	}
 }
 
