@@ -1,3 +1,4 @@
+.vscode/
 ssl/
 node_modules/
 *.sqlite
