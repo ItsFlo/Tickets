@@ -4,30 +4,31 @@ import Events from "../../Events.js";
 import Item from "../../db/Item.js";
 
 class ItemDeleteDispatcher extends HttpDispatcher {
-	request(sPath, request, response, oPost) {
-		if(sPath) {
+	request(path, request, response, post) {
+		if(path) {
 			sendStatus(response, 404);
 			return;
 		}
-		let iID = parseInt(oPost.id);
-		if(isNaN(iID)) {
+		let id = parseInt(post.id);
+		if(isNaN(id)) {
 			sendStatus(response, 400, "No id provided");
 			return;
 		}
 
-		TicketConfig.db.item.delete(iID).then(changes => {
+		try {
+			let changes = TicketConfig.db.item.delete(id);
 			response.setHeader("Content-Type", "application/json");
 			response.writeHead(200);
 			response.end("{}");
 
 			if(changes) {
-				Events.sendEvent(Item.TABLE, "delete", JSON.stringify({
-					id: iID,
-				}));
+				Events.sendEvent(Item.TABLE, "delete", {
+					id: id,
+				});
 			}
-		}, err => {
+		} catch (err) {
 			sendStatus(response, 500, err.message);
-		});
+		}
 	}
 };
 

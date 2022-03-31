@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"dependencies": {
-		"sqlite3": "^5.0.2",
+		"better-sqlite3": "^7.5.0",
 		"ws": "^8.2.3"
 	}
 }

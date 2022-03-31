@@ -1,62 +1,51 @@
 const COL_ID = "id";
 
 class DbTable {
-	moDb;
+	db;
 
-	constructor(oDb) {
-		this.moDb = oDb;
+	constructor(db) {
+		this.db = db;
 	}
 
 
 
 	getByID(id) {
-		let sQuery = `SELECT * FROM "${this.constructor.TABLE}" WHERE "${COL_ID}" = ? LIMIT 1`;
-		return new Promise((resolve, reject) => {
-			this.moDb.get(sQuery, [id], (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-				else if(rows.length) {
-					resolve(rows[0]);
-				}
-				else {
-					resolve(null);
-				}
-			});
-		});
+		let query = `SELECT * FROM "${this.constructor.TABLE}" WHERE "${COL_ID}" = ? LIMIT 1`;
+		let stmt = this.db.prepare(query);
+		return stmt.get(id);
 	}
 
 	getOrderClause(sortOrder) {
 		if(Array.isArray(sortOrder)) {
-			let sOrderClause = "";
+			let orderClause = "";
 			for(let sCol of sortOrder) {
 				if(this.constructor.COLUMNS.includes(sCol)) {
-					if(sOrderClause) {
-						sOrderClause += ", ";
+					if(orderClause) {
+						orderClause += ", ";
 					}
-					sOrderClause += `"${sCol}"`;
+					orderClause += `"${sCol}"`;
 				}
 			}
-			if(sOrderClause) {
-				return " ORDER BY " + sOrderClause + " ";
+			if(orderClause) {
+				return " ORDER BY " + orderClause + " ";
 			}
 		}
 		else if(typeof sortOrder === "object") {
-			let sOrderClause = "";
-			let aDirections = ["ASC", "DESC"];
-			for(let sCol in sortOrder) {
-				if(this.constructor.COLUMNS.includes(sCol)) {
-					let sDirection = sortOrder[sCol].toUpperCase();
-					if(aDirections.includes(sDirection)) {
-						if(sOrderClause) {
-							sOrderClause += ", ";
+			let orderClause = "";
+			let validDirections = ["ASC", "DESC"];
+			for(let col in sortOrder) {
+				if(this.constructor.COLUMNS.includes(col)) {
+					let direction = sortOrder[col].toUpperCase();
+					if(validDirections.includes(direction)) {
+						if(orderClause) {
+							orderClause += ", ";
 						}
-						sOrderClause += `"${sCol}" ${sDirection}`;
+						orderClause += `"${col}" ${direction}`;
 					}
 				}
 			}
-			if(sOrderClause) {
-				return " ORDER BY " + sOrderClause + " ";
+			if(orderClause) {
+				return " ORDER BY " + orderClause + " ";
 			}
 		}
 		else if(typeof sortOrder === "string") {
@@ -67,148 +56,119 @@ class DbTable {
 		return "";
 	}
 	getLimitClause(limit) {
-		let iLimit = parseInt(limit);
-		if(!isNaN(iLimit) && iLimit > 0) {
-			return ` LIMIT ${iLimit} `;
+		limit = parseInt(limit);
+		if(!isNaN(limit) && limit > 0) {
+			return ` LIMIT ${limit} `;
 		}
 		return "";
 	}
-	getAllWhere(sWhere, aWhereValues, sortOrder, limit) {
-		let aValues = [];
-		let sQuery = `SELECT * FROM "${this.constructor.TABLE}"`;
+	getAllWhere(where, whereValues, sortOrder, limit) {
+		let values = [];
+		let query = `SELECT * FROM "${this.constructor.TABLE}"`;
 
 		//WHERE
-		if(sWhere) {
-			sQuery += " WHERE " + sWhere;
-			aValues = aWhereValues;
+		if(where) {
+			query += " WHERE " + where;
+			values = whereValues;
 		}
 
 		//ORDER BY
-		sQuery += this.getOrderClause(sortOrder);
+		query += this.getOrderClause(sortOrder);
 
 		//LIMIT
-		sQuery += this.getLimitClause(limit);
+		query += this.getLimitClause(limit);
 
-		return new Promise((resolve, reject) => {
-			this.moDb.all(sQuery, aValues, (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(rows);
-				}
-			});
-		});
+		let stmt = this.db.prepare(query);
+		return stmt.all(values);
 	}
 	getAll(sortOrder, limit) {
 		return this.getAllWhere(null, null, callback, sortOrder, limit);
 	}
 
-	updateWhere(where, aWhereValues, updates) {
-		let sQuery = `UPDATE "${this.constructor.TABLE}" SET `;
-		let aValues = [];
+	updateWhere(where, whereValues, updates) {
+		let query = `UPDATE "${this.constructor.TABLE}" SET `;
+		let values = [];
 
-		let bRowUpdated = false;
-		for(let sCol in updates) {
-			if(!updates.hasOwnProperty(sCol) || !this.constructor.COLUMNS.includes(sCol)) {
+		let rowsAreUpdated = false;
+		for(let col in updates) {
+			if(!updates.hasOwnProperty(col) || !this.constructor.COLUMNS.includes(col)) {
 				continue;
 			}
-			if(bRowUpdated) {
-				sQuery += ", ";
+			if(rowsAreUpdated) {
+				query += ", ";
 			}
-			sQuery += `"${sCol}" = ?`;
-			aValues.push(updates[sCol]);
-			bRowUpdated = true;
+			query += `"${col}" = ?`;
+			values.push(updates[col]);
+			rowsAreUpdated = true;
 		}
-		if(!bRowUpdated) {
-			return Promise.reject(new Error("no rows set for update"));
+		if(!rowsAreUpdated) {
+			throw new Error("no rows set for update");
 		}
 
-		sQuery += ` WHERE ` + where;
-		aValues = aValues.concat(aWhereValues);
+		query += ` WHERE ` + where;
+		values = values.concat(whereValues);
 
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, aValues, function(err) {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(this.changes);
-				}
-			});
-		});
+		let stmt = this.db.prepare(query);
+		let result = stmt.run(values);
+		return result.changes;
 	}
 	update(id, updates) {
-		let sWhere = `"${COL_ID}" = ?`;
-		return this.updateWhere(sWhere, [id], updates);
+		let where = `"${COL_ID}" = ?`;
+		return this.updateWhere(where, [id], updates);
 	}
 
 	create(values) {
-		let sColumnPart = "";
-		let sValuePart = "";
-		let aValues = [];
-		for(let sCol of this.constructor.COLUMNS) {
-			if(sCol === COL_ID) {
+		let columnPart = "";
+		let valuePart = "";
+		let cleanedValues = [];
+		for(let col of this.constructor.COLUMNS) {
+			if(col === COL_ID) {
 				continue;
 			}
-			if(!values.hasOwnProperty(sCol)) {
-				return Promise.reject(new Error("didn´t provide values for all columns: "+sCol));
+			if(!values.hasOwnProperty(col)) {
+				throw new Error("didn´t provide values for all columns: "+col);
 			}
 
-			if(sColumnPart) {
-				sColumnPart += ", ";
+			if(columnPart) {
+				columnPart += ", ";
 			}
-			sColumnPart += `"${sCol}"`;
+			columnPart += `"${col}"`;
 
-			if(sValuePart) {
-				sValuePart += ", ";
+			if(valuePart) {
+				valuePart += ", ";
 			}
-			sValuePart += "?";
+			valuePart += "?";
 
-			aValues.push(values[sCol]);
+			cleanedValues.push(values[col]);
 		}
 
-		let sQuery = `INSERT INTO "${this.constructor.TABLE}" (` + sColumnPart + ") VALUES (" + sValuePart + ")";
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, aValues, function(err) {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(this.lastID);
-				}
-			});
-		});
+		let query = `INSERT INTO "${this.constructor.TABLE}" (` + columnPart + ") VALUES (" + valuePart + ")";
+		let stmt = this.db.prepare(query);
+		let result = stmt.run(cleanedValues);
+		return result.lastInsertRowid;
 	}
 	delete(id) {
-		let sQuery = `DELETE FROM "${this.constructor.TABLE}" WHERE "${COL_ID}" = ?`;
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, [id], function(err) {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(this.changes);
-				}
-			});
-		});
+		let query = `DELETE FROM "${this.constructor.TABLE}" WHERE "${COL_ID}" = ?`;
+		let stmt = this.db.prepare(query);
+		let result = stmt.run(id);
+		return result.changes;
 	}
 };
 
 
 
-function addConstants(oClass, sTableName, aColumnNames) {
-	let oProperties = {
+function addConstants(oClass, tableName, columnNames) {
+	let properties = {
 		TABLE: {
-			value: sTableName,
+			value: tableName,
 			writable: false,
 		},
 		COLUMNS: {
-			value: aColumnNames,
+			value: columnNames,
 			writable: false,
 		},
 	};
-	Object.defineProperties(oClass, oProperties);
+	Object.defineProperties(oClass, properties);
 }
 
 export default DbTable;

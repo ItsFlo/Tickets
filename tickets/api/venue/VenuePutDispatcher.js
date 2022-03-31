@@ -4,40 +4,41 @@ import Events from "../../Events.js";
 import Venue from "../../db/Venue.js";
 
 class VenuePutDispatcher extends HttpDispatcher {
-	request(sPath, request, response, oPost) {
-		if(sPath) {
+	request(path, request, response, post) {
+		if(path) {
 			sendStatus(response, 404);
 			return;
 		}
-		if(!oPost.hasOwnProperty("name") || !oPost.name) {
+		if(!post.hasOwnProperty("name") || !post.name) {
 			sendStatus(response, 400, "No name provided");
 			return;
 		}
-		if(!oPost.hasOwnProperty("date") || !oPost.date.match(/^\d\d\d\d-\d\d-\d\d$/)) {
+		if(!post.hasOwnProperty("date") || !post.date.match(/^\d\d\d\d-\d\d-\d\d$/)) {
 			sendStatus(response, 400, "No date provided");
 			return;
 		}
-		if(!oPost.hasOwnProperty("time") || !oPost.time.match(/^\d\d:\d\d(:\d\d)?$/)) {
+		if(!post.hasOwnProperty("time") || !post.time.match(/^\d\d:\d\d(:\d\d)?$/)) {
 			sendStatus(response, 400, "No time provided");
 			return;
 		}
 
-		TicketConfig.db.venue.create(oPost.name, oPost.date, oPost.time).then(lastID => {
+		try {
+			let lastID = TicketConfig.db.venue.create(post.name, post.date, post.time);
 			response.setHeader("Content-Type", "application/json");
 			response.writeHead(201);
 			response.end(JSON.stringify({
 				id: lastID,
 			}));
 
-			Events.sendEvent(Venue.TABLE, "create", JSON.stringify({
+			Events.sendEvent(Venue.TABLE, "create", {
 				id: lastID,
-				name: oPost.name,
-				date: oPost.date,
-				time: oPost.time,
-			}));
-		}, err => {
+				name: post.name,
+				date: post.date,
+				time: post.time,
+			});
+		} catch (err) {
 			sendStatus(response, 500, err.message);
-		});
+		}
 	}
 };
 

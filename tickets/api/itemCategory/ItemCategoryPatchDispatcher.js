@@ -4,46 +4,47 @@ import Events from "../../Events.js";
 import ItemCategory from "../../db/ItemCategory.js";
 
 class ItemCategoryPatchDispatcher extends HttpDispatcher {
-	request(sPath, request, response, oPost) {
-		if(sPath) {
+	request(path, request, response, post) {
+		if(path) {
 			sendStatus(response, 404);
 			return;
 		}
-		let iID = parseInt(oPost.id);
-		if(isNaN(iID)) {
+		let id = parseInt(post.id);
+		if(isNaN(id)) {
 			sendStatus(response, 400, "No id provided");
 			return;
 		}
 
-		let oUpdates = {};
-		let bRowsUpdated = false;
-		if(oPost.hasOwnProperty("name")) {
-			if(!oPost.name) {
+		let updates = {};
+		let rowsAreUpdated = false;
+		if(post.hasOwnProperty("name")) {
+			if(!post.name) {
 				sendStatus(response, 400, "Name must not be empty");
 				return;
 			}
-			oUpdates[ItemCategory.COL_NAME] = oPost.name;
-			bRowsUpdated = true;
+			updates[ItemCategory.COL_NAME] = post.name;
+			rowsAreUpdated = true;
 		}
 
 
-		if(!bRowsUpdated) {
+		if(!rowsAreUpdated) {
 			sendStatus(response, 400, "no rows set to update");
 			return;
 		}
 
-		TicketConfig.db.itemCategory.update(iID, oUpdates).then(changes => {
+		try {
+			let changes = TicketConfig.db.itemCategory.update(id, updates);
 			response.setHeader("Content-Type", "application/json");
 			response.writeHead(200);
 			response.end("{}");
 
 			if(changes) {
-				oUpdates.id = iID;
-				Events.sendEvent(ItemCategory.TABLE, "update", JSON.stringify(oUpdates));
+				updates.id = id;
+				Events.sendEvent(ItemCategory.TABLE, "update", JSON.stringify(updates));
 			}
-		}, err => {
+		} catch (err) {
 			sendStatus(response, 500, err.message);
-		});
+		}
 	}
 };
 

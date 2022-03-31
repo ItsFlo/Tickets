@@ -16,72 +16,46 @@ const COLUMNS = [
 
 
 class Venue extends DbTable {
-	constructor(oDb) {
-		super(oDb);
+	constructor(db) {
+		super(db);
 	}
 
-	createTable(callback) {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
+	createTable() {
+		let query = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
 			"${COL_ID}" INTEGER PRIMARY KEY,
 			"${COL_NAME}" TEXT UNIQUE,
 			"${COL_DATE}" TEXT,
 			"${COL_TIME}" TEXT
 		)`;
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, err => {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve();
-				}
-			});
-		});
+		let stmt = this.db.prepare(query);
+		stmt.run();
 	}
 
 
 	getByName(name) {
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_NAME}" = ?`;
-		return new Promise((resolve, reject) => {
-			this.moDb.get(sQuery, [name], (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-				else if(rows.length) {
-					resolve(rows[0]);
-				}
-				else {
-					resolve(null);
-				}
-			});
-		});
+		let query = `SELECT * FROM "${TABLE}" WHERE "${COL_NAME}" = ?`;
+		let stmt = this.db.prepare(query);
+		return stmt.get(name);
 	}
 
 	getAllWithItemCount(sortOrder, limit) {
-		let sGroupColumns = 'v."' + COLUMNS.join('", v."') + '"';
-		let sQuery = `SELECT v.*, COUNT(DISTINCT it."${Item.COL_ID}") as "itemCount"
+		let groupColumns = 'v."' + COLUMNS.join('", v."') + '"';
+		let query = `SELECT v.*, COUNT(DISTINCT it."${Item.COL_ID}") as "itemCount"
 			FROM "${TABLE}" v
 				LEFT OUTER JOIN
 				"${ItemCategory.TABLE}" ic ON v."${COL_ID}" = ic."${ItemCategory.COL_VENUE}"
 				LEFT OUTER JOIN
 				"${Item.TABLE}" it ON ic."${ItemCategory.COL_ID}" = it."${Item.COL_ITEM_CATEGORY}"
-			GROUP BY ${sGroupColumns}`;
-		sQuery += this.getOrderClause(sortOrder);
-		sQuery += this.getLimitClause(limit);
-		return new Promise((resolve, reject) => {
-			this.moDb.all(sQuery, [], (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(rows);
-				}
-			});
-		});
+			GROUP BY ${groupColumns}`;
+		query += this.getOrderClause(sortOrder);
+		query += this.getLimitClause(limit);
+
+		let stmt = this.db.prepare(query);
+		return stmt.all();
 	}
 	getAllByDate(date, sortOrder, limit) {
-		let sWhere = `"${COL_DATE}" = ?`;
-		return this.getAllWhere(sWhere, [date], sortOrder, limit);
+		let where = `"${COL_DATE}" = ?`;
+		return this.getAllWhere(where, [date], sortOrder, limit);
 	}
 
 	create(name, date, time) {

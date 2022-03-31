@@ -4,30 +4,31 @@ import Events from "../../Events.js";
 import ItemCategory from "../../db/ItemCategory.js";
 
 class ItemCategoryDeleteDispatcher extends HttpDispatcher {
-	request(sPath, request, response, oPost) {
-		if(sPath) {
+	request(path, request, response, post) {
+		if(path) {
 			sendStatus(response, 404);
 			return;
 		}
-		let iID = parseInt(oPost.id);
-		if(isNaN(iID)) {
+		let id = parseInt(post.id);
+		if(isNaN(id)) {
 			sendStatus(response, 400, "No id provided");
 			return;
 		}
 
-		TicketConfig.db.itemCategory.delete(iID).then(changes => {
+		try {
+			let changes = TicketConfig.db.itemCategory.delete(id);
 			response.setHeader("Content-Type", "application/json");
 			response.writeHead(200);
 			response.end("{}");
 
 			if(changes) {
-				Events.sendEvent(ItemCategory.TABLE, "delete", JSON.stringify({
-					id: iID,
-				}));
+				Events.sendEvent(ItemCategory.TABLE, "delete", {
+					id: id,
+				});
 			}
-		}, err => {
+		} catch (err) {
 			sendStatus(response, 500, err.message);
-		});
+		}
 	}
 };
 

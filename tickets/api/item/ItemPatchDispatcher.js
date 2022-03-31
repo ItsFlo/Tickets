@@ -4,55 +4,56 @@ import Events from "../../Events.js";
 import Item from "../../db/Item.js";
 
 class ItemPatchDispatcher extends HttpDispatcher {
-	request(sPath, request, response, oPost) {
-		if(sPath) {
+	request(path, request, response, post) {
+		if(path) {
 			sendStatus(response, 404);
 			return;
 		}
-		let iID = parseInt(oPost.id);
-		if(isNaN(iID)) {
+		let id = parseInt(post.id);
+		if(isNaN(id)) {
 			sendStatus(response, 400, "No id provided");
 			return;
 		}
 
-		let oUpdates = {};
-		let bRowsUpdated = false;
-		if(oPost.hasOwnProperty("name")) {
-			if(!oPost.name) {
+		let updates = {};
+		let rowsAreUpdated = false;
+		if(post.hasOwnProperty("name")) {
+			if(!post.name) {
 				sendStatus(response, 400, "Name must not be empty");
 				return;
 			}
-			oUpdates[Item.COL_NAME] = oPost.name;
-			bRowsUpdated = true;
+			updates[Item.COL_NAME] = post.name;
+			rowsAreUpdated = true;
 		}
-		if(oPost.hasOwnProperty("price")) {
-			let fPrice = parseFloat(oPost.price);
-			if(isNaN(fPrice)) {
-				sendStatus(response, 400, "No price provided");
+		if(post.hasOwnProperty("price")) {
+			let price = parseFloat(post.price);
+			if(isNaN(price)) {
+				sendStatus(response, 400, "Invalid price");
 				return;
 			}
-			oUpdates[Item.COL_PRICE] = fPrice;
-			bRowsUpdated = true;
+			updates[Item.COL_PRICE] = price;
+			rowsAreUpdated = true;
 		}
 
 
-		if(!bRowsUpdated) {
+		if(!rowsAreUpdated) {
 			sendStatus(response, 400, "no rows set to update");
 			return;
 		}
 
-		TicketConfig.db.item.update(iID, oUpdates).then(changes => {
+		try {
+			let changes = TicketConfig.db.item.update(id, updates);
 			response.setHeader("Content-Type", "application/json");
 			response.writeHead(200);
 			response.end("{}");
 	
 			if(changes) {
-				oUpdates.id = iID;
-				Events.sendEvent(Item.TABLE, "update", JSON.stringify(oUpdates));
+				updates.id = id;
+				Events.sendEvent(Item.TABLE, "update", JSON.stringify(updates));
 			}
-		}, err => {
+		} catch (err) {
 			sendStatus(response, 500, err.message);
-		});
+		}
 	}
 };
 

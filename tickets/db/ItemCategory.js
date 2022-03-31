@@ -13,12 +13,12 @@ const COLUMNS = [
 
 
 class ItemCategory extends DbTable {
-	constructor(oDb) {
-		super(oDb);
+	constructor(db) {
+		super(db);
 	}
 
 	createTable() {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
+		let query = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
 			"${COL_ID}" INTEGER PRIMARY KEY,
 			"${COL_VENUE}" INTEGER NOT NULL,
 			"${COL_NAME}" TEXT NOT NULL,
@@ -26,42 +26,23 @@ class ItemCategory extends DbTable {
 			UNIQUE("${COL_VENUE}", "${COL_NAME}"),
 			FOREIGN KEY("${COL_VENUE}") REFERENCES "${Venue.TABLE}"("${Venue.COL_ID}") ON DELETE CASCADE
 		)`;
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, err => {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve();
-				}
-			});
-		});
+		let stmt = this.db.prepare(query);
+		stmt.run();
 	}
 
 
 	getByName(venue, name) {
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? and "${COL_NAME}" = ?`;
-		return new Promise((resolve, reject) => {
-			this.moDb.get(sQuery, [venue, name], (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-				else if(rows.length) {
-					resolve(rows[0]);
-				}
-				else {
-					resolve(null);
-				}
-			});
-		});
+		let query = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? and "${COL_NAME}" = ?`;
+		let stmt = this.db.prepare(query);
+		return stmt.get(venue, name);
 	}
 
 	getAllByVenue(venue, sortOrder, limit) {
-		let sWhere = `"${COL_VENUE}" = ?`;
+		let where = `"${COL_VENUE}" = ?`;
 		if(!sortOrder) {
 			sortOrder = COL_NAME;
 		}
-		return this.getAllWhere(sWhere, [venue], sortOrder, limit);
+		return this.getAllWhere(where, [venue], sortOrder, limit);
 	}
 
 	create(venue, name) {

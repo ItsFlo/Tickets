@@ -34,12 +34,12 @@ const STATUS = [
 
 
 class Order extends DbTable {
-	constructor(oDb) {
-		super(oDb);
+	constructor(db) {
+		super(db);
 	}
 
 	createTable() {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
+		let query = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
 			"${COL_ID}" INTEGER PRIMARY KEY,
 			"${COL_VENUE}" INTEGER NOT NULL,
 			"${COL_ORDER_NUMBER}" INTEGER,
@@ -52,131 +52,113 @@ class Order extends DbTable {
 			UNIQUE("${COL_VENUE}", "${COL_ORDER_NUMBER}"),
 			FOREIGN KEY("${COL_VENUE}") REFERENCES "${Venue.TABLE}"("${Venue.COL_ID}") ON DELETE CASCADE
 		)`;
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, err => {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve();
-				}
-			});
-		});
+		let stmt = this.db.prepare(query);
+		stmt.run();
 	}
 
 
-	getByOrderNumber(venue, orderNumber) {
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
-		return new Promise((resolve, reject) => {
-			this.moDb.get(sQuery, [venue, orderNumber], (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-				else if(rows.length) {
-					resolve(rows[0]);
-				}
-				else {
-					resolve(null);
-				}
-			});
-		});
+	getByOrderNumber(venueId, orderNumber) {
+		let query = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
+		let stmt = this.db.prepare(query);
+		return stmt.get(venueId, orderNumber);
 	}
 
-	getAllByVenue(venue, sortOrder, limit) {
-		let sWhere = `"${COL_VENUE}" = ?`;
-		return this.getAllWhere(sWhere, [venue], sortOrder, limit);
+	getAllByVenue(venueId, sortOrder, limit) {
+		let where = `"${COL_VENUE}" = ?`;
+		return this.getAllWhere(where, [venueId], sortOrder, limit);
 	}
 	getAllByStatus(status, sortOrder, limit) {
-		let sWhere = `"${COL_STATUS}" = ?`;
-		return this.getAllWhere(sWhere, [status], sortOrder, limit);
+		let where = `"${COL_STATUS}" = ?`;
+		return this.getAllWhere(where, [status], sortOrder, limit);
 	}
-	getAllByVenueStatus(venue, status, sortOrder, limit) {
-		let aValues = [];
-		let sWhere = "";
-		venue = parseInt(venue);
-		if(!isNaN(venue)) {
-			sWhere += `"${COL_VENUE}" = ?`;
-			aValues.push(venue);
+	getAllByVenueStatus(venueId, status, sortOrder, limit) {
+		let values = [];
+		let where = "";
+		venueId = parseInt(venueId);
+		if(!isNaN(venueId)) {
+			where += `"${COL_VENUE}" = ?`;
+			values.push(venueId);
 		}
 		if(typeof status === "string" && status) {
-			if(sWhere) {
-				sWhere += " AND ";
+			if(where) {
+				where += " AND ";
 			}
-			sWhere += `"${COL_STATUS}" = ?`;
-			aValues.push(status);
+			where += `"${COL_STATUS}" = ?`;
+			values.push(status);
 		}
 		else if(Array.isArray(status)) {
-			let sStatusWhere = "";
-			for(let sStatus of status) {
-				if(sStatusWhere) {
-					sStatusWhere += " OR ";
+			let statusWhere = "";
+			for(let statusValue of status) {
+				if(statusWhere) {
+					statusWhere += " OR ";
 				}
-				sStatusWhere += `"${COL_STATUS}" = ?`;
-				aValues.push(sStatus);
+				statusWhere += `"${COL_STATUS}" = ?`;
+				values.push(statusValue);
 			}
-			if(sStatusWhere) {
-				sWhere += ` AND (${sStatusWhere})`;
+			if(statusWhere) {
+				where += ` AND (${statusWhere})`;
 			}
 		}
 
-		return this.getAllWhere(sWhere, aValues, sortOrder, limit);
+		return this.getAllWhere(where, values, sortOrder, limit);
 	}
 
-	updateByOrderNumber(venue, orderNumber, updates) {
-		let sWhere = `"${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
-		return this.updateWhere(sWhere, [venue, orderNumber], updates);
+	updateByOrderNumber(venueId, orderNumber, updates) {
+		let where = `"${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
+		return this.updateWhere(where, [venueId, orderNumber], updates);
 	}
-	updatePrepared(iID) {
-		let sWhere = `"${COL_ID}" = ? AND "${COL_STATUS}" = ?`;
-		let aValues = [
-			iID,
+
+	updatePrepared(id) {
+		let where = `"${COL_ID}" = ? AND "${COL_STATUS}" = ?`;
+		let values = [
+			id,
 			STATUS_OPEN,
 		];
-		let oUpdates = {
+		let updates = {
 			[COL_STATUS]: STATUS_PREPARED,
 			[COL_DONE_TIMESTAMP]: this.formatDate(new Date()),
 		};
-		return this.updateWhere(sWhere, aValues, oUpdates);
+		return this.updateWhere(where, values, updates);
 	}
-	updatePickedUp(iID) {
-		let sWhere = `"${COL_ID}" = ? AND "${COL_STATUS}" = ?`;
-		let aValues = [
-			iID,
+	updatePickedUp(id) {
+		let where = `"${COL_ID}" = ? AND "${COL_STATUS}" = ?`;
+		let values = [
+			id,
 			STATUS_PREPARED,
 		];
-		let oUpdates = {
+		let updates = {
 			[COL_STATUS]: STATUS_PICKEDUP,
 			[COL_PICKUP_TIMESTAMP]: this.formatDate(new Date()),
 		};
-		return this.updateWhere(sWhere, aValues, oUpdates);
+		return this.updateWhere(where, values, updates);
 	}
 
 	formatDate(date) {
-		let sDateString = date.getFullYear() + "-";
+		let dateString = date.getFullYear() + "-";
 
 		if(date.getMonth() < 9) {
-			sDateString += "0";
+			dateString += "0";
 		}
-		sDateString += (date.getMonth()+1) + "-";
+		dateString += (date.getMonth()+1) + "-";
 
 		if(date.getDate() < 10) {
-			sDateString += "0";
+			dateString += "0";
 		}
-		sDateString += date.getDate();
+		dateString += date.getDate();
 
-		sDateString += " ";
+		dateString += " ";
 
-		sDateString += date.getHours() + ":";
+		dateString += date.getHours() + ":";
 		if(date.getMinutes() < 9) {
-			sDateString += "0";
+			dateString += "0";
 		}
-		sDateString += (date.getMinutes()) + ":";
+		dateString += (date.getMinutes()) + ":";
 		if(date.getSeconds() < 10) {
-			sDateString += "0";
+			dateString += "0";
 		}
-		sDateString += date.getSeconds();
+		dateString += date.getSeconds();
 
-		return sDateString;
+		return dateString;
 	}
 
 
@@ -184,58 +166,38 @@ class Order extends DbTable {
 	recalculatePrice(id) {
 		id = parseInt(id);
 		if(isNaN(id)) {
-			return Promise.reject(new Error("No id provided"));
+			throw new Error("No id provided");
 		}
 
-		let sSubQuery = `SELECT SUM(it."${Item.COL_PRICE}" * oi."${OrderItem.COL_COUNT}") FROM "${OrderItem.TABLE}" oi INNER JOIN "${Item.TABLE}" it ON oi."${OrderItem.COL_ITEM}" = it."${Item.COL_ID}"`
+		let subQuery = `SELECT SUM(it."${Item.COL_PRICE}" * oi."${OrderItem.COL_COUNT}") FROM "${OrderItem.TABLE}" oi INNER JOIN "${Item.TABLE}" it ON oi."${OrderItem.COL_ITEM}" = it."${Item.COL_ID}"`
 					+ ` WHERE oi."${OrderItem.COL_ORDER}" = ?`;
 
-		let sQuery = `UPDATE "${TABLE}" SET "${COL_PRICE}" = (${sSubQuery}) WHERE "${COL_ID}" = ?`;
-		let aValues = [id, id];
+		let query = `UPDATE "${TABLE}" SET "${COL_PRICE}" = (${subQuery}) WHERE "${COL_ID}" = ?`;
+		let values = [id, id];
 
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, aValues, function(err) {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(this.changes);
-				}
-			});
-		});
+		let stmt = this.db.prepare(query);
+		let result = stmt.run(values);
+		return result.changes;
 	}
 
 	create(venue, price, status) {
-		let sSubQuery = `SELECT IFNULL(MAX("${COL_ORDER_NUMBER}"), 0) FROM "${TABLE}" WHERE "${COL_VENUE}" = $venueID LIMIT 1`;
-		let sQuery = `INSERT INTO "${TABLE}" ("${COL_VENUE}", "${COL_ORDER_NUMBER}", "${COL_PRICE}", "${COL_STATUS}") VALUES ($venueID, (${sSubQuery})+1, $price, $status)`;
-		let oParams = {
-			$venueID: venue,
-			$price: price,
-			$status: status,
+		let subQuery = `SELECT IFNULL(MAX("${COL_ORDER_NUMBER}"), 0) FROM "${TABLE}" WHERE "${COL_VENUE}" = $venueID LIMIT 1`;
+		let query = `INSERT INTO "${TABLE}" ("${COL_VENUE}", "${COL_ORDER_NUMBER}", "${COL_PRICE}", "${COL_STATUS}") VALUES ($venueID, (${subQuery})+1, $price, $status)`;
+		let params = {
+			venueID: venue,
+			price: price,
+			status: status,
 		};
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, oParams, function(err) {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(this.lastID);
-				}
-			});
-		});
+
+		let stmt = this.db.prepare(query);
+		let result = stmt.run(params);
+		return result.lastInsertRowid;
 	}
 	deleteByOrderNumber(venue, orderNumber) {
-		let sQuery = `DELETE FROM "${TABLE}" WHERE "${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, [venue, orderNumber], function(err) {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(this.changes);
-				}
-			});
-		});
+		let query = `DELETE FROM "${TABLE}" WHERE "${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
+		let stmt = this.db.prepare(query);
+		let result = stmt.run(venue, orderNumber);
+		return result.changes;
 	}
 }
 

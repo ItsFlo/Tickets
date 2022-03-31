@@ -16,12 +16,12 @@ const COLUMNS = [
 
 
 class Item extends DbTable {
-	constructor(oDb) {
-		super(oDb);
+	constructor(db) {
+		super(db);
 	}
 
 	createTable() {
-		let sQuery = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
+		let query = `CREATE TABLE IF NOT EXISTS "${TABLE}" (
 			"${COL_ID}" INTEGER PRIMARY KEY,
 			"${COL_ITEM_CATEGORY}" INTEGER NOT NULL,
 			"${COL_NAME}" TEXT,
@@ -30,59 +30,33 @@ class Item extends DbTable {
 			UNIQUE("${COL_ITEM_CATEGORY}", "${COL_NAME}"),
 			FOREIGN KEY("${COL_ITEM_CATEGORY}") REFERENCES "${ItemCategory.TABLE}"("${ItemCategory.COL_ID}") ON DELETE CASCADE
 		)`;
-		return new Promise((resolve, reject) => {
-			this.moDb.run(sQuery, err => {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve();
-				}
-			});
-		});
+		let stmt = this.db.prepare(query);
+		stmt.run();
 	}
 
 
 	getByName(itemCategory, name) {
-		let sQuery = `SELECT * FROM "${TABLE}" WHERE "${COL_ITEM_CATEGORY}" = ? and "${COL_NAME}" = ?`;
-		return new Promise((resolve, reject) => {
-			this.moDb.get(sQuery, [itemCategory, name], (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-				else if(rows.length) {
-					resolve(rows[0]);
-				}
-				else {
-					resolve(null);
-				}
-			});
-		});
+		let query = `SELECT * FROM "${TABLE}" WHERE "${COL_ITEM_CATEGORY}" = ? and "${COL_NAME}" = ?`;
+		let stmt = this.db.prepare(query);
+		return stmt.get(itemCategory, name);
 	}
 
 	getAllByItemCategory(itemCategory, sortOrder, limit) {
-		let sWhere = `"${COL_ITEM_CATEGORY}" = ?`;
+		let where = `"${COL_ITEM_CATEGORY}" = ?`;
 		if(!sortOrder) {
 			sortOrder = COL_NAME;
 		}
-		return this.getAllWhere(sWhere, [itemCategory], sortOrder, limit);
+		return this.getAllWhere(where, [itemCategory], sortOrder, limit);
 	}
 
 	getAllForOrder(orderID, sortOrder, limit) {
-		let sQuery = `SELECT it.*, oi."${OrderItem.COL_COUNT}" FROM "${TABLE}" it INNER JOIN "${OrderItem.TABLE}" oi ON it."${COL_ID}" = oi."${OrderItem.COL_ITEM}"`
+		let query = `SELECT it.*, oi."${OrderItem.COL_COUNT}" FROM "${TABLE}" it INNER JOIN "${OrderItem.TABLE}" oi ON it."${COL_ID}" = oi."${OrderItem.COL_ITEM}"`
 					+ ` WHERE oi."${OrderItem.COL_ORDER}" = ?`;
-		sQuery += this.getOrderClause(sortOrder);
-		sQuery += this.getLimitClause(limit);
-		return new Promise((resolve, reject) => {
-			this.moDb.all(sQuery, [orderID], (err, rows) => {
-				if(err) {
-					reject(err);
-				}
-				else {
-					resolve(rows);
-				}
-			});
-		});
+		query += this.getOrderClause(sortOrder);
+		query += this.getLimitClause(limit);
+
+		let stmt = this.db.prepare(query);
+		return stmt.all(orderID);
 	}
 
 	create(itemCategory, name, price) {

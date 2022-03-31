@@ -3,15 +3,15 @@ import TicketConfig from "../../TicketConfig.js";
 import OrderGetter from "./OrderGetter.js";
 
 class OrderGetDispatcher extends HttpDispatcher {
-	request(sPath, request, response) {
-		if(!sPath) {
+	request(path, request, response) {
+		if(!path) {
 			sendStatus(response, 400);
 			return;
 		}
-		let aPathElements = this.splitPath(sPath);
+		let pathElements = this.splitPath(path);
 		let dispatchFunction = null;
 
-		switch(aPathElements[0].toUpperCase()) {
+		switch(pathElements[0].toUpperCase()) {
 			case "ID":
 				dispatchFunction = this.dispatchId;
 				break;
@@ -22,8 +22,8 @@ class OrderGetDispatcher extends HttpDispatcher {
 		}
 
 		if(dispatchFunction) {
-			aPathElements.shift();
-			dispatchFunction.call(this, request, response, aPathElements);
+			pathElements.shift();
+			dispatchFunction.call(this, request, response, pathElements);
 		}
 		else {
 			sendStatus(response, 400);
@@ -31,27 +31,28 @@ class OrderGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchId(request, response, aPathElements) {
-		if(!aPathElements.length || isNaN(parseInt(aPathElements[0]))) {
+	dispatchId(request, response, pathElements) {
+		if(!pathElements.length || isNaN(parseInt(pathElements[0]))) {
 			sendStatus(response, 400, "No ID provided");
 			return;
 		}
-		if(aPathElements.length > 1) {
+		if(pathElements.length > 1) {
 			sendStatus(response, 400, "Too many arguments");
 			return;
 		}
-		let iID = parseInt(aPathElements[0]);
-		TicketConfig.db.order.getByID(iID).then(row => {
-			if(!row) {
+		let id = parseInt(pathElements[0]);
+		try {
+			let order = TicketConfig.db.order.getByID(id);
+			if(!order) {
 				sendStatus(response, 404);
 				return;
 			}
 			response.setHeader("Content-Type", "application/json");
 			response.writeHead(200);
-			response.end(JSON.stringify(row));
-		}, err => {
+			response.end(JSON.stringify(order));
+		} catch (err) {
 			sendStatus(response, 500, err.message);
-		});
+		}
 	}
 
 
@@ -64,13 +65,14 @@ class OrderGetDispatcher extends HttpDispatcher {
 			status.push(searchParamStatus.toUpperCase());
 		}
 
-		OrderGetter.getAll(venueID, status).then(orders => {
+		try {
+			let orders = OrderGetter.getAll(venueID, status);
 			response.setHeader("Content-Type", "application/json");
 			response.writeHead(200);
 			response.end(JSON.stringify(orders));
-		}, (err) => {
+		} catch (err) {
 			sendStatus(response, 500, err.message);
-		});
+		}
 	}
 };
 
