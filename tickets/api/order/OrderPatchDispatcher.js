@@ -31,6 +31,10 @@ class OrderPatchDispatcher extends HttpDispatcher {
 					changes = TicketConfig.db.order.updatePickedUp(id);
 					break;
 
+				case Order.STATUS_CANCELED:
+					changes = TicketConfig.db.order.cancel(id);
+					break;
+
 				default:
 					sendStatus(response, 400, "Invalid status");
 					return;

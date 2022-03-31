@@ -5,10 +5,12 @@ const API_ENDPOINT = "/api/order";
 const STATUS_OPEN = "OPEN";
 const STATUS_PREPARED = "PREPARED";
 const STATUS_PICKEDUP = "PICKEDUP";
+const STATUS_CANCELED = "CANCELED";
 const STATUS = [
 	STATUS_OPEN,
 	STATUS_PREPARED,
 	STATUS_PICKEDUP,
+	STATUS_CANCELED,
 ];
 
 function create(venueID, items) {
@@ -34,11 +36,14 @@ function setOrderStatus(orderID, status) {
 	let path = API_ENDPOINT + "/" + status.toLowerCase();
 	return Ajax.sendJson(path, Ajax.PATCH, requestBody);
 }
-function setPrepared(orderID) {
-	return setOrderStatus(orderID, STATUS_PREPARED);
+function setPrepared(orderId) {
+	return setOrderStatus(orderId, STATUS_PREPARED);
 }
-function setPickedUp(orderID) {
-	return setOrderStatus(orderID, STATUS_PICKEDUP);
+function setPickedUp(orderId) {
+	return setOrderStatus(orderId, STATUS_PICKEDUP);
+}
+function cancel(orderId) {
+	return setOrderStatus(orderId, STATUS_CANCELED);
 }
 
 
@@ -61,11 +66,13 @@ export default {
 	STATUS_OPEN,
 	STATUS_PREPARED,
 	STATUS_PICKEDUP,
+	STATUS_CANCELED,
 	STATUS,
 
 	create,
 	setPrepared,
 	setPickedUp,
+	cancel,
 
 	getAll,
 };

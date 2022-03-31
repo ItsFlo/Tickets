@@ -12,11 +12,6 @@ const staticDispatcher = new class extends HttpDispatcher {
 		path = path.trim().replace(/^\/+|\/+$/g, "");
 		let pathElements = path.split("/");
 
-		if(pathElements.length > 1) {
-			sendStatus(response, 404);
-			return;
-		}
-
 		switch(pathElements[0].toUpperCase()) {
 			case "FAVICON.ICO":
 				serveFile(CUR_DIR+"/favicon.svg", response);
@@ -35,6 +30,11 @@ const staticDispatcher = new class extends HttpDispatcher {
 				return;
 
 			default:
+				if(pathElements.length > 1) {
+					sendStatus(response, 404);
+					return;
+				}
+
 				serveFile(CUR_DIR+"/html/view.html", response);
 				return;
 		}

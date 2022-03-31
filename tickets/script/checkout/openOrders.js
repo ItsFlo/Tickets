@@ -3,6 +3,33 @@ import Error from "../Error.js";
 
 let oEventSource = null;
 
+function formatDate(date) {
+	let dateString = date.getFullYear() + "-";
+	if(date.getMonth() < 9) {
+		dateString += "0";
+	}
+	dateString += (date.getMonth()+1) + "-";
+	if(date.getDate() < 10) {
+		dateString += "0";
+	}
+	dateString += date.getDate();
+	return dateString;
+}
+function formatTime(date) {
+	let sTimeString = date.getHours() + ":";
+	if(date.getMinutes() < 10) {
+		sTimeString += "0";
+	}
+	sTimeString += date.getMinutes() + ":";
+	if(date.getSeconds() < 10) {
+		sTimeString += "0";
+	}
+	sTimeString += date.getSeconds();
+	return sTimeString;
+}
+
+
+
 function closeEventSource() {
 	if(oEventSource) {
 		oEventSource.close();
@@ -18,6 +45,7 @@ function openEventSource(iVenueID) {
 	oEventSource.addEventListener("create", newOrderEventListener);
 	oEventSource.addEventListener(Api.order.STATUS_PREPARED, orderPreparedEventListener);
 	oEventSource.addEventListener(Api.order.STATUS_PICKEDUP, orderPickedUpEventListener);
+	oEventSource.addEventListener(Api.order.STATUS_CANCELED, orderCancelEventListener);
 	oEventSource.addEventListener("delete", orderPickedUpEventListener);
 }
 
@@ -53,6 +81,15 @@ function orderPickedUpEventListener(ev) {
 		Error.show(err);
 	}
 }
+function orderCancelEventListener(ev) {
+	try {
+		let order = JSON.parse(ev.data);
+		let orderElement = getOrderByID(order.id);
+		updateOrderElementMetaData(orderElement, order);
+	} catch(err) {
+		Error.show(err);
+	}
+}
 
 
 
@@ -79,6 +116,23 @@ function pickedUpListener() {
 	Api.order.setPickedUp(iOrderID).catch(err => Error.show(err.message));
 }
 
+function cancelListener() {
+	let order = this.closest(".order");
+	let orderId = parseInt(order.dataset.orderId);
+	let status = order.dataset.status;
+
+	let cancelableStatus = [
+		Api.order.STATUS_OPEN,
+		Api.order.STATUS_PREPARED,
+	];
+	if(cancelableStatus.includes(status)) {
+		Api.order.cancel(orderId).catch(err => Error.show(err.message));
+	}
+	else {
+		order.remove();
+	}
+}
+
 function getOrderByID(iOrderID) {
 	return document.querySelector("#openOrders > .order[data-order-id=\""+iOrderID+"\"");
 }
@@ -98,86 +152,58 @@ function createItemElement(oItem) {
 
 	return oElement;
 }
-function createElement(oOrder) {
-	let oElement = document.createElement("div");
-	oElement.classList.add("order");
 
-	let oOrderNumber = document.createElement("div");
-	oOrderNumber.classList.add("order-number");
-	oElement.appendChild(oOrderNumber);
-
-	let oDate = document.createElement("span");
-	oDate.classList.add("date");
-	oElement.appendChild(oDate);
-	let oTime = document.createElement("span");
-	oTime.classList.add("time");
-	oElement.appendChild(oTime);
-
-	let oItemContainer = document.createElement("div");
-	oItemContainer.classList.add("items");
-	oElement.appendChild(oItemContainer);
-
-	let oPrice = document.createElement("span");
-	oPrice.classList.add("price");
-	oElement.appendChild(oPrice);
-
-
-	let oPreparedButton = document.createElement("input");
-	oPreparedButton.classList.add("prepared");
-	oPreparedButton.setAttribute("type", "button");
-	oPreparedButton.setAttribute("value", "abholbereit");
-	oPreparedButton.addEventListener("click", preparedListener);
-	oElement.appendChild(oPreparedButton);
-
-	let oPickedUpButton = document.createElement("input");
-	oPickedUpButton.classList.add("pickedup");
-	oPickedUpButton.setAttribute("type", "button");
-	oPickedUpButton.setAttribute("value", "abgeholt");
-	oPickedUpButton.addEventListener("click", pickedUpListener);
-	oElement.appendChild(oPickedUpButton);
-
-
-
-	oElement.dataset.orderId = oOrder.id;
-	oElement.dataset.orderNumber = oOrder.orderNumber;
-	oElement.dataset.status = oOrder.status;
-	if(oOrder.status === Api.order.STATUS_PREPARED) {
-		oElement.classList.add("prepared");
+let template = null;
+function getTemplate() {
+	if(!template) {
+		template = document.getElementById("orderTemplate").content.firstElementChild;
 	}
-	oOrderNumber.innerHTML = oOrder.orderNumber;
-	if(oOrder.orderTimestamp) {
-		let tempDate = new Date(oOrder.orderTimestamp);
-		oElement.dataset.orderTimestamp = tempDate.getTime();
+	return template.cloneNode(true);
+}
+function createElement(order) {
+	let element = getTemplate();
 
-		let sDateString = tempDate.getFullYear() + "-";
-		if(tempDate.getMonth() < 9) {
-			sDateString += "0";
-		}
-		sDateString += (tempDate.getMonth()+1) + "-";
-		if(tempDate.getDate() < 10) {
-			sDateString += "0";
-		}
-		sDateString += tempDate.getDate();
-		oDate.innerHTML = sDateString;
+	let preparedButton = element.querySelector("input.prepared");
+	preparedButton.addEventListener("click", preparedListener);
 
-		let sTimeString = tempDate.getHours() + ":";
-		if(tempDate.getMinutes() < 9) {
-			sTimeString += "0";
-		}
-		sTimeString += (tempDate.getMinutes()) + ":";
-		if(tempDate.getSeconds() < 10) {
-			sTimeString += "0";
-		}
-		sTimeString += tempDate.getSeconds();
-		oTime.innerHTML = sTimeString;
+	let pickedUpButton = element.querySelector("input.pickedup");
+	pickedUpButton.addEventListener("click", pickedUpListener);
+
+	let cancelButton = element.querySelector(".cancel-button");
+	cancelButton.addEventListener("click", cancelListener);
+
+
+	updateOrderElementMetaData(element, order);
+	let itemContainer = element.querySelector(".items");
+	for(let item of order.items) {
+		let itemElement = createItemElement(item);
+		itemContainer.appendChild(itemElement);
 	}
-	for(let oItem of oOrder.items) {
-		let oItemElement = createItemElement(oItem);
-		oItemContainer.appendChild(oItemElement);
-	}
-	oPrice.innerHTML = oOrder.price.toFixed(2);
 
-	return oElement;
+	return element;
+}
+function updateOrderElementMetaData(element, order) {
+	element.dataset.orderId = order.id;
+	element.dataset.orderNumber = order.orderNumber;
+	element.dataset.status = order.status;
+
+	if(order.status === Api.order.STATUS_PREPARED) {
+		element.classList.add("prepared");
+		element.classList.remove("canceled");
+	}
+	else if(order.status === Api.order.STATUS_CANCELED) {
+		element.classList.remove("prepared");
+		element.classList.add("canceled");
+	}
+
+	element.querySelector(".order-number").textContent = order.orderNumber;
+	if(order.orderTimestamp) {
+		let tempDate = new Date(order.orderTimestamp);
+		element.dataset.orderTimestamp = tempDate.getTime();
+		element.querySelector(".date").textContent = formatDate(tempDate);
+		element.querySelector(".time").textContent = formatTime(tempDate);
+	}
+	element.querySelector(".price").textContent = order.price.toFixed(2);
 }
 
 function insertElement(oOrderElement) {

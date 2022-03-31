@@ -1,6 +1,6 @@
 #openOrders {
 	display: flex;
-	flex-direction: column;
+	flex-direction: column-reverse;
 	flex-wrap: wrap;
 	align-items: flex-start;
 	gap: 1.5em;
@@ -27,6 +27,21 @@
 }
 #openOrders .order.pickedup {
 	display: none;
+}
+#openOrders .order.canceled {
+	opacity: 0.4;
+}
+#openOrders .order.canceled:after {
+	content: "abgebrochen";
+	position: absolute;
+	right: 1.4em;
+	bottom: 0.5em;
+	font-size: 80%;
+	color: #888;
+}
+#openOrders .order.canceled .items,
+#openOrders .order.canceled .price {
+	text-decoration: line-through;
 }
 
 #openOrders .order .order-number {
@@ -88,9 +103,34 @@
 	margin-left: 0.7em;
 	cursor: pointer;
 }
+#openOrders .order.canceled input.pickedup,
+#openOrders .order.canceled input.prepared,
 #openOrders .order:not(.prepared) input.pickedup,
 #openOrders .order.prepared input.prepared {
 	display: none;
+}
+
+
+
+#openOrders .order .cancel-button {
+	position: absolute;
+	right: -0.5em;
+	top: -0.5em;
+	width: 1em;
+	height: 1em;
+	border-radius: 50%;
+	font-size: 1.4em;
+	line-height: 0.9em;
+	text-align: center;
+	cursor: pointer;
+}
+#openOrders .order .cancel-button:before {
+	content: "⨯";
+	color: #ac1a1a;
+}
+#openOrders .order .cancel-button:hover {
+	background-color: #fafafa;
+	box-shadow: 0 0 3px #aaa;
 }
 
 

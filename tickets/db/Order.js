@@ -26,10 +26,12 @@ const COLUMNS = [
 const STATUS_OPEN = "OPEN";
 const STATUS_PREPARED = "PREPARED";
 const STATUS_PICKEDUP = "PICKEDUP";
+const STATUS_CANCELED = "CANCELED";
 const STATUS = [
 	STATUS_OPEN,
 	STATUS_PREPARED,
 	STATUS_PICKEDUP,
+	STATUS_CANCELED,
 ];
 
 
@@ -132,6 +134,19 @@ class Order extends DbTable {
 		};
 		return this.updateWhere(where, values, updates);
 	}
+	cancel(id) {
+		let where = `"${COL_ID}" = ? AND "${COL_STATUS}" IN (?, ?)`;
+		let values = [
+			id,
+			STATUS_OPEN,
+			STATUS_PREPARED,
+		];
+		let updates = {
+			[COL_STATUS]: STATUS_CANCELED,
+			[COL_PICKUP_TIMESTAMP]: this.formatDate(new Date()),
+		};
+		return this.updateWhere(where, values, updates);
+	}
 
 	formatDate(date) {
 		let dateString = date.getFullYear() + "-";
@@ -180,7 +195,7 @@ class Order extends DbTable {
 		return result.changes;
 	}
 
-	create(venue, price, status) {
+	create(venue, price, status=STATUS_OPEN) {
 		let subQuery = `SELECT IFNULL(MAX("${COL_ORDER_NUMBER}"), 0) FROM "${TABLE}" WHERE "${COL_VENUE}" = $venueID LIMIT 1`;
 		let query = `INSERT INTO "${TABLE}" ("${COL_VENUE}", "${COL_ORDER_NUMBER}", "${COL_PRICE}", "${COL_STATUS}") VALUES ($venueID, (${subQuery})+1, $price, $status)`;
 		let params = {
@@ -220,5 +235,6 @@ export default {
 	STATUS_OPEN,
 	STATUS_PREPARED,
 	STATUS_PICKEDUP,
+	STATUS_CANCELED,
 	STATUS,
 };
