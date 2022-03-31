@@ -43,15 +43,16 @@ class VenueGetDispatcher extends HttpDispatcher {
 
 
 	dispatchId(request, response, pathElements) {
-		if(!pathElements.length || isNaN(parseInt(pathElements[0]))) {
-			sendStatus(response, 400, "No ID provided");
-			return;
-		}
 		if(pathElements.length > 1) {
 			sendStatus(response, 400, "Too many arguments");
 			return;
 		}
+		if(!pathElements.length || isNaN(parseInt(pathElements[0]))) {
+			sendStatus(response, 400, "No ID provided");
+			return;
+		}
 		let id = parseInt(pathElements[0]);
+
 		try {
 			let venue = TicketConfig.db.venue.getByID(id);
 			if(!venue) {
@@ -77,9 +78,11 @@ class VenueGetDispatcher extends HttpDispatcher {
 		};
 		let limit = getLimit(searchParams, null);
 
+		let includeItemCount = searchParams.get("itemCount", "").toUpperCase() === "TRUE";
+
 		try {
 			let rows;
-			if(searchParams.has("itemCount")) {
+			if(includeItemCount) {
 				rows = TicketConfig.db.venue.getAllWithItemCount(order, limit);
 			}
 			else {
@@ -96,16 +99,18 @@ class VenueGetDispatcher extends HttpDispatcher {
 
 
 	dispatchName(request, response, pathElements) {
-		if(!pathElements.length || !pathElements[0]) {
-			sendStatus(response, 400, "No Name provided");
-			return;
-		}
 		if(pathElements.length > 1) {
 			sendStatus(response, 400, "Too many arguments");
 			return;
 		}
+		if(!pathElements.length || !pathElements[0]) {
+			sendStatus(response, 400, "No Name provided");
+			return;
+		}
+		let name = pathElements[0];
+
 		try {
-			let venue = TicketConfig.db.venue.getByName(pathElements[0]);
+			let venue = TicketConfig.db.venue.getByName(name);
 			if(!venue) {
 				sendStatus(response, 404);
 				return;
@@ -120,18 +125,20 @@ class VenueGetDispatcher extends HttpDispatcher {
 
 
 	dispatchDate(request, response, pathElements) {
-		if(!pathElements.length || !pathElements[0]) {
-			sendStatus(response, 400, "No Name provided");
+		let searchParams = this.getSearchParams(request, false);
+
+		if(!searchParams.get("date", null)) {
+			sendStatus(response, 400, "No date provided");
 			return;
 		}
-		let date = pathElements.shift();
+		let date = searchParams.get("date");
 
-		let orderDirection = getOrderDirection(pathElements, "DESC");
+		let orderDirection = getOrderDirection(searchParams, "DESC");
 		let order = {
 			[Venue.COL_DATE]: orderDirection,
 			[Venue.COL_TIME]: orderDirection,
 		};
-		let limit = getLimit(pathElements, null);
+		let limit = getLimit(searchParams, null);
 
 		try {
 			let venues = TicketConfig.db.venue.getAllByDate(date, order, limit);

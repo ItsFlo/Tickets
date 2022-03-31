@@ -32,12 +32,12 @@ class OrderGetDispatcher extends HttpDispatcher {
 
 
 	dispatchId(request, response, pathElements) {
-		if(!pathElements.length || isNaN(parseInt(pathElements[0]))) {
-			sendStatus(response, 400, "No ID provided");
-			return;
-		}
 		if(pathElements.length > 1) {
 			sendStatus(response, 400, "Too many arguments");
+			return;
+		}
+		if(!pathElements.length || isNaN(parseInt(pathElements[0]))) {
+			sendStatus(response, 400, "No ID provided");
 			return;
 		}
 		let id = parseInt(pathElements[0]);

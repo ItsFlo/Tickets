@@ -40,12 +40,12 @@ class ItemGetDispatcher extends HttpDispatcher {
 
 
 	dispatchId(request, response, pathElements) {
-		if(!pathElements.length || isNaN(parseInt(pathElements[0]))) {
-			sendStatus(response, 400, "No ID provided");
-			return;
-		}
 		if(pathElements.length > 1) {
 			sendStatus(response, 400, "Too many arguments");
+			return;
+		}
+		if(!pathElements.length || isNaN(parseInt(pathElements[0]))) {
+			sendStatus(response, 400, "No ID provided");
 			return;
 		}
 		let id = parseInt(pathElements[0]);
@@ -93,18 +93,20 @@ class ItemGetDispatcher extends HttpDispatcher {
 
 
 	dispatchName(request, response, pathElements) {
-		if(pathElements.length < 3) {
-			sendStatus(response, 400, "Too few arguments");
+		if(pathElements.length > 1) {
+			sendStatus(response, 400, "Too many arguments");
 			return;
 		}
-		let name = pathElements[0];
-		if(!name) {
+		if(!pathElements.length || !pathElements[0]) {
 			sendStatus(response, 400, "No Name provided");
 			return;
 		}
-		let itemCategoryID = parseInt(pathElements[2]);
-		if(isNaN(itemCategoryID) || pathElements[1].toUpperCase() !== "ITEMCATEGORY") {
-			sendStatus(response, 400, "No Venue provided");
+		let name = pathElements[0];
+		let searchParams = this.getSearchParams(request, false);
+
+		let itemCategoryID = parseInt(searchParams.get("itemCategory", null));
+		if(isNaN(itemCategoryID)) {
+			sendStatus(response, 400, "No Itemcategory provided");
 			return;
 		}
 

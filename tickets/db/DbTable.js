@@ -82,7 +82,7 @@ class DbTable {
 		return stmt.all(values);
 	}
 	getAll(sortOrder, limit) {
-		return this.getAllWhere(null, null, callback, sortOrder, limit);
+		return this.getAllWhere(null, null, sortOrder, limit);
 	}
 
 	updateWhere(where, whereValues, updates) {
