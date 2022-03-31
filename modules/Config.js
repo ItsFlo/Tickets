@@ -1,12 +1,12 @@
 class Config {
-	moConfig = {};
+	config = {};
 
-	constructor(oConfig) {
-		switch(typeof oConfig) {
+	constructor(config) {
+		switch(typeof config) {
 		case "undefined":
 			break;
 		case "object":
-			this.moConfig = oConfig;
+			this.config = config;
 			break;
 
 		default:
@@ -17,72 +17,72 @@ class Config {
 
 
 	getConfigArray() {
-		return this.moConfig;
+		return this.config;
 	}
 
-	splitPath(sPath) {
-		if(typeof sPath !== "string" || !sPath) {
+	splitPath(path) {
+		if(typeof path !== "string" || !path) {
 			return null;
 		}
-		var aPathElements = sPath.split(".");
+		let pathElements = path.split(".");
 
-		var iLen = aPathElements.length;
-		for(var ii=0;ii<iLen;++ii) {
-			if(!aPathElements[ii]) {
+		let len = pathElements.length;
+		for(let ii=0;ii<len;++ii) {
+			if(!pathElements[ii]) {
 				return null;
 			}
 		}
 
-		return aPathElements;
+		return pathElements;
 	}
 
 
-	setElement(sPath, value) {
-		var aPathElements = this.splitPath(sPath);
-		if(aPathElements === null) {
+	setElement(path, value) {
+		let pathElements = this.splitPath(path);
+		if(pathElements === null) {
 			return false;
 		}
 
-		var iLen = aPathElements.length - 1;
-		var sLastElement = aPathElements[iLen];
+		let len = pathElements.length - 1;
+		let lastElement = pathElements[len];
 
-		var oConfigElement = this.moConfig;
-		for(var ii=0;ii<iLen;++ii) {
-			var sElementName = aPathElements[ii];
+		let configElement = this.config;
+		for(let ii=0;ii<len;++ii) {
+			let elementName = pathElements[ii];
 
-			if(oConfigElement.hasOwnProperty(sElementName)) {
-				if(typeof oConfigElement === "object") {
-					oConfigElement = oConfigElement[sElementName];
+			if(configElement.hasOwnProperty(elementName)) {
+				if(typeof configElement === "object") {
+					configElement = configElement[elementName];
 				}
 				else {
 					return false;
 				}
 			}
 			else {
-				oConfigElement[sElementName] = {};
-				oConfigElement = oConfigElement[sElementName];
+				configElement[elementName] = {};
+				configElement = configElement[elementName];
 			}
 		}
 
-		oConfigElement[sLastElement] = value;
+		configElement[lastElement] = value;
 		return true;
 	}
-	removeElement(sPath) {
-		var aPathElements = this.splitPath(sPath);
-		if(aPathElements === null) {
+	removeElement(path) {
+		let pathElements = this.splitPath(path);
+		if(pathElements === null) {
 			return false;
 		}
 
-		var iLen = aPathElements.length - 1;
-		var sLastElement = aPathElements[iLen];
+		let len = pathElements.length - 1;
+		let lastElement = pathElements[len];
 
-		var oConfigElement = this.moConfig;
-		for(var ii=0;ii<iLen;++ii) {
-			var sElementName = aPathElements[ii];
+		let configElement = this.config;
+		for(let ii=0;ii<len;++ii) {
+			let elementName = pathElements[ii];
 
-			if(oConfigElement.hasOwnProperty(sElementName)) {
-				if(typeof oConfigElement === "object") {
-					oConfigElement = oConfigElement[sElementName];
+			if(configElement.hasOwnProperty(elementName)) {
+				if(typeof configElement === "object") {
+					configElement = configElement[elementName];
 				}
 				else {
 					return true;
@@ -93,86 +93,86 @@ class Config {
 			}
 		}
 
-		delete oConfigElement[sLastElement];
+		delete configElement[lastElement];
 		return true;
 	}
-	getElement(sPath, fallbackReturnValue=null) {
-		var aPathElements = this.splitPath(sPath);
-		if(aPathElements === null) {
+	getElement(path, fallbackReturnValue=null) {
+		let pathElements = this.splitPath(path);
+		if(pathElements === null) {
 			return fallbackReturnValue;
 		}
 
-		var oConfigElement = this.moConfig;
-		var iLen = aPathElements.length;
-		for(var ii=0; ii<iLen; ++ii) {
-			var sElementName = aPathElements[ii];
-			if(oConfigElement.hasOwnProperty(sElementName)) {
-				oConfigElement = oConfigElement[sElementName];
+		let configElement = this.config;
+		let len = pathElements.length;
+		for(let ii=0; ii<len; ++ii) {
+			let elementName = pathElements[ii];
+			if(configElement.hasOwnProperty(elementName)) {
+				configElement = configElement[elementName];
 			}
 			else {
 				return fallbackReturnValue;
 			}
 		}
-		return oConfigElement;
+		return configElement;
 	}
-	hasElement(sPath) {
-		let oTestObject = {};
-		return this.getElement(sPath, oTestObject) !== oTestObject;
+	hasElement(path) {
+		let testObject = {};
+		return this.getElement(path, testObject) !== testObject;
 	}
 
-	addConfig(sPath, oConfig) {
-		if(!(oConfig instanceof Config)) {
+	addConfig(path, config) {
+		if(!(config instanceof Config)) {
 			return false;
 		}
-		var aPathElements = this.splitPath(sPath);
-		if(aPathElements === null) {
+		let pathElements = this.splitPath(path);
+		if(pathElements === null) {
 			return false;
 		}
 
-		var iLen = aPathElements.length - 1;
-		var sLastElement = aPathElements[iLen];
+		let len = pathElements.length - 1;
+		let lastElement = pathElements[len];
 
-		var oConfigElement = this.moConfig;
-		for(var ii=0;ii<iLen;++ii) {
-			var sElementName = aPathElements[ii];
+		let configElement = this.config;
+		for(let ii=0;ii<len;++ii) {
+			let elementName = pathElements[ii];
 
-			if(oConfigElement.hasOwnProperty(sElementName)) {
-				if(typeof oConfigElement === "object") {
-					oConfigElement = oConfigElement[sElementName];
+			if(configElement.hasOwnProperty(elementName)) {
+				if(typeof configElement === "object") {
+					configElement = configElement[elementName];
 				}
 				else {
 					return false;
 				}
 			}
 			else {
-				oConfigElement[sElementName] = {};
-				oConfigElement = oConfigElement[sElementName];
+				configElement[elementName] = {};
+				configElement = configElement[elementName];
 			}
 		}
 
-		oConfigElement[sLastElement] = oConfig.getConfigArray();
+		configElement[lastElement] = config.getConfigArray();
 		return true;
 	}
-	getElementAsConfig(sPath) {
-		var aPathElements = this.splitPath(sPath);
-		if(aPathElements === null) {
+	getElementAsConfig(path) {
+		let pathElements = this.splitPath(path);
+		if(pathElements === null) {
 			return new Config();
 		}
 
-		var oConfigElement = this.moConfig;
-		var iLen = aPathElements.length;
-		for(var ii=0; ii<iLen; ++ii) {
-			var sElementName = aPathElements[ii];
-			if(oConfigElement.hasOwnProperty(sElementName)) {
-				oConfigElement = oConfigElement[sElementName];
+		let configElement = this.config;
+		let len = pathElements.length;
+		for(let ii=0; ii<len; ++ii) {
+			let elementName = pathElements[ii];
+			if(configElement.hasOwnProperty(elementName)) {
+				configElement = configElement[elementName];
 			}
 			else {
 				return new Config();
 			}
 		}
 
-		if(typeof oConfigElement === "object") {
-			return new Config(oConfigElement);
+		if(typeof configElement === "object") {
+			return new Config(configElement);
 		}
 		return new Config();
 	}

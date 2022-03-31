@@ -6,10 +6,10 @@ import ItemCategoryPutDispatcher from "./itemCategory/ItemCategoryPutDispatcher.
 
 
 
-let oItemCategoryDispatcher = new HttpMethodDispatcher();
-oItemCategoryDispatcher.setPutDispatcher(new ItemCategoryPutDispatcher());
-oItemCategoryDispatcher.setDeleteDispatcher(new ItemCategoryDeleteDispatcher());
-oItemCategoryDispatcher.setPatchDispatcher(new ItemCategoryPatchDispatcher());
-oItemCategoryDispatcher.setGetDispatcher(new ItemCategoryGetDispatcher());
+let itemCategoryDispatcher = new HttpMethodDispatcher();
+itemCategoryDispatcher.setPutDispatcher(new ItemCategoryPutDispatcher());
+itemCategoryDispatcher.setDeleteDispatcher(new ItemCategoryDeleteDispatcher());
+itemCategoryDispatcher.setPatchDispatcher(new ItemCategoryPatchDispatcher());
+itemCategoryDispatcher.setGetDispatcher(new ItemCategoryGetDispatcher());
 
-export default oItemCategoryDispatcher;
+export default itemCategoryDispatcher;

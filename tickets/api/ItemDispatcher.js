@@ -6,10 +6,10 @@ import ItemPutDispatcher from "./item/ItemPutDispatcher.js";
 
 
 
-let oItemDispatcher = new HttpMethodDispatcher();
-oItemDispatcher.setPutDispatcher(new ItemPutDispatcher());
-oItemDispatcher.setDeleteDispatcher(new ItemDeleteDispatcher());
-oItemDispatcher.setPatchDispatcher(new ItemPatchDispatcher());
-oItemDispatcher.setGetDispatcher(new ItemGetDispatcher());
+let itemDispatcher = new HttpMethodDispatcher();
+itemDispatcher.setPutDispatcher(new ItemPutDispatcher());
+itemDispatcher.setDeleteDispatcher(new ItemDeleteDispatcher());
+itemDispatcher.setPatchDispatcher(new ItemPatchDispatcher());
+itemDispatcher.setGetDispatcher(new ItemGetDispatcher());
 
-export default oItemDispatcher;
+export default itemDispatcher;

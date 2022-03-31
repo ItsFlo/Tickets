@@ -6,10 +6,10 @@ import VenueGetDispatcher from "./venue/VenueGetDispatcher.js";
 
 
 
-let oVenueDispatcher = new HttpMethodDispatcher();
-oVenueDispatcher.setPutDispatcher(new VenuePutDispatcher());
-oVenueDispatcher.setDeleteDispatcher(new VenueDeleteDispatcher());
-oVenueDispatcher.setPatchDispatcher(new VenuePatchDispatcher());
-oVenueDispatcher.setGetDispatcher(new VenueGetDispatcher());
+let venueDispatcher = new HttpMethodDispatcher();
+venueDispatcher.setPutDispatcher(new VenuePutDispatcher());
+venueDispatcher.setDeleteDispatcher(new VenueDeleteDispatcher());
+venueDispatcher.setPatchDispatcher(new VenuePatchDispatcher());
+venueDispatcher.setGetDispatcher(new VenueGetDispatcher());
 
-export default oVenueDispatcher;
+export default venueDispatcher;

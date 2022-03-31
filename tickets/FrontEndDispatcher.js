@@ -2,60 +2,60 @@ import { HttpDispatcher, HttpDispatcherGroup, HttpDirectoryDispatcher, sendStatu
 import { dirname } from "path";
 import serveFile from "../modules/ServeFile.js";
 
-const sCurDir = dirname(import.meta.url).replace(process.platform === "win32"? "file:///" : "file://", "");
+const CUR_DIR = dirname(import.meta.url).replace(process.platform === "win32"? "file:///" : "file://", "");
 
 
-const oFrontEndDispatcher = new HttpDispatcherGroup();
+const frontEndDispatcher = new HttpDispatcherGroup();
 
-const oStaticDispatcher = new class extends HttpDispatcher {
-	request(sPath, request, response) {
-		sPath = sPath.trim().replace(/^\/+|\/+$/g, "");
-		let aPathElements = sPath.split("/");
+const staticDispatcher = new class extends HttpDispatcher {
+	request(path, request, response) {
+		path = path.trim().replace(/^\/+|\/+$/g, "");
+		let pathElements = path.split("/");
 
-		if(aPathElements.length > 1) {
+		if(pathElements.length > 1) {
 			sendStatus(response, 404);
 			return;
 		}
 
-		switch(aPathElements[0].toUpperCase()) {
+		switch(pathElements[0].toUpperCase()) {
 			case "FAVICON.ICO":
-				serveFile(sCurDir+"/favicon.svg", response);
+				serveFile(CUR_DIR+"/favicon.svg", response);
 				return;
 
 			case "ADMIN":
-				serveFile(sCurDir+"/html/admin.html", response);
+				serveFile(CUR_DIR+"/html/admin.html", response);
 				return;
 
 			case "KITCHEN":
-				serveFile(sCurDir+"/html/kitchen.html", response);
+				serveFile(CUR_DIR+"/html/kitchen.html", response);
 				return;
 
 			case "CHECKOUT":
-				serveFile(sCurDir+"/html/checkout.html", response);
+				serveFile(CUR_DIR+"/html/checkout.html", response);
 				return;
 
 			default:
-				serveFile(sCurDir+"/html/view.html", response);
+				serveFile(CUR_DIR+"/html/view.html", response);
 				return;
 		}
 	}
 }
 
-oFrontEndDispatcher.addDispatcher("", oStaticDispatcher);
+frontEndDispatcher.addDispatcher("", staticDispatcher);
 
 
 
-const oScriptDispatcher = new HttpDirectoryDispatcher(sCurDir+"/script");
-const oStyleDispatcher = new HttpDirectoryDispatcher(sCurDir+"/style");
-const oImageDispatcher = new HttpDirectoryDispatcher(sCurDir+"/images");
-const oTemplateDispatcher = new HttpDirectoryDispatcher(sCurDir+"/html/templates");
+const scriptDispatcher = new HttpDirectoryDispatcher(CUR_DIR+"/script");
+const styleDispatcher = new HttpDirectoryDispatcher(CUR_DIR+"/style");
+const imageDispatcher = new HttpDirectoryDispatcher(CUR_DIR+"/images");
+const templateDispatcher = new HttpDirectoryDispatcher(CUR_DIR+"/html/templates");
 
-oFrontEndDispatcher.addDispatcher("script", oScriptDispatcher);
-oFrontEndDispatcher.addDispatcher("style", oStyleDispatcher);
-oFrontEndDispatcher.addDispatcher("image", oImageDispatcher);
-oFrontEndDispatcher.addDispatcher("template", oTemplateDispatcher);
+frontEndDispatcher.addDispatcher("script", scriptDispatcher);
+frontEndDispatcher.addDispatcher("style", styleDispatcher);
+frontEndDispatcher.addDispatcher("image", imageDispatcher);
+frontEndDispatcher.addDispatcher("template", templateDispatcher);
 
 
 export default {
-	frontEndDispatcher: oFrontEndDispatcher,
+	frontEndDispatcher,
 };

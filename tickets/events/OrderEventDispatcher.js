@@ -4,69 +4,69 @@ import Order from "../db/Order.js";
 import Events from "../Events.js";
 
 class OrderEventDispatcher extends SseDispatcher {
-	moVenueConnections = [];
+	venueConnections = [];
 
 	constructor() {
 		super();
 		Events.addEventDispatcher(Order.TABLE, this);
 	}
 
-	request(sPath, request, response, ...args) {
-		if(!sPath) {
-			super.request(sPath, request, response, ...args);
+	request(path, request, response, ...args) {
+		if(!path) {
+			super.request(path, request, response, ...args);
 			return;
 		}
 
-		let iVenueID = parseInt(sPath);
-		if(isNaN(iVenueID)) {
+		let venueId = parseInt(path);
+		if(isNaN(venueId)) {
 			sendStatus(response, 400);
 			return;
 		}
 
 		this.initConnection(response);
 		response.on("close", () => {
-			if(Array.isArray(this.moVenueConnections[iVenueID])) {
-				let iIndex = this.moVenueConnections[iVenueID].indexOf(response);
-				if(iIndex > -1) {
-					this.moVenueConnections[iVenueID].splice(iIndex, 1);
+			if(Array.isArray(this.venueConnections[venueId])) {
+				let index = this.venueConnections[venueId].indexOf(response);
+				if(index > -1) {
+					this.venueConnections[venueId].splice(index, 1);
 				}
 			}
 		});
 
-		if(Array.isArray(this.moVenueConnections[iVenueID])) {
-			this.moVenueConnections[iVenueID].push(response);
+		if(Array.isArray(this.venueConnections[venueId])) {
+			this.venueConnections[venueId].push(response);
 		}
 		else {
-			this.moVenueConnections[iVenueID] = [response];
+			this.venueConnections[venueId] = [response];
 		}
 	}
 
 	closeAllConnections() {
-		for(let iVenueID in this.moVenueConnections) {
-			for(let oConnection of this.moVenueConnections[iVenueID]) {
-				oConnection.end();
+		for(let venueId in this.venueConnections) {
+			for(let connection of this.venueConnections[venueId]) {
+				connection.end();
 			}
-			this.moVenueConnections[iVenueID] = [];
+			this.venueConnections[venueId] = [];
 		}
-		this.moVenueConnections = {};
+		this.venueConnections = {};
 
 		super.closeAllConnections();
 		return this;
 	}
 
 
-	sendEvent(sEventName, oOrder) {
-		let iVenueID = oOrder[Order.COL_VENUE];
-		let sData = JSON.stringify(oOrder);
+	sendEvent(eventName, order) {
+		let venueId = order[Order.COL_VENUE];
+		let data = JSON.stringify(order);
 
-		if(Array.isArray(this.moVenueConnections[iVenueID])) {
-			let sMessage = this.formatMessage(sEventName, sData);
-			for(let oConnection of this.moVenueConnections[iVenueID]) {
-				oConnection.write(sMessage);
+		if(Array.isArray(this.venueConnections[venueId])) {
+			let message = this.formatMessage(eventName, data);
+			for(let connection of this.venueConnections[venueId]) {
+				connection.write(message);
 			}
 		}
 
-		super.sendEvent(sEventName, sData);
+		super.sendEvent(eventName, data);
 	}
 };
 

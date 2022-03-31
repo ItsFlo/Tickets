@@ -8,19 +8,19 @@ import OrderEventDispatcher from "./OrderEventDispatcher.js";
 
 
 class EventDispatcher extends SseDispatcher {
-	constructor(sEventCategory) {
+	constructor(eventCategory) {
 		super();
-		Events.addEventDispatcher(sEventCategory, this);
+		Events.addEventDispatcher(eventCategory, this);
 	}
 };
 
 
-let oEventDispatcher = new HttpDispatcherGroup(false);
+let eventDispatcher = new HttpDispatcherGroup(false);
 
-oEventDispatcher.addDispatcher("venue", new EventDispatcher(Venue.TABLE));
-oEventDispatcher.addDispatcher("itemCategory", new EventDispatcher(ItemCategory.TABLE));
-oEventDispatcher.addDispatcher("item", new EventDispatcher(Item.TABLE));
-oEventDispatcher.addDispatcher("orders", new OrderEventDispatcher());
+eventDispatcher.addDispatcher("venue", new EventDispatcher(Venue.TABLE));
+eventDispatcher.addDispatcher("itemCategory", new EventDispatcher(ItemCategory.TABLE));
+eventDispatcher.addDispatcher("item", new EventDispatcher(Item.TABLE));
+eventDispatcher.addDispatcher("orders", new OrderEventDispatcher());
 
 
 
@@ -30,5 +30,5 @@ function init() {
 
 export default {
 	init,
-	eventDispatcher: oEventDispatcher,
+	eventDispatcher,
 };

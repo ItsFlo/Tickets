@@ -6,10 +6,10 @@ import OrderGetDispatcher from "./order/OrderGetDispatcher.js";
 
 
 
-let oOrderDispatcher = new HttpMethodDispatcher();
-oOrderDispatcher.setPutDispatcher(new OrderPutDispatcher());
-oOrderDispatcher.setDeleteDispatcher(new OrderDeleteDispatcher());
-oOrderDispatcher.setPatchDispatcher(new OrderPatchDispatcher());
-oOrderDispatcher.setGetDispatcher(new OrderGetDispatcher());
+let orderDispatcher = new HttpMethodDispatcher();
+orderDispatcher.setPutDispatcher(new OrderPutDispatcher());
+orderDispatcher.setDeleteDispatcher(new OrderDeleteDispatcher());
+orderDispatcher.setPatchDispatcher(new OrderPatchDispatcher());
+orderDispatcher.setGetDispatcher(new OrderGetDispatcher());
 
-export default oOrderDispatcher;
+export default orderDispatcher;

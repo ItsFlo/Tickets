@@ -3,10 +3,10 @@ import Api from "./api/ApiDispatcher.js";
 import EventDispatcher from "./events/EventDispatcher.js";
 import FrontEndDispatcher from "./FrontEndDispatcher.js";
 
-let oTicketDispatcher = new HttpDispatcherGroup();
-oTicketDispatcher.addDispatcher("api", Api.apiDispatcher);
-oTicketDispatcher.addDispatcher("events", EventDispatcher.eventDispatcher);
-oTicketDispatcher.addDispatcher("/", FrontEndDispatcher.frontEndDispatcher);
+let ticketDispatcher = new HttpDispatcherGroup();
+ticketDispatcher.addDispatcher("api", Api.apiDispatcher);
+ticketDispatcher.addDispatcher("events", EventDispatcher.eventDispatcher);
+ticketDispatcher.addDispatcher("/", FrontEndDispatcher.frontEndDispatcher);
 
 
 function init() {
@@ -16,5 +16,5 @@ function init() {
 
 export default {
 	init,
-	ticketDispatcher: oTicketDispatcher,
+	ticketDispatcher,
 }

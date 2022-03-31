@@ -1,12 +1,12 @@
 import { HttpDispatcherGroup, sendStatus } from "../../modules/HttpDispatcher.js";
 import Ajax from "../script/Ajax.js";
-import oVenueDispatcher from "./VenueDispatcher.js";
-import oItemCategoryDispatcher from "./ItemCategoryDispatcher.js";
-import oItemDispatcher from "./ItemDispatcher.js";
-import oOrderDispatcher from "./OrderDispatcher.js";
+import venueDispatcher from "./VenueDispatcher.js";
+import itemCategoryDispatcher from "./ItemCategoryDispatcher.js";
+import itemDispatcher from "./ItemDispatcher.js";
+import orderDispatcher from "./OrderDispatcher.js";
 
-let oApiDispatcher = new class extends HttpDispatcherGroup {
-	request(sPath, request, response) {
+let apiDispatcher = new class extends HttpDispatcherGroup {
+	request(path, request, response) {
 		response.setHeader("Cache-Control", "no-store");
 
 		if(Ajax.AJAX_METHODS_WITH_BODY.includes(request.method)) {
@@ -15,27 +15,27 @@ let oApiDispatcher = new class extends HttpDispatcherGroup {
 				return;
 			}
 
-			let sRequestBody = "";
-			request.on("data", (chunk) => sRequestBody += chunk);
+			let requestBody = "";
+			request.on("data", (chunk) => requestBody += chunk);
 			request.on("end", () => {
 				try {
-					let oJson = JSON.parse(sRequestBody);
-					super.request(sPath, request, response, oJson);
+					let oJson = JSON.parse(requestBody);
+					super.request(path, request, response, oJson);
 				} catch(err) {
 					sendStatus(response, 400, "JSON error");
 				}
 			});
 		}
 		else {
-			super.request(sPath, request, response, {});
+			super.request(path, request, response, {});
 		}
 	}
 }(false);
 
-oApiDispatcher.addDispatcher("venue", oVenueDispatcher);
-oApiDispatcher.addDispatcher("item", oItemDispatcher);
-oApiDispatcher.addDispatcher("itemCategory", oItemCategoryDispatcher);
-oApiDispatcher.addDispatcher("order", oOrderDispatcher);
+apiDispatcher.addDispatcher("venue", venueDispatcher);
+apiDispatcher.addDispatcher("item", itemDispatcher);
+apiDispatcher.addDispatcher("itemCategory", itemCategoryDispatcher);
+apiDispatcher.addDispatcher("order", orderDispatcher);
 
 
 
@@ -45,5 +45,5 @@ function init() {
 
 export default {
 	init,
-	apiDispatcher: oApiDispatcher,
+	apiDispatcher,
 };

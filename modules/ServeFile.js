@@ -23,13 +23,13 @@ const MIME_TYPES = {
 	".mp4": "video/mp4",
 }
 
-function serveFile(sFilePath, response, mimeType) {
+function serveFile(filePath, response, mimeType) {
 	if(!mimeType) {
-		let sFileExtension = extname(sFilePath).toLowerCase();
-		mimeType = MIME_TYPES[sFileExtension] || "application/octet-stream";
+		let fileExtension = extname(filePath).toLowerCase();
+		mimeType = MIME_TYPES[fileExtension] || "application/octet-stream";
 	}
 
-	readFile(sFilePath, (err, sContent) => {
+	readFile(filePath, (err, sContent) => {
 		if(err) {
 			if(err.code == "ENOENT") {
 				response.setHeader("Cache-Control", "public, max-age=31536000");

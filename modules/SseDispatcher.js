@@ -1,11 +1,11 @@
 import HttpDispatcher, { sendStatus } from "./HttpDispatcher.js";
 
 class SseDispatcher extends HttpDispatcher {
-	maConnections = [];
+	connections = [];
 
-	request(sPath, request, response, ...args) {
-		if(sPath) {
-			super.request(sPath, request, response, ...args);
+	request(path, request, response, ...args) {
+		if(path) {
+			super.request(path, request, response, ...args);
 			return;
 		}
 		if(request.headers.accept !== "text/event-stream") {
@@ -14,13 +14,13 @@ class SseDispatcher extends HttpDispatcher {
 		}
 		this.initConnection(response);
 		response.on("close", () => {
-			let iIndex = this.maConnections.indexOf(response);
-			if(iIndex > -1) {
-				this.maConnections.splice(iIndex, 1);
+			let index = this.connections.indexOf(response);
+			if(index > -1) {
+				this.connections.splice(index, 1);
 			}
 		});
 
-		this.maConnections.push(response);
+		this.connections.push(response);
 	}
 	initConnection(response) {
 		response.setHeader("Cache-Control", "no-cache");
@@ -31,60 +31,60 @@ class SseDispatcher extends HttpDispatcher {
 
 
 	closeAllConnections() {
-		for(let oConnection of this.maConnections) {
-			oConnection.end();
+		for(let connection of this.connections) {
+			connection.end();
 		}
-		this.maConnections = [];
+		this.connections = [];
 		return this;
 	}
 
 
-	formatEvent(sEventName) {
-		let iNewLineIndex = sEventName.indexOf("\n");
-		if(iNewLineIndex !== -1) {
-			sEventName = sEventName.substring(0, iNewLineIndex);
+	formatEvent(eventName) {
+		let newLineIndex = eventName.indexOf("\n");
+		if(newLineIndex !== -1) {
+			eventName = eventName.substring(0, newLineIndex);
 		}
-		return "event: " + sEventName;
+		return "event: " + eventName;
 	}
-	formatData(sData) {
-		return "data: " + sData.split("\n").join("\ndata: ");
+	formatData(data) {
+		return "data: " + data.split("\n").join("\ndata: ");
 	}
-	formatMessage(sEventName, sData) {
-		let sMessage = this.formatEvent(sEventName);
-		sMessage += "\n" + this.formatData(sData);
+	formatMessage(eventName, data) {
+		let sMessage = this.formatEvent(eventName);
+		sMessage += "\n" + this.formatData(data);
 		sMessage += "\n\n";
 		return sMessage;
 	}
 
-	send(sData) {
-		if(!sData || typeof sData !== "string") {
+	send(data) {
+		if(!data || typeof data !== "string") {
 			return;
 		}
-		let sMessage = this.formatData(sData);
+		let message = this.formatData(data);
 
-		sMessage += "\n\n";
-		for(let oConnection of this.maConnections) {
-			oConnection.write(sMessage);
+		message += "\n\n";
+		for(let connection of this.connections) {
+			connection.write(message);
 		}
 	}
-	sendEvent(sEventName, sData) {
-		if(!sEventName || typeof sEventName !== "string" || !sData) {
+	sendEvent(eventName, data) {
+		if(!eventName || typeof eventName !== "string" || !data) {
 			return;
 		}
-		if(typeof sData !== "string") {
+		if(typeof data !== "string") {
 			try {
-				sData = JSON.stringify(sData);
+				data = JSON.stringify(data);
 			} catch (err) {
 				return;
 			}
-			if(!sData) {
+			if(!data) {
 				return;
 			}
 		}
 
-		let sMessage = this.formatMessage(sEventName, sData);
-		for(let oConnection of this.maConnections) {
-			oConnection.write(sMessage);
+		let message = this.formatMessage(eventName, data);
+		for(let connection of this.connections) {
+			connection.write(message);
 		}
 	}
 };

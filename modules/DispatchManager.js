@@ -2,8 +2,8 @@ import TicketDispatcher from "../tickets/TicketDispatcher.js";
 import { HttpDispatcherGroup } from "./HttpDispatcher.js";
 
 
-let oDispatchManager = new HttpDispatcherGroup(false);
-oDispatchManager.addDispatcher("", TicketDispatcher.ticketDispatcher);
+let dispatchManager = new HttpDispatcherGroup(false);
+dispatchManager.addDispatcher("", TicketDispatcher.ticketDispatcher);
 
 
 function init() {
@@ -12,5 +12,5 @@ function init() {
 
 export default {
 	init,
-	dispatchManager: oDispatchManager,
+	dispatchManager,
 };

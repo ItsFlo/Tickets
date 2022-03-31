@@ -1,81 +1,81 @@
 import SseDispatcher from "../modules/SseDispatcher.js";
 
-let oEventDispatchers = {};
-let oEventQueue = {};
+let eventDispatchers = {};
+let eventQueue = {};
 
-function addEventDispatcher(sEventCategory, oSseDispatcher) {
-	if(!sEventCategory || !oSseDispatcher instanceof SseDispatcher) {
+function addEventDispatcher(eventCategory, sseDispatcher) {
+	if(!eventCategory || !sseDispatcher instanceof SseDispatcher) {
 		return;
 	}
 
-	if(oEventDispatchers[sEventCategory]) {
-		oEventDispatchers[sEventCategory].push(oSseDispatcher);
+	if(eventDispatchers[eventCategory]) {
+		eventDispatchers[eventCategory].push(sseDispatcher);
 	}
 	else {
-		oEventDispatchers[sEventCategory] = [
-			oSseDispatcher,
+		eventDispatchers[eventCategory] = [
+			sseDispatcher,
 		];
-		oEventQueue[sEventCategory] = [];
+		eventQueue[eventCategory] = [];
 	}
 }
 
 
 
-function sendEvent(sEventCategory, sEventName, data) {
-	if(!sEventCategory || typeof sEventCategory !== "string" || !sEventName || typeof sEventName !== "string" || !data) {
+function sendEvent(eventCategory, eventName, data) {
+	if(!eventCategory || typeof eventCategory !== "string" || !eventName || typeof eventName !== "string" || !data) {
 		return;
 	}
 
-	if(oEventQueue[sEventCategory]) {
-		oEventQueue[sEventCategory].push({
-			event: sEventName,
+	if(eventQueue[eventCategory]) {
+		eventQueue[eventCategory].push({
+			event: eventName,
 			data: data,
 		});
 	}
 }
 
 
-let bFlushing = false;
+let isFlushing = false;
 function flushQueue() {
-	if(bFlushing) {
+	if(isFlushing) {
 		return;
 	}
-	bFlushing = true;
+	isFlushing = true;
 
-	for(let sEventCategory in oEventQueue) {
-		for(let oEvent of oEventQueue[sEventCategory]) {
-			for(let oDispatcher of oEventDispatchers[sEventCategory]) {
-				if(oEvent.event) {
+	for(let eventCategory in eventQueue) {
+		for(let event of eventQueue[eventCategory]) {
+			for(let dispatcher of eventDispatchers[eventCategory]) {
+				if(event.event) {
 					try {
-						oDispatcher.sendEvent(oEvent.event, oEvent.data);
+						dispatcher.sendEvent(event.event, event.data);
 					} catch (err) {
 						console.error(err);
 					}
 				}
 				else {
 					try {
-						oDispatcher.send(oEvent.data);
+						dispatcher.send(event.data);
 					} catch (err) {
 						console.error(err);
 					}
 				}
 			}
 		}
-		oEventQueue[sEventCategory] = [];
+		eventQueue[eventCategory] = [];
 	}
 
-	bFlushing = false;
+	isFlushing = false;
 }
 
 
-let iInterval = null;
+let interval = null;
 function stopInterval() {
-	clearInterval(iInterval);
-	iInterval = null;
+	clearInterval(interval);
+	interval = null;
 }
 function startInterval() {
 	stopInterval();
-	iInterval = setInterval(flushQueue, 10);
+	interval = setInterval(flushQueue, 10);
 }
 function init() {
 	startInterval();

@@ -1,42 +1,45 @@
 import DbConnection from "./db/dbConnection.js";
 
 
-let oConfig = null;
-let oDbConnection = null;
+let config = null;
+let dbConnection = null;
 
 class TicketConfig {
 	static init(conf) {
-		oConfig = conf;
+		if(dbConnection && dbConnection.open) {
+			return;
+		}
+		config = conf;
 
-		let sDbPath = oConfig.getElement("database.file", null);
-		if(!sDbPath) {
-			throw new Exception("database file has to be set");
+		let dbPath = config.getElement("database.file", null);
+		if(!dbPath) {
+			throw new Error("database file has to be set");
 		}
 		if(process.platform === "win32") {
-			if(!sDbPath.match(/^[a-zA-Z]:\//)) {
-				if(sDbPath[0] !== "/") {
-					sDbPath = __rootpath+"/"+sDbPath;
+			if(!dbPath.match(/^[a-zA-Z]:\//)) {
+				if(dbPath[0] !== "/") {
+					dbPath = __rootpath+"/"+dbPath;
 				}
 				else {
-					sDbPath = __rootpath+sDbPath;
+					dbPath = __rootpath+dbPath;
 				}
 			}
 		}
 		else {
-			if(sDbPath[0] !== "/") {
-				sDbPath = __rootpath+"/"+sDbPath;
+			if(dbPath[0] !== "/") {
+				dbPath = __rootpath+"/"+dbPath;
 			}
 		}
-		oDbConnection = new DbConnection(sDbPath);
+		dbConnection = new DbConnection(dbPath);
 	}
 
 
 	static get config() {
-		return oConfig;
+		return config;
 	}
 
 	static get db() {
-		return oDbConnection;
+		return dbConnection;
 	}
 }
 

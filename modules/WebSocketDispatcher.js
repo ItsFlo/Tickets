@@ -6,17 +6,17 @@ function heartBeat() {
 }
 
 class WebSocketDispatcher extends HttpDispatcher {
-	moWs;
-	miIntervalID;
+	ws;
+	intervalID;
 
 	constructor() {
 		super();
-		this.moWs = new WebSocketServer({
+		this.ws = new WebSocketServer({
 			noServer: true,
 		});
 
-		this.miIntervalID = setInterval(() => {
-			this.moWs.clients.forEach(ws => {
+		this.intervalID = setInterval(() => {
+			this.ws.clients.forEach(ws => {
 				if(ws.isAlive === false) {
 					ws.terminate();
 				}
@@ -26,18 +26,18 @@ class WebSocketDispatcher extends HttpDispatcher {
 				}
 			});
 		}, 30000);
-		this.moWs.on("close", () => {
-			clearInterval(this.miIntervalID);
+		this.ws.on("close", () => {
+			clearInterval(this.intervalID);
 		});
 	}
 
-	upgrade(sPath, request, socket, head) {
-		if(sPath) {
-			super.upgrade(sPath, request, socket, head);
+	upgrade(path, request, socket, head) {
+		if(path) {
+			super.upgrade(path, request, socket, head);
 			return;
 		}
 
-		this.moWs.handleUpgrade(request, socket, head, ws => {
+		this.ws.handleUpgrade(request, socket, head, ws => {
 			ws.isAlive = true;
 			ws.on("pong", heartBeat);
 			this.initWebsocket(ws, request);
@@ -45,15 +45,15 @@ class WebSocketDispatcher extends HttpDispatcher {
 	}
 
 	initWebsocket(ws, request) {
-		this.moWs.emit("connection", ws, request);
+		this.ws.emit("connection", ws, request);
 	}
 
-	sendToAll(data, bIsBinary=false) {
+	sendToAll(data, binary=false) {
 		let oOptions = {
-			binary: bIsBinary,
+			binary: binary,
 		};
 
-		this.moWs.clients.forEach(ws => {
+		this.ws.clients.forEach(ws => {
 			ws.send(data, oOptions);
 		});
 		return this;
@@ -62,7 +62,7 @@ class WebSocketDispatcher extends HttpDispatcher {
 
 
 	addConnectionListener(listener) {
-		this.moWs.on("connection", listener);
+		this.ws.on("connection", listener);
 		return this;
 	}
 };
