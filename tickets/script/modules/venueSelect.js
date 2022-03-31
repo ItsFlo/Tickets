@@ -120,6 +120,22 @@ function getOption(iVenueID) {
 	return oOptionContainer.querySelector(".venue-option[data-venue-id=\""+iVenueID+"\"]");
 }
 
+function getVenueByName(name) {
+	if(!name) {
+		return null;
+	}
+	let nameUpper = name.toUpperCase();
+
+	let optionContainer = document.querySelector("#venueSelect .venue-options");
+	let options = optionContainer.querySelectorAll(".venue-option");
+	for(let option of options) {
+		let venueName = option.querySelector(".name").textContent.toUpperCase();
+		if(venueName === nameUpper) {
+			return option;
+		}
+	}
+	return null;
+}
 function getClosestOption(oDate) {
 	if(!oDate instanceof Date) {
 		return null;
@@ -199,6 +215,9 @@ function loadVenues() {
 			oOption = getOption(iSelectedID);
 		}
 
+		if(!oOption && initialVenue) {
+			oOption = getVenueByName(initialVenue);
+		}
 		if(!oOption) {
 			oOption = getClosestOption(new Date());
 		}
@@ -226,11 +245,13 @@ function loadTemplate() {
 }
 
 let bInitialized = false;
-function init() {
+let initialVenue = null;
+function init(initialVenueName=null) {
 	if(bInitialized) {
 		return;
 	}
 	bInitialized = true;
+	initialVenue = initialVenueName;
 
 	let styleLink = document.createElement("link");
 	styleLink.setAttribute("type", "text/css");
