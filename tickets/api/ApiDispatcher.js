@@ -4,6 +4,7 @@ import venueDispatcher from "./VenueDispatcher.js";
 import itemCategoryDispatcher from "./ItemCategoryDispatcher.js";
 import itemDispatcher from "./ItemDispatcher.js";
 import orderDispatcher from "./OrderDispatcher.js";
+import orderItemDispatcher from "./OrderItemDispatcher.js";
 
 let apiDispatcher = new class extends HttpDispatcherGroup {
 	request(path, request, response) {
@@ -36,6 +37,7 @@ apiDispatcher.addDispatcher("venue", venueDispatcher);
 apiDispatcher.addDispatcher("item", itemDispatcher);
 apiDispatcher.addDispatcher("itemCategory", itemCategoryDispatcher);
 apiDispatcher.addDispatcher("order", orderDispatcher);
+apiDispatcher.addDispatcher("orderItem", orderItemDispatcher);
 
 
 

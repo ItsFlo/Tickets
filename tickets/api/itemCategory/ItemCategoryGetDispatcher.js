@@ -68,7 +68,7 @@ class ItemCategoryGetDispatcher extends HttpDispatcher {
 	dispatchAll(request, response, pathElements) {
 		let searchParams = this.getSearchParams(request, false);
 
-		let orderDirection = getOrderDirection(searchParams, "ASC");;
+		let orderDirection = getOrderDirection(searchParams, "ASC");
 		let order = {
 			[ItemCategory.COL_NAME]: orderDirection,
 		};

@@ -32,7 +32,7 @@
 	opacity: 0.4;
 }
 #openOrders .order.canceled:after {
-	content: "abgebrochen";
+	content: "storniert";
 	position: absolute;
 	right: 1.4em;
 	bottom: 0.5em;

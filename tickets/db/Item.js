@@ -1,6 +1,7 @@
 import { DbTable, COL_ID, addConstants } from "./DbTable.js";
 import ItemCategory from "./ItemCategory.js";
 import OrderItem from "./OrderItem.js";
+import Order from "./Order.js";
 
 const TABLE = "item";
 
@@ -49,14 +50,49 @@ class Item extends DbTable {
 		return this.getAllWhere(where, [itemCategory], sortOrder, limit);
 	}
 
-	getAllForOrder(orderID, sortOrder, limit) {
+	getAllForOrder(orderId, sortOrder, limit) {
 		let query = `SELECT it.*, oi."${OrderItem.COL_COUNT}" FROM "${TABLE}" it INNER JOIN "${OrderItem.TABLE}" oi ON it."${COL_ID}" = oi."${OrderItem.COL_ITEM}"`
 					+ ` WHERE oi."${OrderItem.COL_ORDER}" = ?`;
 		query += this.getOrderClause(sortOrder);
 		query += this.getLimitClause(limit);
 
 		let stmt = this.db.prepare(query);
-		return stmt.all(orderID);
+		return stmt.all(orderId);
+	}
+	getAllForVenue(venueId, sortOrder, limit, status=null) {
+		if(typeof status === "string") {
+			status = [status];
+		}
+		let statusWhereClause = null;
+		if(Array.isArray(status) && status.length) {
+			let statusPlaceholders = "?" + ", ?".repeat(status.length-1);
+			statusWhereClause = `o."${Order.COL_STATUS}" IN (${statusPlaceholders})`;
+		}
+		let query = "SELECT "
+						+ `it.*, `
+						+ `SUM(oi."${OrderItem.COL_COUNT}") as "${OrderItem.COL_COUNT}"`
+					+ " FROM "
+						+ `"${TABLE}" it LEFT OUTER JOIN "${ItemCategory.TABLE}" ic ON ic."${COL_ID}" = it."${COL_ITEM_CATEGORY}"`
+		;
+		if(statusWhereClause) {
+			query += ` LEFT OUTER JOIN (SELECT tempoi.* FROM "${OrderItem.TABLE}" tempoi INNER JOIN "${Order.TABLE}" o ON o."${Order.COL_ID}" = tempoi."${OrderItem.COL_ORDER}"`
+					+ " WHERE " + statusWhereClause + `) oi ON oi."${OrderItem.COL_ITEM}" = it."${COL_ID}"`;
+			;
+		}
+		else {
+			query += ` LEFT OUTER JOIN "${OrderItem.TABLE}" oi ON oi."${OrderItem.COL_ITEM}" = it."${COL_ID}"`
+		}
+		query += ` WHERE ic."${ItemCategory.COL_VENUE}" = ?`;
+		query += ` GROUP BY it."${COL_ID}"`;
+		query += this.getOrderClause(sortOrder);
+		query += this.getLimitClause(limit);
+
+		let stmt = this.db.prepare(query);
+		let values = [venueId];
+		if(statusWhereClause) {
+			values = status.concat(values);
+		}
+		return stmt.all(values);
 	}
 
 	create(itemCategory, name, price) {

@@ -191,9 +191,14 @@ function updateOrderElementMetaData(element, order) {
 		element.classList.add("prepared");
 		element.classList.remove("canceled");
 	}
-	else if(order.status === Api.order.STATUS_CANCELED) {
+	let cancelButton = element.querySelector(".cancel-button");
+	if(order.status === Api.order.STATUS_CANCELED) {
 		element.classList.remove("prepared");
 		element.classList.add("canceled");
+		cancelButton.title = "ausblenden";
+	}
+	else {
+		cancelButton.title = "stornieren";
 	}
 
 	element.querySelector(".order-number").textContent = order.orderNumber;

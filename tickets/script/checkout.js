@@ -20,8 +20,7 @@ function getInitialVenueName() {
 }
 
 function documentLoadListener() {
-	let initialVenueName = getInitialVenueName();
-	VenueSelect.init(initialVenueName);
+	NewOrder.init();
 	VenueSelect.addListener(() => {
 		let iVenueID = VenueSelect.getSelectedID();
 		if(isNaN(iVenueID)) {
@@ -33,6 +32,7 @@ function documentLoadListener() {
 		}
 	});
 
-	NewOrder.init();
+	let initialVenueName = getInitialVenueName();
+	VenueSelect.init(initialVenueName);
 }
 addLoadListener(documentLoadListener);
