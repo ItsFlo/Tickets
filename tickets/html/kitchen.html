@@ -13,7 +13,24 @@
 		<div id="venueSelect"></div>
 
 		<main>
-			<div id="itemContainer"></div>
+			<div id="itemContainer">
+				<div class="filter"></div>
+				<div class="item-category-container"></div>
+			</div>
+			<template id="itemCategoryTemplate">
+				<div class="item-category">
+					<h4 class="name"></h4>
+					<div class="item-container"></div>
+				</div>
+			</template>
+			<template id="itemTemplate">
+				<div class="item">
+					<span class="name"></span>
+					<span class="count"></span>
+				</div>
+			</template>
+
+
 			<div id="orderContainer">
 				<div id="openOrders"></div>
 				<div id="preparedOrders"></div>

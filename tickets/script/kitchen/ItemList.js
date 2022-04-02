@@ -3,50 +3,74 @@ import Error from "../Error.js";
 
 const ID = "itemContainer";
 
-function clear() {
-	let itemList = document.getElementById(ID);
-	while(itemList.firstChild) {
-		itemList.firstChild.remove();
+function clearItemCategories() {
+	let itemCategoryContainer = document.getElementById(ID).querySelector(".item-category-container");
+	while(itemCategoryContainer.firstChild) {
+		itemCategoryContainer.firstChild.remove();
 	}
 }
 
 
-function createElement() {
-	let element = document.createElement("div");
-
-	let name = document.createElement("span");
-	name.classList.add("name");
-	element.appendChild(name);
-	
-	let count = document.createElement("span");
-	count.classList.add("count");
-	element.appendChild(count);
-
+function getItemCategoryElementTemplate() {
+	let template = document.getElementById("itemCategoryTemplate");
+	let element = template.content.firstElementChild.cloneNode(true);
 	return element;
 }
-function elementAddData(element, item) {
+function itemCategoryElementAddData(element, itemCategory) {
+	element.dataset.id = itemCategory.id;
+	element.querySelector(".name").textContent = itemCategory.name;
+}
+function getItemCategory(itemCategoryId) {
+	let itemCategoryContainer = document.getElementById(ID).querySelector(".item-category-container");
+	return itemCategoryContainer.querySelector(".item-category[data-id=\"" + itemCategoryId + "\"]");
+}
+
+function getItemElementTemplate() {
+	let template = document.getElementById("itemTemplate");
+	let element = template.content.firstElementChild.cloneNode(true);
+	return element;
+}
+function itemElementAddData(element, item) {
+	element.dataset.id = item.id;
 	element.querySelector(".name").textContent = item.name;
 	element.querySelector(".count").textContent = item.count;
 }
 
-function load(venueID) {
-	clear();
-	let status = [
-		Api.order.STATUS_OPEN,
-	];
-	Api.orderItem.getAllForVenue(venueID, status).then(items => {
-		let itemContainer = document.getElementById(ID);
-		for(let item of items.json) {
-			let element = createElement();
-			elementAddData(element, item);
-			itemContainer.appendChild(element);
+
+
+function loadItemCategories(venueId) {
+	clearItemCategories();
+	return Api.itemCategory.getAll(venueId).then(result => {
+		let itemCatContainer = document.getElementById(ID).querySelector(".item-category-container");
+		for(let itemCat of result.json) {
+			let element = getItemCategoryElementTemplate();
+			itemCategoryElementAddData(element, itemCat);
+			itemCatContainer.appendChild(element);
 		}
-	}, err => {
-		Error.show(err);
 	});
 }
 
+function load(venueId) {
+	let status = [
+		Api.order.STATUS_OPEN,
+	];
+	return loadItemCategories(venueId).then(() => {
+		return Api.orderItem.getAllForVenue(venueId, status).then(result => {
+			for(let item of result.json) {
+				let itemCategory = getItemCategory(item.itemCategory);
+				if(!itemCategory) {
+					continue;
+				}
+
+				let element = getItemElementTemplate();
+				itemElementAddData(element, item);
+				itemCategory.querySelector(".item-container").appendChild(element);
+			}
+		});
+	}).catch(err => Error.show(err));
+}
+
 export default {
-	clear,
+	clear: clearItemCategories,
 	load,
 };
