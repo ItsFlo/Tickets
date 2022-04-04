@@ -54,6 +54,7 @@ class OrderPutDispatcher extends HttpDispatcher {
 				sendStatus(response, 500, "Couldn´t fetch new order");
 				return;
 			}
+			response.setHeader("Content-Type", "application/json");
 			response.writeHead(201);
 			response.end(JSON.stringify(order));
 
