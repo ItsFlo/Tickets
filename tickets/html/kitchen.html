@@ -5,12 +5,46 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-		<link type="text/css" rel="stylesheet" href="style/kitchen.css">
-		<script src="script/kitchen.js" async></script>
+		<link type="text/css" rel="stylesheet" href="/style/style.css">
+		<link type="text/css" rel="stylesheet" href="/style/modules/orderElement.css">
+		<link type="text/css" rel="stylesheet" href="/style/kitchen.css">
+		<link type="text/css" rel="stylesheet" href="/style/kitchen/itemList.css">
+		<link type="text/css" rel="stylesheet" href="/style/kitchen/openOrders.css">
+		<script src="/script/kitchen.js" type="module" async></script>
 	</head>
 	<body>
-		<main>
+		<div id="venueSelect"></div>
 
+		<main>
+			<div id="ItemList">
+				<div class="filter"></div>
+				<div class="item-category-container"></div>
+			</div>
+			<template id="itemCategoryFilterTemplate">
+				<label>
+					<input type="checkbox" checked>
+					<span></span>
+				</label>
+			</template>
+			<template id="itemCategoryTemplate">
+				<div class="item-category">
+					<h4 class="name"></h4>
+					<table class="item-table"><tbody></tbody></table>
+				</div>
+			</template>
+			<template id="itemTemplate">
+				<tr class="item">
+					<td class="count"></td>
+					<td class="name"></td>
+				</tr>
+			</template>
+
+
+			<div id="orderContainer">
+				<div id="preparedOrders"></div>
+				<div class="divider"></div>
+				<div id="openOrders"></div>
+			</div>
 		</main>
 	</body>
 </html>

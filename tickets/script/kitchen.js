@@ -1,7 +1,7 @@
-import VenueSelect from "./modules/venueSelect.js"
+import VenueSelect from "./modules/venueSelect.js";
 import { addLoadListener } from "./functions.js";
-import NewOrder from "./checkout/newOrder.js";
-import OpenOrders from "./checkout/openOrders.js";
+import ItemList from "./kitchen/ItemList.js";
+import OpenOrders from "./kitchen/OpenOrders.js";
 
 function getInitialVenueName() {
 	let pathsParts = window.location.pathname.split("/");
@@ -20,15 +20,15 @@ function getInitialVenueName() {
 }
 
 function documentLoadListener() {
-	NewOrder.init();
 	VenueSelect.addListener(() => {
-		let iVenueID = VenueSelect.getSelectedID();
-		if(isNaN(iVenueID)) {
-			NewOrder.clearItems();
+		let venueId = VenueSelect.getSelectedID();
+		if(isNaN(venueId)) {
+			ItemList.clear();
+			OpenOrders.clear();
 		}
 		else {
-			NewOrder.loadItemCategories(iVenueID);
-			OpenOrders.loadOrders(iVenueID);
+			ItemList.load(venueId);
+			OpenOrders.load(venueId);
 		}
 	});
 

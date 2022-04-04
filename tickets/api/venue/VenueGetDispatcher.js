@@ -71,7 +71,7 @@ class VenueGetDispatcher extends HttpDispatcher {
 	dispatchAll(request, response, pathElements) {
 		let searchParams = this.getSearchParams(request, false);
 
-		let orderDirection = getOrderDirection(searchParams, "DESC");;
+		let orderDirection = getOrderDirection(searchParams, "DESC");
 		let order = {
 			[Venue.COL_DATE]: orderDirection,
 			[Venue.COL_TIME]: orderDirection,
