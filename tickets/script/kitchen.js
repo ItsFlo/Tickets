@@ -1,6 +1,7 @@
 import VenueSelect from "./modules/venueSelect.js";
 import { addLoadListener } from "./functions.js";
 import ItemList from "./kitchen/ItemList.js";
+import OpenOrders from "./kitchen/OpenOrders.js";
 
 function getInitialVenueName() {
 	let pathsParts = window.location.pathname.split("/");
@@ -23,9 +24,11 @@ function documentLoadListener() {
 		let venueId = VenueSelect.getSelectedID();
 		if(isNaN(venueId)) {
 			ItemList.clear();
+			OpenOrders.clear();
 		}
 		else {
 			ItemList.load(venueId);
+			OpenOrders.load(venueId);
 		}
 	});
 

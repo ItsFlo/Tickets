@@ -6,8 +6,10 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 		<link type="text/css" rel="stylesheet" href="/style/style.css">
+		<link type="text/css" rel="stylesheet" href="/style/modules/orderElement.css">
 		<link type="text/css" rel="stylesheet" href="/style/kitchen.css">
 		<link type="text/css" rel="stylesheet" href="/style/kitchen/itemList.css">
+		<link type="text/css" rel="stylesheet" href="/style/kitchen/openOrders.css">
 		<script src="/script/kitchen.js" type="module" async></script>
 	</head>
 	<body>
@@ -18,6 +20,12 @@
 				<div class="filter"></div>
 				<div class="item-category-container"></div>
 			</div>
+			<template id="itemCategoryFilterTemplate">
+				<label>
+					<input type="checkbox" checked>
+					<span></span>
+				</label>
+			</template>
 			<template id="itemCategoryTemplate">
 				<div class="item-category">
 					<h4 class="name"></h4>
@@ -33,8 +41,9 @@
 
 
 			<div id="orderContainer">
-				<div id="openOrders"></div>
 				<div id="preparedOrders"></div>
+				<div class="divider"></div>
+				<div id="openOrders"></div>
 			</div>
 		</main>
 	</body>

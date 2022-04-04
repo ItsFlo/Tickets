@@ -43,6 +43,10 @@ function removeOrderEventListener(ev) {
 
 
 function clearItemCategories() {
+	let filterContainer = document.getElementById(ID).querySelector(".filter");
+	while(filterContainer.firstChild) {
+		filterContainer.firstChild.remove();
+	}
 	let itemCategoryContainer = document.getElementById(ID).querySelector(".item-category-container");
 	while(itemCategoryContainer.firstChild) {
 		itemCategoryContainer.firstChild.remove();
@@ -127,14 +131,34 @@ function removeOrderItem(item) {
 
 
 
+function filterListener() {
+	let itemCatId = this.dataset.id;
+	let itemCatElement = getItemCategory(itemCatId);
+	itemCatElement.classList.toggle("hidden", !this.checked);
+}
+function createFilter(itemCat) {
+	let template = document.getElementById("itemCategoryFilterTemplate");
+	let element = template.content.firstElementChild.cloneNode(true);
+
+	let input = element.querySelector("input");
+	input.dataset.id = itemCat.id;
+	input.addEventListener("change", filterListener);
+	element.querySelector("span").textContent = itemCat.name;
+
+	return element;
+}
 function loadItemCategories(venueId) {
 	clearItemCategories();
 	return Api.itemCategory.getAll(venueId).then(result => {
+		let filterContainer = document.getElementById(ID).querySelector(".filter");
 		let itemCatContainer = document.getElementById(ID).querySelector(".item-category-container");
 		for(let itemCat of result.json) {
 			let element = getItemCategoryElementTemplate();
 			itemCategoryElementAddData(element, itemCat);
 			itemCatContainer.appendChild(element);
+
+			let filter = createFilter(itemCat);
+			filterContainer.appendChild(filter);
 		}
 	});
 }

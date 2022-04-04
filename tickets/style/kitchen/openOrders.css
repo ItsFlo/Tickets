@@ -1,0 +1,58 @@
+#orderContainer {
+	display: flex;
+	flex-direction: column;
+}
+#preparedOrders {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	gap: 1em;
+	padding: 1em;
+	overflow: auto;
+}
+#openOrders {
+	display: flex;
+	flex-direction: column;
+	gap: 1em;
+	padding: 1em;
+}
+#orderContainer > .divider {
+	border-top: 1px solid #ddd;
+	margin-bottom: 0.5em;
+	margin-left: 1em;
+	margin-right: 1em;
+}
+
+#preparedOrders .order {
+	min-width: 180px;
+}
+
+.order .cancel-button {
+	display: none !important;
+}
+
+
+@media screen and (min-width: 700px) {
+	#orderContainer {
+		flex-direction: row-reverse;
+		justify-content: space-between;
+		align-items: stretch;
+		gap: 1em;
+	}
+	#preparedOrders {
+		flex-direction: column;
+		overflow: unset;
+	}
+	#openOrders {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: start;
+		align-content: flex-start;
+		flex-grow: 1;
+	}
+	#orderContainer > .divider {
+		border-top: none;
+		border-left: 1px solid #ddd;
+		margin: 0;
+	}
+}
