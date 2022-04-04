@@ -2,10 +2,11 @@ import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import Events from "../../Events.js";
 import Order from "../../db/Order.js";
+import OrderGetter from "./OrderGetter.js";
 
 function sendUpdateEvent(orderID) {
 	try {
-		let order = TicketConfig.db.order.getByID(orderID);
+		let order = OrderGetter.getOrder(orderID);
 		if(order) {
 			Events.sendEvent(Order.TABLE, order[Order.COL_STATUS], order);
 		}

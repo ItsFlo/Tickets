@@ -7,27 +7,28 @@
 
 		<link type="text/css" rel="stylesheet" href="/style/style.css">
 		<link type="text/css" rel="stylesheet" href="/style/kitchen.css">
+		<link type="text/css" rel="stylesheet" href="/style/kitchen/itemList.css">
 		<script src="/script/kitchen.js" type="module" async></script>
 	</head>
 	<body>
 		<div id="venueSelect"></div>
 
 		<main>
-			<div id="itemContainer">
+			<div id="ItemList">
 				<div class="filter"></div>
 				<div class="item-category-container"></div>
 			</div>
 			<template id="itemCategoryTemplate">
 				<div class="item-category">
 					<h4 class="name"></h4>
-					<div class="item-container"></div>
+					<table class="item-table"><tbody></tbody></table>
 				</div>
 			</template>
 			<template id="itemTemplate">
-				<div class="item">
-					<span class="name"></span>
-					<span class="count"></span>
-				</div>
+				<tr class="item">
+					<td class="count"></td>
+					<td class="name"></td>
+				</tr>
 			</template>
 
 

@@ -1,0 +1,16 @@
+#ItemList .item-category-container {
+	display: flex;
+	flex-wrap: wrap;
+	padding: 1em;
+	gap: 2em;
+}
+
+#ItemList .item-category-container h4.name {
+	margin: 0;
+}
+#ItemList .item-category-container .item-table .count {
+	text-align: right;
+}
+#ItemList .item-category-container .item-table .count:after {
+	content: "⨯";
+}
