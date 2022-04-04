@@ -1,0 +1,126 @@
+.order {
+	position: relative;
+	padding: 0.5em 1em;
+	background-color: #fafafa;
+	border: 1px solid #f0f0f0;
+	border-radius: 0.5em;
+}
+.order.prepared:before {
+	content: "abholbereit";
+	display: block;
+	position: absolute;
+	bottom: 100%;
+	font-size: 70%;
+	color: #333;
+
+}
+.order.pickedup {
+	display: none;
+}
+.order.canceled {
+	opacity: 0.4;
+}
+.order.canceled:after {
+	content: "storniert";
+	position: absolute;
+	right: 1.4em;
+	bottom: 0.5em;
+	font-size: 80%;
+	color: #888;
+}
+.order.canceled .items,
+.order.canceled .price {
+	text-decoration: line-through;
+}
+
+.order .order-number {
+	position: absolute;
+	left: -0.8em;
+	top: -0.8em;
+	width: 1.6em;
+	height: 1.6em;
+	background-color: hsla(30, 100%, 60%, 10%);
+	border: 1px solid hsl(30, 100%, 60%);
+	border-radius: 50%;
+	line-height: 1.6em;
+	text-align: center;
+	color: hsl(30, 100%, 25%);
+}
+.order.prepared .order-number {
+	background-color: hsla(100, 65%, 60%, 10%);
+	border: 1px solid hsl(100, 65%, 60%);
+	color: hsl(100, 65%, 25%);
+}
+.order .date,
+.order .time {
+	display: inline-block;
+	margin-bottom: 0.3em;
+	font-size: 80%;
+	color: #888;
+}
+.order .date:empty,
+.order .time:empty {
+	display: none;
+}
+.order .time {
+	margin-left: 0.5em;
+}
+
+.order .items {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5em;
+}
+.order .items .item {
+	padding: 0.2em 0.5em;
+	border-radius: 0.2em;
+	background-color: #e0e0e0;
+}
+.order .items .item .count:after {
+	content: "⨯ ";
+}
+
+.order .price {
+	display: inline-block;
+	margin-left: 0.3em;
+	margin-top: 0.5em;
+	padding-top: 0.1em;
+	border-top: solid 1px black;
+}
+.order .price:after {
+	content: " €";
+}
+
+.order input {
+	margin-left: 0.7em;
+	cursor: pointer;
+}
+.order.canceled input.pickedup,
+.order.canceled input.prepared,
+.order:not(.prepared) input.pickedup,
+.order.prepared input.prepared {
+	display: none;
+}
+
+
+
+.order .cancel-button {
+	position: absolute;
+	right: -0.5em;
+	top: -0.5em;
+	width: 1em;
+	height: 1em;
+	border-radius: 50%;
+	font-size: 1.4em;
+	line-height: 0.9em;
+	text-align: center;
+	cursor: pointer;
+}
+.order .cancel-button:before {
+	content: "⨯";
+	color: #ac1a1a;
+}
+.order .cancel-button:hover {
+	background-color: #fafafa;
+	box-shadow: 0 0 3px #aaa;
+}
