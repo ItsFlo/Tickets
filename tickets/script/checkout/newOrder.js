@@ -12,6 +12,8 @@ function clearItems() {
 
 	let oSum = oNewOrder.querySelector(".order-sum .sum");
 	oSum.innerHTML = "0.00";
+
+	hideLastOrderNumber();
 }
 function resetItems() {
 	let oNewOrder = document.getElementById("newOrder");
@@ -216,6 +218,18 @@ function getItems() {
 	return aItems;
 }
 
+
+function setLastOrderNumber(orderNumber) {
+	let lastOrderNumber = document.getElementById("lastOrderNumber");
+	lastOrderNumber.classList.add("visible");
+	lastOrderNumber.firstElementChild.textContent = orderNumber;
+}
+function hideLastOrderNumber() {
+	let lastOrderNumber = document.getElementById("lastOrderNumber");
+	lastOrderNumber.classList.remove("visible");
+	lastOrderNumber.firstElementChild.textContent = "";
+}
+
 function submitOrderListener() {
 	let iVenueID = VenueSelect.getSelectedID();
 	let aItems = getItems();
@@ -225,6 +239,7 @@ function submitOrderListener() {
 
 	Api.order.create(iVenueID, aItems).then(oResponse => {
 		resetItems();
+		setLastOrderNumber(oResponse.json.id);
 	}).catch(error => {
 		Error.show(error);
 	});

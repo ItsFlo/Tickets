@@ -115,3 +115,28 @@
 #newOrder .items .item .count .sum:after {
 	content: " €";
 }
+
+
+#lastOrderNumber {
+	display: none;
+	padding: 1em;
+	text-align: center;
+}
+#lastOrderNumber.visible {
+	display: block;
+}
+#lastOrderNumber:before {
+	content: "Letzte Bestellnummer: ";
+}
+#lastOrderNumber .order-number {
+	display: inline-block;
+	vertical-align: middle;
+	width: 2em;
+	height: 2em;
+	background-color: hsla(0, 0%, 60%, 10%);
+	border: 1px solid hsl(0, 0%, 60%);
+	border-radius: 50%;
+	line-height: 2em;
+	text-align: center;
+	color: hsl(0, 0%, 25%);
+}
