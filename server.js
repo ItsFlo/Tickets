@@ -28,7 +28,8 @@ function getPath(request) {
 }
 
 const ticketServer = https.createServer(httpsOptions);
-ticketServer.listen(CONFIG.getElement("server.https.port", 443));
+let httpsPort = CONFIG.getElement("server.https.port", 443);
+ticketServer.listen(httpsPort);
 
 ticketServer.on("request", (request, response) => {
 	let path = getPath(request);
@@ -47,14 +48,23 @@ ticketServer.on("connect", (request, socket, head) => {
 
 if(CONFIG.getElement("server.http.enable", false)) {
 	const httpServer = http.createServer((request, response) => {
+		let host = request.headers.host;
+		let hostParts = host.split(":");
+		if(hostParts.length === 2) {
+			host = hostParts[0];
+		}
+		if(httpsPort !== 443) {
+			host += ":" + httpsPort;
+		}
+
 		if(request.headers.upgrade === "websocket") {
 			response.writeHead(301, {
-				"Location": "wss://"+request.headers.host+request.url,
+				"Location": "wss://"+host+request.url,
 			});
 		}
 		else {
 			response.writeHead(301, {
-				"Location": "https://"+request.headers.host+request.url,
+				"Location": "https://"+host+request.url,
 			});
 		}
 		response.end();
