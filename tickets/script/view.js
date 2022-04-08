@@ -61,8 +61,15 @@ function handlePreparedQueue() {
 		return;
 	}
 	preparedQueueWaiting = true;
-	let order = preparedQueue.shift();
-	let element = getOrderElement(order.id);
+	let order, element;
+	do {
+		order = preparedQueue.shift();
+		element = getOrderElement(order.id);
+	} while(!element && preparedQueue.length);
+	if(!element) {
+		preparedQueueWaiting = false;
+		return;
+	}
 	orderElementSetData(element, order);
 	let elementClone = element.cloneNode(true);
 	let oldPosition = element.getBoundingClientRect();
@@ -132,6 +139,9 @@ function getOrderElement(id) {
 	return document.querySelector(".container .order[data-id=\"" + id + "\"]");
 }
 function addOrder(order) {
+	if(!orderMatchesCategories(order)) {
+		return;
+	}
 	let element = getOrderTemplate();
 	orderElementSetData(element, order);
 	insertOrderElement(element);
@@ -185,7 +195,57 @@ function getVenue() {
 
 	return Api.venue.getClosestToDate();
 }
+
+
+let includedCats = new Set();
+let excludedCats = new Set();
+let filterCategories = false;
+function orderMatchesCategories(order) {
+	if(!filterCategories) {
+		return true;
+	}
+	let cats = new Set();
+	for(let item of order.items) {
+		cats.add(item.itemCategory);
+	}
+
+	if(includedCats.size) {
+		for(let catId of cats) {
+			if(includedCats.has(catId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	if(excludedCats.size) {
+		for(let catId of cats) {
+			if(!excludedCats.has(catId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	return true;
+}
+
 function documentLoadListener() {
+	let searchParams = (new URL(window.location)).searchParams;
+	for(let catId of searchParams.getAll("include")) {
+		catId = parseInt(catId);
+		if(!isNaN(catId)) {
+			includedCats.add(catId);
+		}
+	}
+	for(let catId of searchParams.getAll("exclude")) {
+		catId = parseInt(catId);
+		if(!isNaN(catId)) {
+			excludedCats.add(catId);
+		}
+	}
+	if(includedCats.size || excludedCats.size) {
+		filterCategories = true;
+	}
+
 	getVenue().then(result => {
 		load(result.json.id);
 	}, err => Error.show(err));

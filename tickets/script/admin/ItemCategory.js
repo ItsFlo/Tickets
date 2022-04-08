@@ -104,7 +104,8 @@ function createElement(oItemCategory=null) {
 
 	if(oItemCategory) {
 		oElement.dataset.itemCategoryId = oItemCategory.id;
-		oName.innerHTML = oItemCategory.name;
+		oName.title = "ID: " + oItemCategory.id;
+		oName.textContent = oItemCategory.name;
 	}
 
 	return oElement;
@@ -152,7 +153,7 @@ function addToSelect(oItemCategory) {
 	oOption = document.createElement("option");
 	oOption.classList.add("category");
 	oOption.setAttribute("value", oItemCategory.id);
-	oOption.innerHTML = oItemCategory.name;
+	oOption.textContent = oItemCategory.name;
 
 	selectInsertElement(oOption);
 }
@@ -163,7 +164,7 @@ function updateSelectOption(oItemCategory) {
 		return;
 	}
 
-	oOption.innerHTML = oItemCategory.name;
+	oOption.textContent = oItemCategory.name;
 	selectInsertElement(oOption);
 }
 function removeFromSelect(iItemCategoryID) {
