@@ -1,18 +1,4 @@
-#ItemList .filter {
-	display: flex;
-	flex-wrap: wrap;
-	margin-top: 0.5em;
-	padding: 0 1em;
-	gap: 1em;
-}
-#ItemList .filter label {
-	cursor: pointer;
-	user-select: none;
-	-moz-user-select: none;
-	-webkit-user-select: none;
-}
-
-#ItemList .item-category-container {
+#ItemList {
 	display: flex;
 	flex-wrap: wrap;
 	padding: 0 1em;
@@ -21,15 +7,15 @@
 	gap: 2em;
 }
 
-#ItemList .item-category-container .item-category.hidden {
+#ItemList .item-category.hidden {
 	display: none;
 }
-#ItemList .item-category-container h4.name {
+#ItemList h4.name {
 	margin: 0;
 }
-#ItemList .item-category-container .item-table .count {
+#ItemList .item-table .count {
 	text-align: right;
 }
-#ItemList .item-category-container .item-table .count:after {
+#ItemList .item-table .count:after {
 	content: "⨯";
 }

@@ -8,6 +8,7 @@
 		<link type="text/css" rel="stylesheet" href="/style/style.css">
 		<link type="text/css" rel="stylesheet" href="/style/modules/orderElement.css">
 		<link type="text/css" rel="stylesheet" href="/style/kitchen.css">
+		<link type="text/css" rel="stylesheet" href="/style/kitchen/categoryFilter.css">
 		<link type="text/css" rel="stylesheet" href="/style/kitchen/itemList.css">
 		<link type="text/css" rel="stylesheet" href="/style/kitchen/openOrders.css">
 		<script src="/script/kitchen.js" type="module" async></script>
@@ -16,16 +17,15 @@
 		<div id="venueSelect"></div>
 
 		<main>
-			<div id="ItemList">
-				<div class="filter"></div>
-				<div class="item-category-container"></div>
-			</div>
+			<div id="CategoryFilter"></div>
 			<template id="itemCategoryFilterTemplate">
 				<label>
 					<input type="checkbox" checked>
 					<span></span>
 				</label>
 			</template>
+
+			<div id="ItemList"></div>
 			<template id="itemCategoryTemplate">
 				<div class="item-category">
 					<h4 class="name"></h4>

@@ -2,57 +2,7 @@ import Api from "../Api.js";
 import Error from "../Error.js";
 import OrderElement from "../modules/orderElement.js";
 
-
-let eventSource = null;
-function closeEventSource() {
-	if(eventSource) {
-		eventSource.close();
-		eventSource = null;
-	}
-}
-function openEventSource(venueId) {
-	if(eventSource) {
-		closeEventSource();
-	}
-	eventSource = new EventSource("/events/orders/"+venueId);
-
-	eventSource.addEventListener("create", newOrderEventListener);
-	eventSource.addEventListener(Api.order.STATUS_PREPARED, preparedEventListener);
-	eventSource.addEventListener(Api.order.STATUS_PICKEDUP, removeOrderEventListener);
-	eventSource.addEventListener(Api.order.STATUS_CANCELED, removeOrderEventListener);
-	eventSource.addEventListener("delete", reload);
-}
-
-function newOrderEventListener(ev) {
-	try {
-		let order = JSON.parse(ev.data);
-		addOrder(order);
-	} catch(err) {
-		Error.show(err);
-	}
-}
-function preparedEventListener(ev) {
-	try {
-		let order = JSON.parse(ev.data);
-		let element = getOrderElement(order.id);
-		OrderElement.updateOrderData(element, order);
-		insertOrderElement(element);
-	} catch(err) {
-		Error.show(err);
-	}
-}
-function removeOrderEventListener(ev) {
-	try {
-		let order = JSON.parse(ev.data);
-		let element = getOrderElement(order.id);
-		if(element) {
-			element.remove();
-		}
-	} catch(err) {
-		Error.show(err);
-	}
-}
-
+const ORDER_CONTAINERS = ["openOrders", "preparedOrders"];
 
 
 function preparedListener() {
@@ -91,17 +41,70 @@ function insertOrderElement(orderElement) {
 }
 function addOrder(order) {
 	let element = createOrderElement(order);
+	filterHiddenCategoriesOfOrder(element);
 	insertOrderElement(element);
 	return element;
+}
+function updateOrder(order) {
+	let element = getOrderElement(order.id);
+	if(element) {
+		OrderElement.updateOrderData(element, order);
+		insertOrderElement(element);
+	}
+}
+function removeOrder(order) {
+	let element = getOrderElement(order.id);
+	if(element) {
+		element.remove();
+	}
 }
 function getOrderElement(orderId) {
 	let container = document.getElementById("orderContainer");
 	return container.querySelector(".order[data-order-id=\"" + orderId + "\"]");
 }
 
+function filterHiddenCategoriesOfOrder(orderElement) {
+	let hasUnhiddenChildren = false;
+	let items = orderElement.querySelectorAll(".items .item");
+	for(let item of items) {
+		let catId = parseInt(item.dataset.categoryId);
+		let catIsHidden = hiddenItemCategories.has(catId);
+		item.classList.toggle("hidden", catIsHidden);
+		if(!catIsHidden) {
+			hasUnhiddenChildren = true;
+		}
+	}
+	orderElement.classList.toggle("hidden", !hasUnhiddenChildren);
+}
+function filterHiddenCategories() {
+	for(let id of ORDER_CONTAINERS) {
+		let container = document.getElementById(id);
+		let orders = container.querySelectorAll(".order");
+		for(let order of orders) {
+			filterHiddenCategoriesOfOrder(order);
+		}
+	}
+}
+
+
+
+
+let hiddenItemCategories = new Set();
+function hideItemCategory(itemCatId) {
+	hiddenItemCategories.add(itemCatId);
+	filterHiddenCategories();
+}
+function unhideItemCategory(itemCatId) {
+	hiddenItemCategories.delete(itemCatId);
+	filterHiddenCategories();
+}
+
+
+
 
 function clear() {
-	for(let id of ["openOrders", "preparedOrders"]) {
+	hiddenItemCategories.clear();
+	for(let id of ORDER_CONTAINERS) {
 		let container = document.getElementById(id);
 		while(container.firstChild) {
 			container.firstChild.remove();
@@ -116,7 +119,6 @@ function load(venueId) {
 		Api.order.STATUS_PREPARED,
 	];
 	clear();
-	openEventSource(venueId);
 	return Api.order.getAll(venueId, status).then(result => {
 		for(let order of result.json) {
 			addOrder(order);
@@ -131,4 +133,11 @@ export default {
 	clear,
 	load,
 	reload,
+
+	hideItemCategory,
+	unhideItemCategory,
+
+	addOrder,
+	updateOrder,
+	removeOrder,
 };

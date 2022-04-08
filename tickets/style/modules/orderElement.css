@@ -94,6 +94,7 @@
 
 .order input {
 	margin-left: 0.7em;
+	margin-top: 0.5em;
 	cursor: pointer;
 }
 .order.canceled input.pickedup,

@@ -4,52 +4,10 @@ import Error from "../Error.js";
 const ID = "ItemList";
 
 
-let eventSource = null;
-function closeEventSource() {
-	if(eventSource) {
-		eventSource.close();
-		eventSource = null;
-	}
-}
-function openEventSource(venueId) {
-	if(eventSource) {
-		closeEventSource();
-	}
-	eventSource = new EventSource("/events/orders/"+venueId);
-
-	eventSource.addEventListener("create", newOrderEventListener);
-	eventSource.addEventListener(Api.order.STATUS_PREPARED, removeOrderEventListener);
-	eventSource.addEventListener(Api.order.STATUS_CANCELED, removeOrderEventListener);
-	eventSource.addEventListener("delete", reload);
-}
-
-function newOrderEventListener(ev) {
-	try {
-		let order = JSON.parse(ev.data);
-		addOrder(order);
-	} catch(err) {
-		Error.show(err);
-	}
-}
-function removeOrderEventListener(ev) {
-	try {
-		let order = JSON.parse(ev.data);
-		removeOrder(order);
-	} catch(err) {
-		Error.show(err);
-	}
-}
-
-
-
 function clearItemCategories() {
-	let filterContainer = document.getElementById(ID).querySelector(".filter");
-	while(filterContainer.firstChild) {
-		filterContainer.firstChild.remove();
-	}
-	let itemCategoryContainer = document.getElementById(ID).querySelector(".item-category-container");
-	while(itemCategoryContainer.firstChild) {
-		itemCategoryContainer.firstChild.remove();
+	let itemList = document.getElementById(ID);
+	while(itemList.firstChild) {
+		itemList.firstChild.remove();
 	}
 }
 
@@ -64,8 +22,8 @@ function itemCategoryElementAddData(element, itemCategory) {
 	element.querySelector(".name").textContent = itemCategory.name;
 }
 function getItemCategory(itemCategoryId) {
-	let itemCategoryContainer = document.getElementById(ID).querySelector(".item-category-container");
-	return itemCategoryContainer.querySelector(".item-category[data-id=\"" + itemCategoryId + "\"]");
+	let itemList = document.getElementById(ID);
+	return itemList.querySelector(".item-category[data-id=\"" + itemCategoryId + "\"]");
 }
 
 function getItemElementTemplate() {
@@ -86,8 +44,21 @@ function itemElementAddToCategory(itemCategoryId, itemElement) {
 	itemCategory.querySelector(".item-table").tBodies[0].appendChild(itemElement);
 }
 function getItem(itemId) {
-	let itemCategoryContainer = document.getElementById(ID).querySelector(".item-category-container");
-	return itemCategoryContainer.querySelector(".item[data-id=\"" + itemId + "\"]");
+	let itemList = document.getElementById(ID);
+	return itemList.querySelector(".item[data-id=\"" + itemId + "\"]");
+}
+
+function hideItemCategory(itemCatId) {
+	let itemCatElement = getItemCategory(itemCatId);
+	if(itemCatElement) {
+		itemCatElement.classList.add("hidden");
+	}
+}
+function unhideItemCategory(itemCatId) {
+	let itemCatElement = getItemCategory(itemCatId);
+	if(itemCatElement) {
+		itemCatElement.classList.remove("hidden");
+	}
 }
 
 
@@ -129,36 +100,14 @@ function removeOrderItem(item) {
 	}
 }
 
-
-
-function filterListener() {
-	let itemCatId = this.dataset.id;
-	let itemCatElement = getItemCategory(itemCatId);
-	itemCatElement.classList.toggle("hidden", !this.checked);
-}
-function createFilter(itemCat) {
-	let template = document.getElementById("itemCategoryFilterTemplate");
-	let element = template.content.firstElementChild.cloneNode(true);
-
-	let input = element.querySelector("input");
-	input.dataset.id = itemCat.id;
-	input.addEventListener("change", filterListener);
-	element.querySelector("span").textContent = itemCat.name;
-
-	return element;
-}
 function loadItemCategories(venueId) {
 	clearItemCategories();
 	return Api.itemCategory.getAll(venueId).then(result => {
-		let filterContainer = document.getElementById(ID).querySelector(".filter");
-		let itemCatContainer = document.getElementById(ID).querySelector(".item-category-container");
+		let itemList = document.getElementById(ID);
 		for(let itemCat of result.json) {
 			let element = getItemCategoryElementTemplate();
 			itemCategoryElementAddData(element, itemCat);
-			itemCatContainer.appendChild(element);
-
-			let filter = createFilter(itemCat);
-			filterContainer.appendChild(filter);
+			itemList.appendChild(element);
 		}
 	});
 }
@@ -173,7 +122,6 @@ function load(venueId) {
 	let status = [
 		Api.order.STATUS_OPEN,
 	];
-	openEventSource(venueId);
 	return loadItemCategories(venueId).then(() => {
 		return Api.orderItem.getAllForVenue(venueId, status).then(result => {
 			for(let item of result.json) {
@@ -192,4 +140,10 @@ export default {
 	clear,
 	load,
 	reload,
+
+	hideItemCategory,
+	unhideItemCategory,
+
+	addOrder,
+	removeOrder,
 };
