@@ -70,10 +70,30 @@ function getAll(withItemCount=false) {
 	return Ajax.send(path, Ajax.GET);
 }
 
+function get(id) {
+	let path = API_ENDPOINT+"/id/" + encodeURIComponent(id);
+	return Ajax.send(path, Ajax.GET);
+}
+function getByName(name) {
+	let path = API_ENDPOINT+"/name/" + encodeURIComponent(name);
+	return Ajax.send(path, Ajax.GET);
+}
+function getClosestToDate(date=null) {
+	let params = {};
+	if(date instanceof Date) {
+		params.date = date.toISOString();
+	}
+	let path = Ajax.createUrl(API_ENDPOINT, params);
+	return Ajax.send(path, Ajax.GET);
+}
+
 
 export default {
 	create,
 	delete: deleteVenue,
 	update,
 	getAll,
+	get,
+	getByName,
+	getClosestToDate,
 };

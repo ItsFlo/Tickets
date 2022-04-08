@@ -5,17 +5,24 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-		<link type="text/css" rel="stylesheet" href="style/view.css">
-		<script src="script/view.js" async></script>
+		<link type="text/css" rel="stylesheet" href="/style/view.css">
+		<script src="/script/view.js" type="module" async></script>
 	</head>
 	<body>
 		<main>
 			<section id="ordered">
-
+				<h2>In Zubereitung</h2>
+				<div class="container"></div>
 			</section>
-			<section id="ready">
-
+			<section id="prepared">
+				<h2>Abholbereit</h2>
+				<div class="container"></div>
 			</section>
 		</main>
+		<template id="orderTemplate">
+			<div class="order scale-zero">
+				<div class="order-number"></div>
+			</div>
+		</template>
 	</body>
 </html>

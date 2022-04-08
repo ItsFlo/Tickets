@@ -32,10 +32,23 @@ class Venue extends DbTable {
 	}
 
 
-	getByName(name) {
+	getByName(name, caseSensitive=true) {
 		let query = `SELECT * FROM "${TABLE}" WHERE "${COL_NAME}" = ?`;
+		if(!caseSensitive) {
+			query += " COLLATE NOCASE";
+		}
 		let stmt = this.db.prepare(query);
 		return stmt.get(name);
+	}
+	getClosestToDate(date) {
+		let query = `SELECT *,ABS(JULIANDAY("${COL_DATE}"||'T'||"${COL_TIME}") - JULIANDAY(?)) as datediff FROM "${TABLE}" ORDER BY datediff LIMIT 1`;
+		let stmt = this.db.prepare(query);
+		let venue = stmt.get(date.toISOString());
+		if(!venue) {
+			return null;
+		}
+		delete venue.datediff;
+		return venue;
 	}
 
 	getAllWithItemCount(sortOrder, limit) {

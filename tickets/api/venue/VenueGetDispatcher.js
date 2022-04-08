@@ -6,7 +6,7 @@ import Venue from "../../db/Venue.js";
 class VenueGetDispatcher extends HttpDispatcher {
 	request(path, request, response) {
 		if(!path) {
-			sendStatus(response, 400);
+			this.dispatchClosestVenue(request, response);
 			return;
 		}
 		let pathElements = this.splitPath(path);
@@ -36,6 +36,27 @@ class VenueGetDispatcher extends HttpDispatcher {
 		}
 		else {
 			sendStatus(response, 400);
+		}
+	}
+
+
+	dispatchClosestVenue(request, response) {
+		let searchParams = this.getSearchParams(request, false);
+		let date = new Date();
+		if(searchParams.has("date")) {
+			let tempDate = new Date(searchParams.get("date"));
+			if(!isNaN(tempDate.valueOf())) {
+				date = tempDate;
+			}
+		}
+
+		try {
+			let venue = TicketConfig.db.venue.getClosestToDate(date);
+			response.setHeader("Content-Type", "application/json");
+			response.writeHead(200);
+			response.end(JSON.stringify(venue));
+		} catch (err) {
+			sendStatus(response, 500, err.message);
 		}
 	}
 
@@ -110,7 +131,7 @@ class VenueGetDispatcher extends HttpDispatcher {
 		let name = pathElements[0];
 
 		try {
-			let venue = TicketConfig.db.venue.getByName(name);
+			let venue = TicketConfig.db.venue.getByName(name, false);
 			if(!venue) {
 				sendStatus(response, 404);
 				return;
