@@ -1,7 +1,8 @@
-import Api from '../Api.js';
-import Error from '../Error.js';
-import Item from './Item.js';
-import { SORT_DESC, insertSorted } from '../functions.js';
+import Api from "../Api.js";
+import Error from "../Error.js";
+import Item from "./Item.js";
+import VenueCss from "./VenueCss.js";
+import { SORT_DESC, insertSorted } from "../functions.js";
 
 function stopPropagationListener(ev) {
 	ev.stopPropagation();
@@ -241,7 +242,9 @@ function deleteListener(ev) {
 
 
 function venueClickListener(ev) {
-	Item.openEditor(this.dataset.venueId);
+	let venueId = this.dataset.venueId;
+	Item.openEditor(venueId);
+	VenueCss.load(venueId);
 }
 
 function createElement(oVenue=null) {

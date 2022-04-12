@@ -141,6 +141,24 @@ header {
 #itemEditor .venueName {
 	display: none;
 }
+#itemEditor .css-editor {
+	margin-bottom: 1em;
+}
+#itemEditor .css-editor h5 {
+	display: inline-block;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+#itemEditor .css-editor button {
+	display: inline-block;
+	margin-left: 0.5em;
+	cursor: pointer;
+}
+#itemEditor .css-editor textarea {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
 #newItemForm {
 	margin-bottom: 0.8em;
 }

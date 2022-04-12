@@ -2,15 +2,15 @@ import Ajax from "../Ajax.js";
 
 const API_ENDPOINT = "/api/item";
 
-function create(itemCategoryID, name, price) {
-	itemCategoryID = parseInt(itemCategoryID);
+function create(itemCategoryId, name, price) {
+	itemCategoryId = parseInt(itemCategoryId);
 	price = parseFloat(price);
-	if(isNaN(itemCategoryID) || !name || isNaN(price)) {
-		return null;
+	if(isNaN(itemCategoryId) || !name || isNaN(price)) {
+		return Promise.reject("invalid arguments");
 	}
 
 	let requestBody = {
-		itemCategory: itemCategoryID,
+		itemCategory: itemCategoryId,
 		name: name,
 		price: price,
 	};
@@ -22,7 +22,7 @@ function create(itemCategoryID, name, price) {
 function deleteItem(id) {
 	id = parseInt(id);
 	if(isNaN(id)) {
-		return null;
+		return Promise.reject("invalid id");
 	}
 
 	let requestBody = {

@@ -1,6 +1,7 @@
 import { HttpDispatcherGroup, sendStatus } from "../../modules/HttpDispatcher.js";
 import Ajax from "../script/Ajax.js";
 import venueDispatcher from "./VenueDispatcher.js";
+import venueCssDispatcher from "./VenueCssDispatcher.js";
 import itemCategoryDispatcher from "./ItemCategoryDispatcher.js";
 import itemDispatcher from "./ItemDispatcher.js";
 import orderDispatcher from "./OrderDispatcher.js";
@@ -35,6 +36,7 @@ let apiDispatcher = new class extends HttpDispatcherGroup {
 }(false);
 
 apiDispatcher.addDispatcher("venue", venueDispatcher);
+apiDispatcher.addDispatcher("venue/css", venueCssDispatcher);
 apiDispatcher.addDispatcher("item", itemDispatcher);
 apiDispatcher.addDispatcher("itemCategory", itemCategoryDispatcher);
 apiDispatcher.addDispatcher("order", orderDispatcher);

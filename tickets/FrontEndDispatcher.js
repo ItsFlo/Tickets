@@ -1,6 +1,7 @@
 import { HttpDispatcher, HttpDispatcherGroup, HttpDirectoryDispatcher, sendStatus } from "../modules/HttpDispatcher.js";
 import { dirname } from "path";
 import serveFile from "../modules/ServeFile.js";
+import VenueStyleDispatcher from "./VenueStyleDispatcher.js";
 
 const CUR_DIR = dirname(import.meta.url).replace(process.platform === "win32"? "file:///" : "file://", "");
 
@@ -58,6 +59,8 @@ frontEndDispatcher.addDispatcher("script", scriptDispatcher);
 frontEndDispatcher.addDispatcher("style", styleDispatcher);
 frontEndDispatcher.addDispatcher("image", imageDispatcher);
 frontEndDispatcher.addDispatcher("template", templateDispatcher);
+
+frontEndDispatcher.addDispatcher("style/venue", new VenueStyleDispatcher());
 
 
 export default {

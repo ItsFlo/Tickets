@@ -2,14 +2,14 @@ import Ajax from "../Ajax.js";
 
 const API_ENDPOINT = "/api/itemCategory";
 
-function create(venueID, name) {
-	venueID = parseInt(venueID);
-	if(isNaN(venueID) || !name) {
-		return null;
+function create(venueId, name) {
+	venueId = parseInt(venueId);
+	if(isNaN(venueId) || !name) {
+		return Promise.reject("invalid id");
 	}
 
 	let requestBody = {
-		venue: venueID,
+		venue: venueId,
 		name: name,
 	};
 
@@ -20,7 +20,7 @@ function create(venueID, name) {
 function deleteItem(id) {
 	id = parseInt(id);
 	if(isNaN(id)) {
-		return null;
+		return Promise.reject("invalid id");
 	}
 
 	let requestBody = {

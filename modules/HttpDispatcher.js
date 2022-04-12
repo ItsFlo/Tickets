@@ -5,9 +5,9 @@ function sendStatus(response, statusCode, data=undefined) {
 	response.writeHead(statusCode);
 	response.end(data);
 }
-function sendResult(response, data={}) {
+function sendResult(response, data={}, statusCode=200) {
 	response.setHeader("Content-Type", "application/json");
-	response.writeHead(200);
+	response.writeHead(statusCode);
 	response.end(JSON.stringify(data));
 }
 
@@ -53,7 +53,7 @@ class HttpDispatcher {
 		}
 		path = path.replace(/^\/+|\/+$/g, "");
 		if(!path) {
-			return ["/"];
+			return [""];
 		}
 		let pathElements = path.split("/");
 
@@ -70,7 +70,10 @@ class HttpDispatcher {
 
 
 class HttpDispatcherGroup extends HttpDispatcher {
-	dispatchers = {};
+	dispatchers = {
+		dispatcher: null,
+		children: {},
+	};
 	fallbackDispatcher = {
 		request: null,
 		upgrade: null,
@@ -154,60 +157,39 @@ class HttpDispatcherGroup extends HttpDispatcher {
 			};
 		}
 
-		let len = pathElements.length - 1;
-		let dispatcherParent = this.dispatchers;
+		let lastMatch = {
+			dispatcher: this.dispatchers.dispatcher,
+			path: path,
+		};
+
+		let len = pathElements.length;
+		let currentDispatcher = this.dispatchers;
 		for(let ii=0;ii<len;++ii) {
 			let index = pathElements[ii];
 			if(!this.caseSensitive) {
 				index = index.toUpperCase();
 			}
 
-			if(!dispatcherParent.hasOwnProperty(index)) {
-				if(!ii && this.dispatchers.hasOwnProperty("/")) {
-					return {
-						dispatcher: this.dispatchers["/"],
-						path: path,
-					};
-				}
-				return {
-					dispatcher: null,
-					path: path,
-				};
+			if(!currentDispatcher.children.hasOwnProperty(index)) {
+				return lastMatch;
 			}
-			dispatcherParent = dispatcherParent[index];
+			currentDispatcher = currentDispatcher.children[index];
 
-			if(dispatcherParent instanceof HttpDispatcher) {
-				let sNewPath = pathElements[ii+1];
-				for(let kk=ii+2;kk<=len;++kk) {
-					sNewPath += "/"+pathElements[kk];
+			if(currentDispatcher.dispatcher instanceof HttpDispatcher) {
+				let sNewPath = "";
+				if(ii+1 < len) {
+					sNewPath = pathElements[ii+1];
+					for(let kk=ii+2;kk<len;++kk) {
+						sNewPath += "/"+pathElements[kk];
+					}
 				}
-				return {
-					dispatcher: dispatcherParent,
+				lastMatch = {
+					dispatcher: currentDispatcher.dispatcher,
 					path: sNewPath,
 				};
 			}
 		}
-		let lastIndex = pathElements[len];
-		if(!this.caseSensitive) {
-			lastIndex = lastIndex.toUpperCase();
-		}
-		if(dispatcherParent.hasOwnProperty(lastIndex) && dispatcherParent[lastIndex] instanceof HttpDispatcher) {
-			return {
-				dispatcher: dispatcherParent[lastIndex],
-				path: "",
-			};
-		}
-
-		if(this.dispatchers.hasOwnProperty("/")) {
-			return {
-				dispatcher: this.dispatchers["/"],
-				path: path,
-			};
-		}
-		return {
-			dispatcher: null,
-			path: path,
-		};
+		return lastMatch;
 	}
 
 	request(path, request, response, ...args) {
@@ -255,16 +237,22 @@ class HttpDispatcherGroup extends HttpDispatcher {
 			return this;
 		}
 
-		let len = pathElements.length - 1;
-		let dispatcherParent = this.dispatchers;
+		let len = pathElements.length;
+		let currentDispatcher = this.dispatchers;
 		for(let ii=0;ii<len;++ii) {
 			let index = pathElements[ii];
-			if(!dispatcherParent.hasOwnProperty(index)) {
-				dispatcherParent[index] = {};
+			if(!index) {
+				continue;
 			}
-			dispatcherParent = dispatcherParent[index];
+			if(!currentDispatcher.children.hasOwnProperty(index)) {
+				currentDispatcher.children[index] = {
+					dispatcher: null,
+					children: {},
+				};
+			}
+			currentDispatcher = currentDispatcher.children[index];
 		}
-		dispatcherParent[pathElements[len]] = dispatcher;
+		currentDispatcher.dispatcher = dispatcher;
 
 		return this;
 	}

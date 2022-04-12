@@ -4,7 +4,7 @@ const API_ENDPOINT = "/api/venue";
 
 function create(name, date, time) {
 	if(!name || !date || !time) {
-		return null;
+		return Promise.reject("invalid arguments");
 	}
 
 	let requestBody = {
@@ -20,7 +20,7 @@ function create(name, date, time) {
 function deleteVenue(id) {
 	id = parseInt(id);
 	if(isNaN(id)) {
-		return null;
+		return Promise.reject("invalid id");
 	}
 
 	let requestBody = {

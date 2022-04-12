@@ -170,6 +170,16 @@ function load(venueId) {
 	}, err => Error.show(err));
 }
 
+function addVenueCss(venueId) {
+	let cssPath = `/style/venue/${venueId}.css`;
+	let element = document.createElement("link");
+	element.rel = "stylesheet";
+	element.type = "text/css";
+	element.href = cssPath;
+	document.head.appendChild(element);
+	return element;
+}
+
 
 
 function getPathVenueName() {
@@ -247,7 +257,9 @@ function documentLoadListener() {
 	}
 
 	getVenue().then(result => {
-		load(result.json.id);
+		let venueId = result.json.id;
+		addVenueCss(venueId);
+		load(venueId);
 	}, err => Error.show(err));
 }
 addLoadListener(documentLoadListener);
