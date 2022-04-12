@@ -105,6 +105,19 @@ function addLoadListener(listener) {
 
 
 
+function getPathPart(index) {
+	if(typeof index !== "number" || index < 0) {
+		return null;
+	}
+	let pathsParts = window.location.pathname.split("/").filter(tmp => tmp);
+	if(pathsParts.length > index) {
+		return pathsParts[index];
+	}
+	return null;
+}
+
+
+
 export {
 	SORT_ASC,
 	SORT_DESC,
@@ -114,4 +127,6 @@ export {
 	formatTime,
 
 	addLoadListener,
+
+	getPathPart,
 };

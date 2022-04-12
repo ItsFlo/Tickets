@@ -1,4 +1,7 @@
 import { DbTable, COL_ID, addConstants } from "./DbTable.js";
+import Item from "./Item.js";
+import OrderItem from "./OrderItem.js";
+import Order from "./Order.js";
 import Venue from "./Venue.js";
 
 const TABLE = "itemCategory";
@@ -50,6 +53,34 @@ class ItemCategory extends DbTable {
 			[COL_VENUE]: venue,
 			[COL_NAME]: name,
 		});
+	}
+
+
+	getStats(venueId=null) {
+		venueId = parseInt(venueId);
+		let orderQuery = `SELECT * FROM
+				"${OrderItem.TABLE}" tmp_oi
+				LEFT OUTER JOIN "${Order.TABLE}" o ON o."${Order.COL_ID}"=tmp_oi."${OrderItem.COL_ORDER}"
+			WHERE o."${Order.COL_STATUS}"=?
+		`;
+		let params = [Order.STATUS_PICKEDUP];
+		let query = `SELECT
+				ic.*,
+				TOTAL(oi."${OrderItem.COL_COUNT}") AS "count",
+				CASE WHEN "count" == 0 THEN 0 ELSE TOTAL(i."${Item.COL_PRICE}" * oi."${OrderItem.COL_COUNT}") END AS "sum"
+			FROM "${TABLE}" ic
+				LEFT OUTER JOIN "${Item.TABLE}" i ON i."${Item.COL_ITEM_CATEGORY}"=ic."${COL_ID}"
+				LEFT OUTER JOIN (${orderQuery}) AS oi ON oi."${OrderItem.COL_ITEM}"=i."${Item.COL_ID}"
+		`;
+		if(!isNaN(venueId)) {
+			query += ` WHERE ic."${COL_VENUE}"=?`;
+			params.push(venueId);
+		}
+		query += ` GROUP BY ic."${COL_ID}"
+			ORDER BY ic."${COL_NAME}"
+		`;
+		let stmt = this.db.prepare(query);
+		return stmt.all(params);
 	}
 }
 

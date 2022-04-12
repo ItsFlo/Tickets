@@ -5,6 +5,11 @@ function sendStatus(response, statusCode, data=undefined) {
 	response.writeHead(statusCode);
 	response.end(data);
 }
+function sendResult(response, data={}) {
+	response.setHeader("Content-Type", "application/json");
+	response.writeHead(200);
+	response.end(JSON.stringify(data));
+}
 
 
 class HttpDispatcher {
@@ -384,6 +389,7 @@ export {
 	HttpMethodDispatcher,
 	HttpDirectoryDispatcher,
 
-	sendStatus
+	sendStatus,
+	sendResult,
 };
 export default HttpDispatcher;

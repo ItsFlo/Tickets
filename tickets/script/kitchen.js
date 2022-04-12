@@ -1,5 +1,5 @@
 import VenueSelect from "./modules/venueSelect.js";
-import { addLoadListener } from "./functions.js";
+import { addLoadListener, getPathPart } from "./functions.js";
 import CategoryFilter from "./kitchen/CategoryFilter.js";
 import ItemList from "./kitchen/ItemList.js";
 import OpenOrders from "./kitchen/OpenOrders.js";
@@ -86,22 +86,6 @@ CategoryFilter.addListener(filterListener);
 
 
 
-function getInitialVenueName() {
-	let pathsParts = window.location.pathname.split("/");
-	let firstPart = true;
-	for(let part of pathsParts) {
-		if(!part) {
-			continue;
-		}
-		if(firstPart) {
-			firstPart = false;
-			continue;
-		}
-		return part;
-	}
-	return null;
-}
-
 function documentLoadListener() {
 	VenueSelect.addListener(() => {
 		let venueId = VenueSelect.getSelectedID();
@@ -119,7 +103,7 @@ function documentLoadListener() {
 		}
 	});
 
-	let initialVenueName = getInitialVenueName();
+	let initialVenueName = getPathPart(1);
 	VenueSelect.init(initialVenueName);
 }
 addLoadListener(documentLoadListener);

@@ -1,0 +1,49 @@
+main {
+	margin: 0.5em;
+}
+
+#itemLineupTable {
+	margin-bottom: 0.7em;
+	border-collapse: collapse;
+}
+
+#itemLineupTable .item-category td {
+	vertical-align: bottom;
+	border-bottom: 1px solid #ddd;
+}
+#itemLineupTable .item-category h2 {
+	margin-bottom: 0;
+}
+#itemLineupTable .item .name {
+	padding-left: 0.7em;
+}
+#itemLineupTable .item .count {
+	padding-left: 0.7em;
+}
+#itemLineupTable .item .price-sum {
+	padding-left: 0.25em;
+}
+
+
+#itemLineupTable .count,
+#itemLineupTable .price,
+#itemLineupTable .price-sum,
+#itemLineupTable .venue-sum {
+	text-align: right;
+}
+#itemLineupTable .count:after {
+	content: "⨯";
+}
+#itemLineupTable .price:after,
+#itemLineupTable .price-sum:after,
+#itemLineupTable .venue-sum:after {
+	content: " €";
+}
+
+#itemLineupTable tbody:nth-child(1) tr:last-of-type td {
+	padding-bottom: 0.7em;
+}
+#itemLineupTable .venue-sum {
+	padding-top: 0.3em;
+	border-top: 1px solid #555;
+}

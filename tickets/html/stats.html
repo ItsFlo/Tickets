@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Tickets - Statistik</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link type="text/css" rel="stylesheet" href="/style/style.css">
+		<link type="text/css" rel="stylesheet" href="/style/stats.css">
+		<script src="/script/stats.js" type="module" async></script>
+	</head>
+	<body>
+		<div id="venueSelect"></div>
+
+		<main>
+			<div id="summary"></div>
+			<table id="itemLineupTable">
+				<tbody></tbody>
+				<tbody>
+					<tr>
+						<td colspan="3"></td>
+						<td class="venue-sum"></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<template id="categoryRowTemplate">
+				<tr class="item-category">
+					<td>
+						<h2 class="name"></h2>
+					</td>
+					<td></td>
+					<td class="count"></td>
+					<td class="price-sum"></td>
+				</tr>
+			</template>
+			<template id="itemRowTemplate">
+				<tr class="item">
+					<td class="name"></td>
+					<td class="price"></td>
+					<td class="count"></td>
+					<td class="price-sum"></td>
+				</tr>
+			</template>
+		</main>
+	</body>
+</html>

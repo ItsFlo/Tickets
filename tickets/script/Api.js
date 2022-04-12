@@ -3,6 +3,7 @@ import ItemCategory from './api/ItemCategory.js';
 import Item from './api/Item.js';
 import Order from './api/Order.js';
 import OrderItem from './api/OrderItem.js';
+import Stats from './api/stats.js';
 
 export default {
 	venue: Venue,
@@ -10,4 +11,5 @@ export default {
 	item: Item,
 	order: Order,
 	orderItem: OrderItem,
+	stats: Stats,
 };

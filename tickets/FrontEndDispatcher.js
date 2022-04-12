@@ -21,6 +21,10 @@ const staticDispatcher = new class extends HttpDispatcher {
 				serveFile(CUR_DIR+"/html/admin.html", response);
 				return;
 
+			case "STATS":
+				serveFile(CUR_DIR+"/html/stats.html", response);
+				return;
+
 			case "KITCHEN":
 				serveFile(CUR_DIR+"/html/kitchen.html", response);
 				return;

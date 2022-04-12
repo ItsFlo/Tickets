@@ -1,6 +1,7 @@
 import { DbTable, COL_ID, addConstants } from "./DbTable.js";
 import ItemCategory from './ItemCategory.js';
 import Item from './Item.js';
+import Order from './Order.js';
 
 const TABLE = "venue";
 
@@ -77,6 +78,32 @@ class Venue extends DbTable {
 			[COL_DATE]: date,
 			[COL_TIME]: time,
 		});
+	}
+
+
+	getStats(venueId=null) {
+		venueId = parseInt(venueId);
+		let orderQuery = `SELECT * FROM
+				"${Order.TABLE}"
+			WHERE "${Order.COL_STATUS}"=?
+		`;
+		let params = [Order.STATUS_PICKEDUP];
+		let query = `SELECT
+				v.*,
+				COUNT(o."${Order.COL_ID}") AS "orders",
+				TOTAL(o."${Order.COL_PRICE}") AS "sum"
+			FROM "${TABLE}" v
+				LEFT OUTER JOIN (${orderQuery}) AS o ON o."${Order.COL_VENUE}"=v."${COL_ID}"
+		`;
+		if(!isNaN(venueId)) {
+			query += ` WHERE v."${COL_ID}"=?`;
+			params.push(venueId);
+		}
+		query += ` GROUP BY v."${COL_ID}"
+			ORDER BY v."${COL_DATE}", v."${COL_TIME}"
+		`;
+		let stmt = this.db.prepare(query);
+		return stmt.all(params);
 	}
 }
 

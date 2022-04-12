@@ -1,23 +1,7 @@
 import VenueSelect from "./modules/venueSelect.js"
-import { addLoadListener } from "./functions.js";
+import { addLoadListener, getPathPart } from "./functions.js";
 import NewOrder from "./checkout/newOrder.js";
 import OpenOrders from "./checkout/openOrders.js";
-
-function getInitialVenueName() {
-	let pathsParts = window.location.pathname.split("/");
-	let firstPart = true;
-	for(let part of pathsParts) {
-		if(!part) {
-			continue;
-		}
-		if(firstPart) {
-			firstPart = false;
-			continue;
-		}
-		return part;
-	}
-	return null;
-}
 
 function documentLoadListener() {
 	NewOrder.init();
@@ -32,7 +16,7 @@ function documentLoadListener() {
 		}
 	});
 
-	let initialVenueName = getInitialVenueName();
+	let initialVenueName = getPathPart(1);
 	VenueSelect.init(initialVenueName);
 }
 addLoadListener(documentLoadListener);

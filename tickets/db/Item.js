@@ -102,6 +102,41 @@ class Item extends DbTable {
 			[COL_PRICE]: price,
 		});
 	}
+
+
+	getStats(venueId=null, itemCategoryId=null) {
+		venueId = parseInt(venueId);
+		itemCategoryId = parseInt(itemCategoryId);
+		let orderQuery = `SELECT * FROM
+				"${OrderItem.TABLE}" tmp_oi
+				LEFT OUTER JOIN "${Order.TABLE}" o ON o."${Order.COL_ID}"=tmp_oi."${OrderItem.COL_ORDER}"
+			WHERE o."${Order.COL_STATUS}"=?
+		`;
+		let params = [Order.STATUS_PICKEDUP];
+		let query = `SELECT
+				i.*,
+				TOTAL(oi."${OrderItem.COL_COUNT}") AS "count",
+				CASE WHEN "count" == 0 THEN 0 ELSE TOTAL(i."${COL_PRICE}" * oi."${OrderItem.COL_COUNT}") END AS "sum"
+			FROM "${TABLE}" i
+				LEFT OUTER JOIN (${orderQuery}) AS oi ON oi."${OrderItem.COL_ITEM}"=i."${COL_ID}"
+		`;
+		if(!isNaN(venueId) || !isNaN(itemCategoryId)) {
+			query += ` LEFT OUTER JOIN "${ItemCategory.TABLE}" ic ON ic."${ItemCategory.COL_ID}"=i."${COL_ITEM_CATEGORY}"`;
+		}
+		if(!isNaN(venueId)) {
+			query += ` WHERE ic."${ItemCategory.COL_VENUE}"=?`;
+			params.push(venueId);
+		}
+		else if(!isNaN(itemCategoryId)) {
+			query += ` WHERE ic."${ItemCategory.COL_ID}"=?`;
+			params.push(itemCategoryId);
+		}
+		query += ` GROUP BY i."${COL_ID}"
+			ORDER BY i."${COL_NAME}"
+		`;
+		let stmt = this.db.prepare(query);
+		return stmt.all(params);
+	}
 }
 
 
