@@ -126,3 +126,42 @@
 	background-color: #fafafa;
 	box-shadow: 0 0 3px #aaa;
 }
+
+
+
+
+/* dark mode */
+
+.dark-mode .order {
+	background-color: #282b30;
+	border-color: #36393e;
+}
+.dark-mode .order.prepared:before,
+.dark-mode .order.canceled:after {
+	color: #b9b3b5;
+}
+.dark-mode .order .items .item {
+	background-color: #40444a;
+}
+.dark-mode .order .price {
+	border-color: var(--white);
+}
+
+.dark-mode .order .cancel-button:before {
+	color: #911111;
+}
+.dark-mode .order .cancel-button:hover {
+	background-color: #2f2f2f;
+	box-shadow: 0 0 3px #777;
+}
+
+.dark-mode .order .order-number {
+	background-color: hsla(30, 80%, 50%, 10%);
+	border-color: hsla(30, 80%, 50%, 60%);
+	color: hsl(30, 80%, 50%);
+}
+.dark-mode .order.prepared .order-number {
+	background-color: hsla(100, 60%, 60%, 10%);
+	border-color: hsla(100, 60%, 60%, 60%);
+	color: hsl(100, 50%, 60%);
+}

@@ -153,3 +153,29 @@
 		margin-left: 0.5em;
 	}
 }
+
+
+
+
+/* dark mode */
+
+.dark-mode #venueSelect.edit {
+	background-color: var(--black);
+}
+.dark-mode #selectedVenue .date,
+.dark-mode #selectedVenue .time {
+	color: #777;
+}
+.dark-mode #selectedVenue .edit-button {
+	border-color: var(--white);
+}
+.dark-mode #venueSelect .venue-options:empty:before {
+	color: #999;
+}
+.dark-mode #venueSelect .venue-options option:hover {
+	background-color: #282b30;
+}
+.dark-mode #venueSelect .venue-options option .date,
+.dark-mode #venueSelect .venue-options option .time {
+	color: #888;
+}

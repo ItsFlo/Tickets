@@ -47,3 +47,15 @@ main {
 	padding-top: 0.3em;
 	border-top: 1px solid #555;
 }
+
+
+
+
+/* dark mode */
+
+.dark-mode #itemLineupTable .item-category td {
+	border-color: #545964;
+}
+.dark-mode #itemLineupTable .venue-sum {
+	border-color: #aaa;
+}

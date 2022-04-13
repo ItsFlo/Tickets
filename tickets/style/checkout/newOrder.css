@@ -140,3 +140,35 @@
 	text-align: center;
 	color: hsl(0, 0%, 25%);
 }
+
+
+
+/* dark mode */
+.dark-mode #newOrder {
+	border-color: #545964;
+}
+.dark-mode #newOrder > h2 {
+	border-color: #424549;
+}
+
+.dark-mode #newOrder .items .item .price {
+	color: #777;
+}
+.dark-mode #newOrder .items .item .dots {
+	border-color: #606060;
+}
+
+.dark-mode #newOrder .items .item .count .button.plus {
+	border-left-color: #323537;
+}
+.dark-mode #newOrder .items .item .count .button.minus {
+	border-right-color: #323537;
+}
+
+.dark-mode #newOrder > .order-sum .sum {
+	border-color: #aaa;
+}
+
+.dark-mode #lastOrderNumber .order-number {
+	color: hsl(0, 0%, 75%);
+}

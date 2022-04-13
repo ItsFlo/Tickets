@@ -64,3 +64,11 @@
 		margin: 0;
 	}
 }
+
+
+
+
+/* dark mode */
+.dark-mode #orderContainer > .divider {
+	border-color: #545964;
+}
