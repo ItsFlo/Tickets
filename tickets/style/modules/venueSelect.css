@@ -100,35 +100,35 @@
 	text-align: center;
 	color: #aaa;
 }
-#venueSelect .venue-options option {
+#venueSelect .venue-options .venue-option {
 	flex-shrink: 0;
 	padding: 0.5em;
 	text-align: center;
 	cursor: pointer;
 }
-#venueSelect .venue-options option.selected .name {
+#venueSelect .venue-options .venue-option.selected .name {
 	position: relative;
 }
-#venueSelect .venue-options option.selected .name:before {
+#venueSelect .venue-options .venue-option.selected .name:before {
 	content: ">";
 	left: -0.8em;
 	margin-right: 0.2em;
 }
-#venueSelect .venue-options option:hover {
+#venueSelect .venue-options .venue-option:hover {
 	background-color: #fafafa;
 }
-#venueSelect .venue-options option .name {
+#venueSelect .venue-options .venue-option .name {
 	font-size: 150%;
 	font-weight: bold;
 }
-#venueSelect .venue-options option .date,
-#venueSelect .venue-options option .time {
+#venueSelect .venue-options .venue-option .date,
+#venueSelect .venue-options .venue-option .time {
 	position: relative;
 	top: -0.4em;
 	font-size: 0.7em;
 	color: #aaa;
 }
-#venueSelect .venue-options option .time {
+#venueSelect .venue-options .venue-option .time {
 	margin-left: 0.8em;
 }
 
@@ -143,13 +143,13 @@
 	#venueSelect .venue-options:empty:before {
 		text-align: left;
 	}
-	#venueSelect .venue-options option {
+	#venueSelect .venue-options .venue-option {
 		text-align: left;
 	}
-	#venueSelect .venue-options option.selected .name:before {
+	#venueSelect .venue-options .venue-option.selected .name:before {
 		position: absolute;
 	}
-	#venueSelect .venue-options option .date {
+	#venueSelect .venue-options .venue-option .date {
 		margin-left: 0.5em;
 	}
 }
@@ -172,10 +172,10 @@
 .dark-mode #venueSelect .venue-options:empty:before {
 	color: #999;
 }
-.dark-mode #venueSelect .venue-options option:hover {
+.dark-mode #venueSelect .venue-options .venue-option:hover {
 	background-color: #282b30;
 }
-.dark-mode #venueSelect .venue-options option .date,
-.dark-mode #venueSelect .venue-options option .time {
+.dark-mode #venueSelect .venue-options .venue-option .date,
+.dark-mode #venueSelect .venue-options .venue-option .time {
 	color: #888;
 }

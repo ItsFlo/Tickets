@@ -81,7 +81,7 @@ function optionClickListener() {
 
 
 function createOption(oVenue) {
-	let oOption = document.createElement("option");
+	let oOption = document.createElement("div");
 	oOption.classList.add("venue-option")
 	oOption.addEventListener("click", optionClickListener);
 
