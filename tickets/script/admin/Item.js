@@ -75,7 +75,8 @@ function openEditor(iVenueID) {
 	let oEditor = document.getElementById("itemEditor");
 
 	if(iVenueID != oEditor.dataset.venueId) {
-		oEditor.querySelector(".venueName").innerHTML = oVenue.querySelector(".name:not(input)").textContent;
+		oEditor.querySelector(".venueName .name").textContent = oVenue.querySelector(".name:not(input)").textContent.trim();
+		oEditor.querySelector(".venueName .id").textContent = oVenue.dataset.venueId;
 
 		oEditor.dataset.venueId = iVenueID;
 		if(oVenue.nextElementSibling) {
@@ -123,7 +124,8 @@ function updateVenueName() {
 	}
 	let oVenue = Venue.getElement(iVenueID);
 	if(oVenue) {
-		oItemEditor.querySelector(".venueName").innerHTML = oVenue.querySelector(".name:not(input)").textContent.trim();
+		oItemEditor.querySelector(".venueName .name").textContent = oVenue.querySelector(".name:not(input)").textContent.trim();
+		oItemEditor.querySelector(".venueName .id").textContent = oVenue.dataset.venueId;
 	}
 }
 function updateItemCount() {
@@ -184,10 +186,10 @@ function saveEditListener(ev) {
 	if(bChanges) {
 		Api.item.update(iID, sNewName, fNewPrice).then(() => {
 			if(sNewName) {
-				oOldName.innerHTML = sNewName;
+				oOldName.textContent = sNewName;
 			}
 			if(fNewPrice !== null) {
-				oOldPrice.innerHTML = fNewPrice.toFixed(2) + " €";
+				oOldPrice.textContent = fNewPrice.toFixed(2) + " €";
 			}
 			abortEditItem(oItem);
 			if(bReInsert) {
@@ -365,10 +367,10 @@ function createElement(oItem=null) {
 	if(oItem) {
 		oElement.dataset.itemId = oItem.id;
 		oElement.dataset.itemCategoryId = oItem.itemCategory;
-		oNameCell.innerHTML = oItem.name;
+		oNameCell.textContent = oItem.name;
 		let fPrice = parseFloat(oItem.price);
 		if(!isNaN(fPrice)) {
-			oPriceCell.innerHTML = parseFloat(fPrice).toFixed(2)+" €";
+			oPriceCell.textContent = parseFloat(fPrice).toFixed(2)+" €";
 		}
 	}
 
@@ -417,12 +419,12 @@ function createItemTable() {
 
 	let oName = document.createElement("th");
 	oName.classList.add("name");
-	oName.innerHTML = "Name";
+	oName.textContent = "Name";
 	oRow.appendChild(oName);
 
 	let oPrice = document.createElement("th");
 	oPrice.classList.add("price");
-	oPrice.innerHTML = "Preis";
+	oPrice.textContent = "Preis";
 	oRow.appendChild(oPrice);
 
 	return oTable;

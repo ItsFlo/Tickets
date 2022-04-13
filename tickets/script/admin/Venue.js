@@ -80,14 +80,14 @@ function saveEditListener(ev) {
 	if(bChanges) {
 		Api.venue.update(iID, sNewName, sNewDate, sNewTime).then(() => {
 			if(sNewName) {
-				oOldName.innerHTML = sNewName;
+				oOldName.textContent = sNewName;
 				Item.updateVenueName();
 			}
 			if(sNewDate) {
-				oOldDate.innerHTML = sNewDate;
+				oOldDate.textContent = sNewDate;
 			}
 			if(sNewTime) {
-				oOldTime.innerHTML = sNewTime;
+				oOldTime.textContent = sNewTime;
 			}
 			if(sNewDate || sNewTime) {
 				oVenue.dataset.dateTime = oOldDate.textContent.trim()+"T"+oOldTime.textContent.trim();
@@ -274,6 +274,10 @@ function createElement(oVenue=null) {
 	oName.classList.add("name");
 	oElement.appendChild(oName);
 
+	let idSpan = document.createElement("span");
+	idSpan.classList.add("id");
+	oElement.appendChild(idSpan);
+
 	let oStats = document.createElement("div");
 	oStats.classList.add("stats");
 	oElement.appendChild(oStats);
@@ -296,10 +300,11 @@ function createElement(oVenue=null) {
 	if(oVenue) {
 		oElement.dataset.venueId = oVenue.id;
 		oElement.dataset.dateTime = oVenue.date+"T"+oVenue.time;
-		oName.innerHTML = oVenue.name;
-		oDate.innerHTML = oVenue.date;
-		oTime.innerHTML = oVenue.time;
-		oItemCount.innerHTML = oVenue.itemCount;
+		oName.textContent = oVenue.name;
+		idSpan.textContent = oVenue.id;
+		oDate.textContent = oVenue.date;
+		oTime.textContent = oVenue.time;
+		oItemCount.textContent = oVenue.itemCount;
 	}
 
 	return oElement;
@@ -325,7 +330,7 @@ function setItemCount(iVenueID, iItemCount) {
 	let oVenue = getElement(iVenueID);
 	if(oVenue) {
 		let oItemCount = oVenue.querySelector(".itemCount");
-		oItemCount.innerHTML = iItemCount;
+		oItemCount.textContent = iItemCount;
 	}
 }
 function updateItemCount(iVenueID, iAmount) {
@@ -338,7 +343,7 @@ function updateItemCount(iVenueID, iAmount) {
 			if(iItemCount < 0) {
 				iItemCount = 0;
 			}
-			oItemCount.innerHTML = iItemCount;
+			oItemCount.textContent = iItemCount;
 		}
 	}
 }

@@ -50,6 +50,20 @@ header {
 
 
 
+.id {
+	margin-left: 0.5em;
+	color: #999;
+	font-weight: normal;
+	font-size: 90%;
+}
+.id:before {
+	content: "(id: ";
+}
+.id:after {
+	content: ")";
+}
+
+
 .venue {
 	display: flex;
 	flex-direction: row;
@@ -81,9 +95,11 @@ header {
 	opacity: 1;
 }
 .venue .name {
+	margin-left: 0.8em;
+}
+.venue .id {
 	flex-grow: 1;
 	padding-right: 0.5em;
-	margin-left: 0.8em;
 }
 .venue .date {
 	margin-right: 0.5em;
@@ -315,6 +331,10 @@ header {
 
 
 /* dark mode */
+
+.dark-mode .id {
+	color: #777;
+}
 
 .dark-mode .venue {
 	background-color: #23262A;

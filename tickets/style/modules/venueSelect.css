@@ -78,7 +78,7 @@
 	transform: rotate(-45deg);
 }
 #venueSelect.edit #selectedVenue .edit-button:after {
-	transform: translateY(-1px) rotate(45deg);
+	transform: rotate(45deg);
 }
 
 

@@ -98,13 +98,17 @@ function createElement(oItemCategory=null) {
 	oDeleteButton.addEventListener("click", deleteListener);
 	oHeader.appendChild(oDeleteButton);
 
-
+	let idSpan = document.createElement("span");
+	idSpan.classList.add("id");
+	oHeader.appendChild(idSpan);
+	
+	
 	let oItemTable = Item.createItemTable();
 	oElement.appendChild(oItemTable);
-
+	
 	if(oItemCategory) {
 		oElement.dataset.itemCategoryId = oItemCategory.id;
-		oName.title = "ID: " + oItemCategory.id;
+		idSpan.textContent = oItemCategory.id;
 		oName.textContent = oItemCategory.name;
 	}
 
@@ -218,7 +222,7 @@ function saveEditListener(ev) {
 	if(bChanges) {
 		Api.itemCategory.update(iID, sNewName).then(() => {
 			if(sNewName) {
-				oOldName.innerHTML = sNewName;
+				oOldName.textContent = sNewName;
 			}
 			abortEditItemCategory(oItemCategory);
 			updateSelectOption({
