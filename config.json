@@ -1,10 +1,12 @@
 {
 	"server": {
 		"https": {
+			"enable": true,
 			"port": 443
 		},
 		"http": {
 			"enable": true,
+			"redirectToHttps": true,
 			"port": 80
 		}
 	},
