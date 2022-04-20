@@ -1,0 +1,74 @@
+#darkModeButton {
+	display: inline-flex;
+	flex-direction: column;
+}
+#darkModeButton.vertical {
+	flex-direction: column;
+}
+#darkModeButton.horizontal {
+	flex-direction: row;
+	vertical-align: middle;
+}
+
+#darkModeButton span {
+	display: inline-block;
+	width: 1.2em;
+	height: 1.2em;
+	border: solid 1px #ccc;
+	border-bottom-width: 0;
+	cursor: pointer;
+	
+	background-size: 80%;
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+}
+#darkModeButton.horizontal span {
+	border-bottom-width: 1px;
+	border-right-width: 0;
+}
+#darkModeButton:not(.horizontal) span:first-of-type {
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+}
+#darkModeButton:not(.horizontal) span:last-of-type {
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
+	border-bottom-width: 1px;
+}
+#darkModeButton.horizontal span:first-of-type {
+	border-top-left-radius: 3px;
+	border-bottom-left-radius: 3px;
+}
+#darkModeButton.horizontal span:last-of-type {
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+	border-right-width: 1px;
+}
+
+#darkModeButton span:hover {
+	box-shadow: 0 0 3px #555;
+}
+
+
+html:not(.dark-mode).explicit-theme #darkModeButton span.light,
+.dark-mode.explicit-theme #darkModeButton span.dark {
+	box-shadow: inset 0 0 0.25em #888;
+}
+html:not(.dark-mode).explicit-theme #darkModeButton span.light:hover,
+.dark-mode.explicit-theme #darkModeButton span.dark:hover {
+	box-shadow: inset 0 0 0.25em #888, 0 0 3px #555;
+}
+
+#darkModeButton span.light {
+	background-image: url("/image/sun.svg");
+}
+#darkModeButton span.dark {
+	background-image: url("/image/moon.svg");
+}
+
+
+
+.dark-mode #darkModeButton span {
+	border-color: #bbb;
+	filter: invert(1);
+}

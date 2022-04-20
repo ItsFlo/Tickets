@@ -1,0 +1,9 @@
+header {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+#darkModeButton {
+	margin-top: 0.4em;
+	margin-right: 0.6em;
+}

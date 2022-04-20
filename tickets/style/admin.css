@@ -8,6 +8,9 @@ body {
 #siteLinks a {
 	margin-right: 0.6em;
 }
+#darkModeButton {
+	margin-right: 0.6em;
+}
 
 header h4 {
 	margin: 0;
