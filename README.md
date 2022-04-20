@@ -36,6 +36,7 @@ node server.js
 
 Die Adminseite ist dann über [/admin](https://localhost/admin) erreichbar.
 
+# Seiten
 Verfügbare Seiten:
 * [/](https://localhost): Abholanzeige für Gäste
 * [/menu](https://localhost/menu): Menü für die Gäste
@@ -48,3 +49,11 @@ Unterseiten, auf denen eine Veranstaltung ausgewählt werden muss, kann auch der
 (z.B. https://localhost/checkout/event)\
 Alternativ kann die Veranstaltungs-ID auch als GET-Argument `venue` übergeben werden.
 (z.B. https://localhost/checkout?venue=1)
+
+## Abholanzeige
+Die Hauptseite ist nicht dafür gedacht mit Maus & Tastatur mit ihr zu interagieren.
+Die Einstellungen hierfür werden also schon in der URL als GET-Parameter mit übergeben:
+* `include`: Bestellungen werden nur angezeigt, wenn mindestens ein Item zu einer hier angegebenen Kategorie gehört.
+* `exclude`: Bestellungen werden nur angezeigt, wenn mindestens ein Item zu einer hier **nicht** angegebenen Kategorie gehört.
+
+Für `include` & `exclude` können jeweils mehrere IDs übergeben werden, indem das Argument mehrmals angegeben wird. (z.B. https://localhost?exclude=1&exclude=2)

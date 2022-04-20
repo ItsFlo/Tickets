@@ -1,4 +1,4 @@
-import { addLoadListener } from "./functions.js";
+import { addLoadListener, getPathPart } from "./functions.js";
 import Api from "./Api.js";
 import Error from "./Error.js";
 
@@ -182,23 +182,13 @@ function addVenueCss(venueId) {
 
 
 
-function getPathVenueName() {
-	let pathsParts = window.location.pathname.split("/");
-	for(let part of pathsParts) {
-		if(!part) {
-			continue;
-		}
-		return part;
-	}
-	return null;
-}
 function getVenue() {
 	let searchParams = (new URL(window.location)).searchParams;
 	if(searchParams.get("venue")) {
 		return Api.venue.get(searchParams.get("venue"));
 	}
 
-	let venueName = getPathVenueName();
+	let venueName = getPathPart(0);
 	if(venueName) {
 		return Api.venue.getByName(venueName);
 	}
