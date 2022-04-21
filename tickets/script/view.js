@@ -2,7 +2,7 @@ import { addLoadListener, getPathPart } from "./functions.js";
 import Api from "./Api.js";
 import Error from "./Error.js";
 
-const ORDER_SHOW_TIME = 4000;
+const ORDER_SHOW_TIME = 5000;
 
 
 let eventSource = null;
