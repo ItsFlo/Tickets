@@ -64,7 +64,7 @@ function handlePreparedQueue() {
 	let order, element;
 	do {
 		order = preparedQueue.shift();
-		element = getOrderElement(order.id);
+		element = getOrderedOrderElement(order.id);
 	} while(!element && preparedQueue.length);
 	if(!element) {
 		preparedQueueWaiting = false;
@@ -89,6 +89,7 @@ function handlePreparedQueue() {
 			let newPosition = element.getBoundingClientRect();
 			elementClone.style.left = newPosition.x + "px";
 			elementClone.style.top = newPosition.y + "px";
+			elementClone.classList.add("prepared");
 			elementClone.classList.remove("fullscreen");
 			element.classList.remove("zero-width");
 		}
@@ -137,6 +138,12 @@ function insertOrderElement(orderElement) {
 }
 function getOrderElement(id) {
 	return document.querySelector(".container .order[data-id=\"" + id + "\"]");
+}
+function getOrderedOrderElement(id) {
+	return document.querySelector("#ordered .container .order[data-id=\"" + id + "\"]");
+}
+function getPreparedOrderElement(id) {
+	return document.querySelector("#prepared .container .order[data-id=\"" + id + "\"]");
 }
 function addOrder(order) {
 	if(!orderMatchesCategories(order)) {

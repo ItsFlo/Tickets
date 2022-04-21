@@ -41,7 +41,9 @@ function saveListener() {
 		Api.venueCss.update(venueId, css).catch(Error.show);
 	}
 	else {
-		Api.venueCss.create(venueId, css).catch(Error.show);
+		Api.venueCss.create(venueId, css).then(() => {
+			cssEditor.dataset.cssExists = true;
+		}).catch(Error.show);
 	}
 }
 
