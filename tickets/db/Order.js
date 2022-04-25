@@ -22,6 +22,16 @@ const COLUMNS = [
 	COL_DONE_TIMESTAMP,
 	COL_PICKUP_TIMESTAMP,
 ];
+const SELECT_LIST = `
+	"${COL_ID}",
+	"${COL_VENUE}",
+	"${COL_ORDER_NUMBER}",
+	"${COL_PRICE}",
+	"${COL_STATUS}",
+	(strftime('%s', "${COL_ORDER_TIMESTAMP}")-0) AS "${COL_ORDER_TIMESTAMP}",
+	(strftime('%s', "${COL_DONE_TIMESTAMP}")-0) AS "${COL_DONE_TIMESTAMP}",
+	(strftime('%s', "${COL_PICKUP_TIMESTAMP}")-0) AS "${COL_PICKUP_TIMESTAMP}"
+`;	//strftime()-0 to convert to integer
 
 const STATUS_OPEN = "OPEN";
 const STATUS_PREPARED = "PREPARED";
@@ -58,9 +68,29 @@ class Order extends DbTable {
 		stmt.run();
 	}
 
+	getAllWhere(where, whereValues, sortOrder, limit) {
+		let values = [];
+		let query = `SELECT ${SELECT_LIST} FROM "${this.constructor.TABLE}"`;
+
+		//WHERE
+		if(where) {
+			query += " WHERE " + where;
+			values = whereValues;
+		}
+
+		//ORDER BY
+		query += this.getOrderClause(sortOrder);
+
+		//LIMIT
+		query += this.getLimitClause(limit);
+
+		let stmt = this.db.prepare(query);
+		return stmt.all(values);
+	}
+
 
 	getByOrderNumber(venueId, orderNumber) {
-		let query = `SELECT * FROM "${TABLE}" WHERE "${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
+		let query = `SELECT ${SELECT_LIST} FROM "${TABLE}" WHERE "${COL_VENUE}" = ? AND "${COL_ORDER_NUMBER}" = ?`;
 		let stmt = this.db.prepare(query);
 		return stmt.get(venueId, orderNumber);
 	}

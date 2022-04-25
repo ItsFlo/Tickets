@@ -71,7 +71,7 @@ function updateOrderData(element, order) {
 
 	element.querySelector(".order-number").textContent = order.orderNumber;
 	if(order.orderTimestamp) {
-		let tempDate = new Date(order.orderTimestamp);
+		let tempDate = new Date(order.orderTimestamp*1000);
 		element.dataset.orderTimestamp = tempDate.getTime();
 		element.querySelector(".date").textContent = formatDate(tempDate);
 		element.querySelector(".time").textContent = formatTime(tempDate);

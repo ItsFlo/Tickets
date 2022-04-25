@@ -64,28 +64,19 @@ function insertSorted(oParent, oElement, sSortOrder, sSortElementSelector=null, 
 	}
 }
 
+function datePadNumber(value) {
+	return value < 10 ? ("0"+value) : value.toString();
+}
 function formatDate(date) {
 	let dateString = date.getFullYear() + "-";
-	if(date.getMonth() < 9) {
-		dateString += "0";
-	}
-	dateString += (date.getMonth()+1) + "-";
-	if(date.getDate() < 10) {
-		dateString += "0";
-	}
-	dateString += date.getDate();
+	dateString += datePadNumber(date.getMonth()+1) + "-";
+	dateString += datePadNumber(date.getDate());
 	return dateString;
 }
 function formatTime(date) {
 	let sTimeString = date.getHours() + ":";
-	if(date.getMinutes() < 10) {
-		sTimeString += "0";
-	}
-	sTimeString += date.getMinutes() + ":";
-	if(date.getSeconds() < 10) {
-		sTimeString += "0";
-	}
-	sTimeString += date.getSeconds();
+	sTimeString += datePadNumber(date.getMinutes()) + ":";
+	sTimeString += datePadNumber(date.getSeconds());
 	return sTimeString;
 }
 
