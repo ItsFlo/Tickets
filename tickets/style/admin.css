@@ -160,6 +160,9 @@ header {
 #itemEditor .venueName {
 	display: none;
 }
+#clearOrdersButton {
+	margin-bottom: 1em;
+}
 #itemEditor .css-editor {
 	margin-bottom: 1em;
 }

@@ -1,8 +1,11 @@
 import Api from "../Api.js";
 import Error from "../Error.js";
 import Venue from "./Venue.js";
+import VenueEditor from "./VenueEditor.js";
 import Item from "./Item.js";
 import { SORT_ASC, insertSorted } from "../functions.js";
+
+let iCurrentVenueId = null;
 
 function clearNewItemCategoryForm() {
 	let oNameInput = document.getElementById("newItemCategoryName");
@@ -13,33 +16,29 @@ function clearNewItemCategoryForm() {
 
 function newItemCategoryListener(ev) {
 	ev.preventDefault();
-	let oEditor = document.getElementById("itemEditor");
-	if(!oEditor.classList.contains("visible")) {
+	if(!VenueEditor.isOpen()) {
 		return;
 	}
 
-	let iVenueID = parseInt(oEditor.dataset.venueId);
-	if(isNaN(iVenueID)) {
+	if(iCurrentVenueId === null) {
 		return;
 	}
-	let sName = document.getElementById("newItemCategoryName").value;
+	let oName = document.getElementById("newItemCategoryName");
+	let sName = oName.value.trim();
 
-	Api.itemCategory.create(iVenueID, sName).then((oResponse) => {
-		let iID = oResponse.json.id;
+	Api.itemCategory.create(iCurrentVenueId, sName).then(oResponse => {
+		let iId = oResponse.json.id;
 		let oItemCategory = {
-			id: iID,
+			id: iId,
 			name: sName,
 		};
 		let oItemCategoryElement = createElement(oItemCategory);
 		insertElement(oItemCategoryElement);
 		addToSelect(oItemCategory);
 
-		let oName = document.getElementById("newItemCategoryName");
 		oName.focus();
 		oName.select();
-	}).catch((error) => {
-		Error.show(error);
-	});
+	}, Error.show);
 }
 
 
@@ -53,23 +52,19 @@ function editListener() {
 
 function deleteListener() {
 	let oItemCategory = this.closest(".item-category");
-	let iID = parseInt(oItemCategory.dataset.itemCategoryId);
+	let iId = parseInt(oItemCategory.dataset.itemCategoryId);
 	let sName = oItemCategory.querySelector(".category-name").textContent.trim();
 
 	if(window.confirm(`Kategorie "${sName}" wirklich löschen?`)) {
-		Api.itemCategory.delete(iID).then(() => {
+		Api.itemCategory.delete(iId).then(() => {
 			let aItems = oItemCategory.querySelectorAll(".item-table tbody > .item");
 			let iItemCount = aItems.length;
 
 			oItemCategory.remove();
-			removeFromSelect(iID);
+			removeFromSelect(iId);
 
-			let oEditor = document.getElementById("itemEditor");
-			let iVenueID = parseInt(oEditor.dataset.venueId);
-			Venue.updateItemCount(iVenueID, -iItemCount);
-		}).catch((error) => {
-			Error.show(error);
-		});
+			Venue.updateItemCount(iCurrentVenueId, -iItemCount);
+		}, Error.show);
 	}
 }
 
@@ -101,11 +96,11 @@ function createElement(oItemCategory=null) {
 	let idSpan = document.createElement("span");
 	idSpan.classList.add("id");
 	oHeader.appendChild(idSpan);
-	
-	
+
+
 	let oItemTable = Item.createItemTable();
 	oElement.appendChild(oItemTable);
-	
+
 	if(oItemCategory) {
 		oElement.dataset.itemCategoryId = oItemCategory.id;
 		idSpan.textContent = oItemCategory.id;
@@ -173,7 +168,7 @@ function updateSelectOption(oItemCategory) {
 }
 function removeFromSelect(iItemCategoryID) {
 	let oSelect = document.getElementById("newItemCategory");
-	
+
 	let oOption = oSelect.querySelector("option[value=\""+iItemCategoryID+"\"");
 	if(oOption) {
 		if(oSelect.value == iItemCategoryID) {
@@ -199,14 +194,13 @@ function clearSelect() {
 function saveEditListener(ev) {
 	ev.preventDefault();
 	let oItemCategory = this.closest(".item-category");
-	let iID = parseInt(oItemCategory.dataset.itemCategoryId);
-	if(isNaN(iID)) {
+	let iId = parseInt(oItemCategory.dataset.itemCategoryId);
+	if(isNaN(iId)) {
 		abortEditItemCategory(oItemCategory);
 		return;
 	}
 
 	let sNewName = oItemCategory.querySelector(".header .category-name.edit").value.trim();
-
 	let oOldName = oItemCategory.querySelector(".header .category-name:not(.edit)");
 
 	let bChanges = false;
@@ -220,22 +214,22 @@ function saveEditListener(ev) {
 	}
 
 	if(bChanges) {
-		Api.itemCategory.update(iID, sNewName).then(() => {
+		Api.itemCategory.update(iId, sNewName).then(() => {
 			if(sNewName) {
 				oOldName.textContent = sNewName;
 			}
 			abortEditItemCategory(oItemCategory);
 			updateSelectOption({
-				id: iID,
+				id: iId,
 				name: sNewName,
 			});
 			if(bReInsert) {
 				insertElement(oItemCategory);
 			}
-		}).catch((error) => {
-			Error.show(error);
+		}).catch(err => {
+			Error.show(err);
 			abortEditItemCategory(oItemCategory);
-		})
+		});
 	}
 	else {
 		abortEditItemCategory(oItemCategory);
@@ -262,6 +256,8 @@ function editItemCategory(oItemCategory) {
 	let oHeader = oItemCategory.querySelector(".header");
 	let iItemCategoryID = parseInt(oItemCategory.dataset.itemCategoryId);
 	let sFormID = "editItemCategoryForm_" + iItemCategoryID;
+
+	let oCurrentName = oHeader.querySelector(".category-name");
 
 
 	let oDoneButton = document.createElement("button");
@@ -294,12 +290,12 @@ function editItemCategory(oItemCategory) {
 	oNameInput.setAttribute("placeholder", "Name");
 	oNameInput.setAttribute("form", sFormID);
 	oNameInput.addEventListener("keyup", editEscapeKeyListener);
-	oNameInput.value = oHeader.querySelector(".category-name").textContent.trim();
+	oNameInput.value = oCurrentName.textContent.trim();
 
-	oHeader.appendChild(oForm);
-	oHeader.appendChild(oNameInput);
-	oHeader.appendChild(oDoneButton);
-	oHeader.appendChild(oClearButton);
+	oHeader.insertBefore(oForm, oCurrentName);
+	oHeader.insertBefore(oNameInput, oCurrentName);
+	oHeader.insertBefore(oDoneButton, oCurrentName);
+	oHeader.insertBefore(oClearButton, oCurrentName);
 	oItemCategory.classList.add("edit");
 
 	oNameInput.focus();
@@ -327,10 +323,15 @@ function abortEditItemCategory(oItemCategory) {
 
 
 
-function loadItemCategories(iVenueID) {
-	Item.clearEditor();
+function loadItemCategories(iVenueId) {
+	Item.clear();
+	iVenueId = parseInt(iVenueId);
+	if(isNaN(iVenueId)) {
+		return;
+	}
+	iCurrentVenueId = iVenueId;
 
-	return Api.itemCategory.getAll(iVenueID).then((oResponse) => {
+	return Api.itemCategory.getAll(iVenueId).then(oResponse => {
 		let oItemContainer = document.getElementById("itemContainer");
 
 		let aItemCategories = oResponse.json;
@@ -339,9 +340,7 @@ function loadItemCategories(iVenueID) {
 			oItemContainer.appendChild(oItemCategoryElement);
 			addToSelect(oItemCategory);
 		}
-	}).catch((error) => {
-		Error.show(error);
-	});
+	}, Error.show);
 }
 function clearItemCategory(oItemCategoryElement) {
 	let oBody = oItemCategoryElement.querySelector(".item-table > tbody");
@@ -363,8 +362,6 @@ export default {
 
 	clearNewItemCategoryForm,
 
-	createElement,
-	insertElement,
 	getElement,
 	getAllElements,
 

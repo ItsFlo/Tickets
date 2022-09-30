@@ -1,8 +1,11 @@
 import Api from '../Api.js';
 import Error from '../Error.js';
 import Venue from './Venue.js';
+import VenueEditor from './VenueEditor.js';
 import ItemCategory from './ItemCategory.js';
 import { SORT_ASC, insertSorted } from '../functions.js';
+
+let iCurrentVenueId = null;
 
 function clearNewItemForm() {
 	ItemCategory.clearSelect();
@@ -17,7 +20,7 @@ function clearNewItemForm() {
 
 function newItemListener(ev) {
 	ev.preventDefault();
-	if(!isEditorOpen()) {
+	if(!VenueEditor.isOpen()) {
 		return;
 	}
 
@@ -40,9 +43,7 @@ function newItemListener(ev) {
 		});
 		insertElement(oItemElement);
 
-		let oEditor = document.getElementById("itemEditor");
-		let iVenueID = parseInt(oEditor.dataset.venueId);
-		Venue.incrementItemCount(iVenueID);
+		Venue.incrementItemCount(iCurrentVenueId);
 
 		oNameInput.focus();
 		oNameInput.select();
@@ -52,100 +53,75 @@ function newItemListener(ev) {
 }
 
 
-function clearEditor() {
+function clear() {
 	let oItemContainer = document.getElementById("itemContainer");
 	while(oItemContainer.firstChild) {
 		oItemContainer.firstChild.remove();
 	}
 	clearNewItemForm();
-	ItemCategory.clearNewItemCategoryForm();
+	iCurrentVenueId = null;
 }
 
-function isEditorOpen() {
-	let oEditor = document.getElementById("itemEditor");
-	return oEditor.classList.contains("visible");
-}
 
-function openEditor(iVenueID) {
-	let oVenue = Venue.getElement(iVenueID);
-	if(!oVenue) {
-		closeEditor();
+async function loadVenue(iVenueId) {
+	iVenueId = parseInt(iVenueId);
+	if(isNaN(iVenueId)) {
+		clear();
 		return;
 	}
-	let oEditor = document.getElementById("itemEditor");
 
-	if(iVenueID != oEditor.dataset.venueId) {
-		oEditor.querySelector(".venueName .name").textContent = oVenue.querySelector(".name:not(input)").textContent.trim();
-		oEditor.querySelector(".venueName .id").textContent = oVenue.dataset.venueId;
+	if(iVenueId != iCurrentVenueId) {
+		clear();
+		await ItemCategory.loadItemCategories(iVenueId);
+		iCurrentVenueId = iVenueId;
 
-		oEditor.dataset.venueId = iVenueID;
-		if(oVenue.nextElementSibling) {
-			oVenue.parentElement.insertBefore(oEditor, oVenue.nextElementSibling);
-		}
-		else {
-			oVenue.parentElement.appendChild(oEditor);
-		}
-
-		clearEditor();
-		ItemCategory.loadItemCategories(iVenueID).then(() => {
-			let aPromises = [];
-			let aItemCategories = ItemCategory.getAllElements();
-			for(let oItemCategoryElement of aItemCategories) {
-				let oPromise = loadItemsForCategory(oItemCategoryElement);
-				if(oPromise) {
-					aPromises.push(oPromise);
-				}
+		let aPromises = [];
+		let aItemCategories = ItemCategory.getAllElements();
+		for(let oItemCategoryElement of aItemCategories) {
+			let oPromise = loadItemsForCategory(oItemCategoryElement);
+			if(oPromise) {
+				aPromises.push(oPromise);
 			}
-	
-			Promise.all(aPromises).then(() => {
-				updateItemCount();
-			}).catch(error => {
-				Error.show(error);
-			});
-		});
+		}
+
+		await Promise.all(aPromises);
+		updateItemCount();
 	}
-	oEditor.classList.add("visible");
-}
-function closeEditor() {
-	let oEditor = document.getElementById("itemEditor");
-	oEditor.classList.remove("visible");
 }
 
 
 function updateVenueName() {
-	if(!isEditorOpen()) {
+	if(!VenueEditor.isOpen()) {
 		return;
 	}
 	let oItemEditor = document.getElementById("itemEditor");
 
-	let iVenueID = parseInt(oItemEditor.dataset.venueId);
-	if(isNaN(iVenueID)) {
+	if(iCurrentVenueId === null) {
 		return;
 	}
-	let oVenue = Venue.getElement(iVenueID);
+	let oVenue = Venue.getElement(iCurrentVenueId);
 	if(oVenue) {
 		oItemEditor.querySelector(".venueName .name").textContent = oVenue.querySelector(".name:not(input)").textContent.trim();
-		oItemEditor.querySelector(".venueName .id").textContent = oVenue.dataset.venueId;
+		oItemEditor.querySelector(".venueName .id").textContent = iCurrentVenueId;
 	}
 }
 function updateItemCount() {
-	if(!isEditorOpen()) {
+	if(!VenueEditor.isOpen()) {
 		return;
 	}
 	let oItemEditor = document.getElementById("itemEditor");
 
-	let iVenueID = parseInt(oItemEditor.dataset.venueId);
-	if(isNaN(iVenueID)) {
+	if(iCurrentVenueId === null) {
 		return;
 	}
-	let oVenue = Venue.getElement(iVenueID);
+	let oVenue = Venue.getElement(iCurrentVenueId);
 	if(!oVenue) {
 		return;
 	}
 
 	let aItems = oItemEditor.querySelectorAll(".itemContainer .item-table .item");
 	let iItemCount = aItems.length;
-	Venue.updateItemCount(iVenueID, iItemCount);
+	Venue.updateItemCount(iCurrentVenueId, iItemCount);
 }
 
 
@@ -198,7 +174,7 @@ function saveEditListener(ev) {
 		}).catch((error) => {
 			Error.show(error);
 			abortEditItem(oItem);
-		})
+		});
 	}
 	else {
 		abortEditItem(oItem);
@@ -325,13 +301,8 @@ function deleteListener(ev) {
 	if(window.confirm(`"${sName}" wirklich löschen?`)) {
 		Api.item.delete(iID).then(() => {
 			oItem.remove();
-
-			let oEditor = document.getElementById("itemEditor");
-			let iVenueID = parseInt(oEditor.dataset.venueId);
-			Venue.decrementItemCount(iVenueID);
-		}).catch((error) => {
-			Error.show(error);
-		});
+			Venue.decrementItemCount(iCurrentVenueId);
+		}, Error.show);
 	}
 }
 
@@ -440,7 +411,7 @@ function loadItemsForCategory(oItemCategoryElement) {
 	}
 
 	ItemCategory.clearItemCategory(oItemCategoryElement);
-	return Api.item.getAll(iItemCategoryID).then((oResponse) => {
+	return Api.item.getAll(iItemCategoryID).then(oResponse => {
 		let oTableBody = oItemCategoryElement.querySelector(".item-table > tbody");
 
 		let aItems = oResponse.json;
@@ -448,9 +419,7 @@ function loadItemsForCategory(oItemCategoryElement) {
 			let oItemElement = createElement(oItem);
 			oTableBody.appendChild(oItemElement);
 		}
-	}).catch((error) => {
-		Error.show(error);
-	});
+	}, Error.show);
 }
 
 
@@ -464,16 +433,11 @@ export default {
 
 	clearNewItemForm,
 
-	openEditor,
-	closeEditor,
-	clearEditor,
-	isEditorOpen,
+	loadVenue,
+	clear,
 
 	updateVenueName,
-	updateItemCount,
 
-	createElement,
-	insertElement,
 	getElement,
 
 	createItemTable,

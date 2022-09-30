@@ -1,36 +1,46 @@
 import Api from "../Api.js";
 import Error from "../Error.js";
 
-function getCurrentVenueId() {
-	let itemEditor = document.getElementById("itemEditor");
-	let venueId = parseInt(itemEditor.dataset.venueId);
-	if(isNaN(venueId)) {
-		return null;
-	}
-	return venueId;
-}
+let iCurrentVenueId = null;
+
 function getCssEditor() {
 	return document.getElementById("itemEditor").querySelector(".css-editor");
 }
 
 function load(venueId) {
+	clear();
+
+	venueId = parseInt(venueId);
+	if(isNaN(venueId)) {
+		return;
+	}
+	iCurrentVenueId = venueId;
+
+	let cssEditor = getCssEditor();
+	let textArea = cssEditor.querySelector("textarea");
+	return Api.venueCss.get(venueId).then(result => {
+		cssEditor.dataset.cssExists = true;
+		textArea.value = result.json.css;
+	}, err => {
+		if(!(err instanceof Api.HttpError) || err.httpStatus !== 404) {
+			Error.show(err);
+		}
+	});
+}
+function clear() {
 	let cssEditor = getCssEditor();
 	let textArea = cssEditor.querySelector("textarea");
 	textArea.value = "";
 	textArea.style.width = "";
 	textArea.style.height = "";
-	return Api.venueCss.get(venueId).then(result => {
-		cssEditor.dataset.cssExists = true;
-		textArea.value = result.json.css;
-	}, err => {
-		delete cssEditor.dataset.cssExists;
-	});
+	delete cssEditor.dataset.cssExists;
+
+	iCurrentVenueId = null;
 }
 
 
 function saveListener() {
-	let venueId = getCurrentVenueId();
-	if(venueId === null) {
+	if(iCurrentVenueId === null) {
 		return;
 	}
 	let cssEditor = getCssEditor();
@@ -38,12 +48,12 @@ function saveListener() {
 	let css = textArea.value;
 
 	if(cssEditor.dataset.cssExists) {
-		Api.venueCss.update(venueId, css).catch(Error.show);
+		Api.venueCss.update(iCurrentVenueId, css).catch(Error.show);
 	}
 	else {
-		Api.venueCss.create(venueId, css).then(() => {
+		Api.venueCss.create(iCurrentVenueId, css).then(() => {
 			cssEditor.dataset.cssExists = true;
-		}).catch(Error.show);
+		}, Error.show);
 	}
 }
 
@@ -54,6 +64,8 @@ function init() {
 }
 
 export default {
-	load,
 	init,
+
+	load,
+	clear,
 };

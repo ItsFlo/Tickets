@@ -1,7 +1,7 @@
 import Api from "../Api.js";
 import Error from "../Error.js";
 import Item from "./Item.js";
-import VenueCss from "./VenueCss.js";
+import VenueEditor from "./VenueEditor.js";
 import { SORT_DESC, insertSorted } from "../functions.js";
 
 function stopPropagationListener(ev) {
@@ -99,7 +99,7 @@ function saveEditListener(ev) {
 		}).catch((error) => {
 			Error.show(error);
 			abortEditVenue(oVenue);
-		})
+		});
 	}
 	else {
 		abortEditVenue(oVenue);
@@ -228,7 +228,7 @@ function deleteListener(ev) {
 	let iID = parseInt(oVenue.dataset.venueId);
 	let sName = oVenue.querySelector(".name").textContent.trim();
 
-	Item.closeEditor();
+	VenueEditor.close();
 
 	if(window.confirm(`Veranstaltung "${sName}" wirklich löschen?`)) {
 		Api.venue.delete(iID).then(() => {
@@ -243,8 +243,7 @@ function deleteListener(ev) {
 
 function venueClickListener(ev) {
 	let venueId = this.dataset.venueId;
-	Item.openEditor(venueId);
-	VenueCss.load(venueId);
+	VenueEditor.open(venueId);
 }
 
 function createElement(oVenue=null) {
@@ -315,7 +314,7 @@ function insertElement(oVenueElement) {
 	if(!oVenueElement.classList.contains("venue")) {
 		return;
 	}
-	Item.closeEditor();
+	VenueEditor.close();
 	let oVenueTable = document.getElementById("venueTable");
 
 	insertSorted(oVenueTable, oVenueElement, SORT_DESC, null, "data-date-time", "venue");

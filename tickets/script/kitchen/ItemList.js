@@ -47,6 +47,10 @@ function getItem(itemId) {
 	let itemList = document.getElementById(ID);
 	return itemList.querySelector(".item[data-id=\"" + itemId + "\"]");
 }
+function getAllItems() {
+	let itemList = document.getElementById(ID);
+	return itemList.querySelectorAll(".item");
+}
 
 function hideItemCategory(itemCatId) {
 	let itemCatElement = getItemCategory(itemCatId);
@@ -116,6 +120,13 @@ function loadItemCategories(venueId) {
 function clear() {
 	clearItemCategories();
 }
+function resetItemCounts() {
+	for(let item of getAllItems()) {
+		let count = item.querySelector(".count");
+		count.textContent = "0";
+	}
+}
+
 let currentVenueId = null;
 function load(venueId) {
 	currentVenueId = venueId;
@@ -146,4 +157,5 @@ export default {
 
 	addOrder,
 	removeOrder,
+	resetItemCounts,
 };

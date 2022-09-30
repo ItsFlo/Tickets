@@ -270,6 +270,12 @@ class Order extends DbTable {
 		let result = stmt.run(venue, orderNumber);
 		return result.changes;
 	}
+	deleteAllFromVenue(venue) {
+		let query = `DELETE FROM "${TABLE}" WHERE "${COL_VENUE}" = ?`;
+		let stmt = this.db.prepare(query);
+		let result = stmt.run(venue);
+		return result.changes;
+	}
 }
 
 

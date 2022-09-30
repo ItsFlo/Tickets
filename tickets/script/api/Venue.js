@@ -29,6 +29,15 @@ function deleteVenue(id) {
 
 	return Ajax.sendJson(API_ENDPOINT, Ajax.DELETE, requestBody);
 }
+function clearOrders(venueId) {
+	venueId = parseInt(venueId);
+	if(isNaN(venueId)) {
+		return Promise.reject("invalid id");
+	}
+
+	let url = API_ENDPOINT + "/clearOrders/" + encodeURIComponent(venueId);
+	return Ajax.send(url, Ajax.GET);
+}
 
 
 function update(id, sName, sDate, sTime) {
@@ -91,6 +100,7 @@ function getClosestToDate(date=null) {
 export default {
 	create,
 	delete: deleteVenue,
+	clearOrders,
 	update,
 	getAll,
 	get,

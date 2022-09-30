@@ -23,6 +23,7 @@ function openEventSource(iVenueID) {
 	oEventSource.addEventListener(Api.order.STATUS_PICKEDUP, orderPickedUpEventListener);
 	oEventSource.addEventListener(Api.order.STATUS_CANCELED, orderCancelEventListener);
 	oEventSource.addEventListener("delete", orderPickedUpEventListener);
+	oEventSource.addEventListener("clearOrders", clearOrdersEventListener);
 }
 
 
@@ -65,6 +66,9 @@ function orderCancelEventListener(ev) {
 	} catch(err) {
 		Error.show(err);
 	}
+}
+function clearOrdersEventListener(ev) {
+	clearItems();
 }
 
 

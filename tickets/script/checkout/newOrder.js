@@ -239,7 +239,7 @@ function submitOrderListener() {
 
 	Api.order.create(iVenueID, aItems).then(oResponse => {
 		resetItems();
-		setLastOrderNumber(oResponse.json.id);
+		setLastOrderNumber(oResponse.json.orderNumber);
 	}).catch(error => {
 		Error.show(error);
 	});
