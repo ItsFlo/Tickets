@@ -12,6 +12,44 @@ function sendResult(response, data={}, statusCode=200) {
 }
 
 
+function getUrlObject(request) {
+	return new URL(request.url, "https://"+request.headers.host);
+}
+function getSearchParams(request, caseSensitive=true) {
+	let searchParams = caseSensitive? new URLSearchParams() : new URLSearchParamsCaseInsensitive();
+	let url = getUrlObject(request);
+	for(let [key, value] of url.searchParams) {
+		searchParams.append(key, value);
+	}
+	searchParams.get = function(name, defaultValue=null) {
+		if(this.has(name)) {
+			return this.constructor.prototype.get.call(this, name);
+		}
+		return defaultValue;
+	}
+	return searchParams;
+}
+
+function splitPath(path) {
+	if(typeof path !== "string") {
+		return null;
+	}
+	path = path.replace(/^\/+|\/+$/g, "");
+	if(!path) {
+		return [""];
+	}
+	let pathElements = path.split("/");
+
+	let len = pathElements.length;
+	for(let ii=0;ii<len;++ii) {
+		if(!pathElements[ii]) {
+			return null;
+		}
+	}
+
+	return pathElements;
+}
+
 class HttpDispatcher {
 	request(path, request, response) {
 		sendStatus(response, 404);
@@ -28,45 +66,53 @@ class HttpDispatcher {
 	}
 
 
-
-	getUrlObject(request) {
-		return new URL(request.url, "https://"+request.headers.host);
-	}
-	getSearchParams(request, caseSensitive=true) {
-		let searchParams = caseSensitive? new URLSearchParams() : new URLSearchParamsCaseInsensitive();
-		let url = this.getUrlObject(request);
-		for(let [key, value] of url.searchParams) {
-			searchParams.append(key, value);
-		}
-		searchParams.get = function(name, defaultValue=null) {
-			if(this.has(name)) {
-				return this.constructor.prototype.get.call(this, name);
-			}
-			return defaultValue;
-		}
-		return searchParams;
-	}
-
-	splitPath(path) {
-		if(typeof path !== "string") {
-			return null;
-		}
-		path = path.replace(/^\/+|\/+$/g, "");
-		if(!path) {
-			return [""];
-		}
-		let pathElements = path.split("/");
-
-		let len = pathElements.length;
-		for(let ii=0;ii<len;++ii) {
-			if(!pathElements[ii]) {
-				return null;
-			}
-		}
-
-		return pathElements;
-	}
+	getSearchParams = getSearchParams;
+	splitPath = splitPath;
 };
+class HttpDispatcherFunction extends HttpDispatcher {
+	constructor(requestFunction=null, upgradeFunction=null, connectFunction=null) {
+		super();
+		if(typeof requestFunction !== "function") {
+			requestFunction = null;
+		}
+		if(typeof upgradeFunction !== "function") {
+			upgradeFunction = null;
+		}
+		if(typeof connectFunction !== "function") {
+			connectFunction = null;
+		}
+		this.requestFunction = requestFunction;
+		this.upgradeFunction = requestFunction;
+		this.connectFunction = requestFunction;
+	}
+
+	request(path, request, response) {
+		if(this.requestFunction) {
+			this.requestFunction(path, request, response);
+		}
+		else {
+			super.request(path, request, response);
+		}
+	}
+
+	upgrade(path, request, socket, head) {
+		if(this.upgradeFunction) {
+			this.upgradeFunction(path, request, socket, head);
+		}
+		else {
+			super.upgrade(path, request, socket, head);
+		}
+	}
+
+	connect(path, request, socket, head) {
+		if(this.connectFunction) {
+			this.connectFunction(path, request, socket, head);
+		}
+		else {
+			super.connect(path, request, socket, head);
+		}
+	}
+}
 
 
 class HttpDispatcherGroup extends HttpDispatcher {
@@ -260,11 +306,11 @@ class HttpDispatcherGroup extends HttpDispatcher {
 
 
 class HttpMethodDispatcher extends HttpDispatcher {
-	dispatchers = {};
+	methodDispatchers = {};
 
 	request(path, request, response, ...args) {
-		if(this.dispatchers[request.method] instanceof HttpDispatcher) {
-			this.dispatchers[request.method].request(path, request, response, ...args);
+		if(this.methodDispatchers[request.method] instanceof HttpDispatcher) {
+			this.methodDispatchers[request.method].request(path, request, response, ...args);
 		}
 		else {
 			super.request(path, request, response, ...args);
@@ -272,8 +318,8 @@ class HttpMethodDispatcher extends HttpDispatcher {
 	}
 
 	connect(path, request, socket, head) {
-		if(this.dispatchers["CONNECT"] instanceof HttpDispatcher) {
-			this.dispatchers["CONNECT"].connect(path, request, socket, head);
+		if(this.methodDispatchers["CONNECT"] instanceof HttpDispatcher) {
+			this.methodDispatchers["CONNECT"].connect(path, request, socket, head);
 		}
 		else {
 			super.connect(path, request, socket, head);
@@ -284,47 +330,47 @@ class HttpMethodDispatcher extends HttpDispatcher {
 
 	setGetDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["GET"] = dispatcher;
+			this.methodDispatchers["GET"] = dispatcher;
 		}
 	}
 	setHeadDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["HEAD"] = dispatcher;
+			this.methodDispatchers["HEAD"] = dispatcher;
 		}
 	}
 	setPostDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["POST"] = dispatcher;
+			this.methodDispatchers["POST"] = dispatcher;
 		}
 	}
 	setPutDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["PUT"] = dispatcher;
+			this.methodDispatchers["PUT"] = dispatcher;
 		}
 	}
 	setDeleteDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["DELETE"] = dispatcher;
+			this.methodDispatchers["DELETE"] = dispatcher;
 		}
 	}
 	setConnectDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["CONNECT"] = dispatcher;
+			this.methodDispatchers["CONNECT"] = dispatcher;
 		}
 	}
 	setOptionsDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["OPTIONS"] = dispatcher;
+			this.methodDispatchers["OPTIONS"] = dispatcher;
 		}
 	}
 	setTraceDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["TRACE"] = dispatcher;
+			this.methodDispatchers["TRACE"] = dispatcher;
 		}
 	}
 	setPatchDispatcher(dispatcher) {
 		if(dispatcher instanceof HttpDispatcher) {
-			this.dispatchers["PATCH"] = dispatcher;
+			this.methodDispatchers["PATCH"] = dispatcher;
 		}
 	}
 }
@@ -373,11 +419,14 @@ class HttpDirectoryDispatcher extends HttpDispatcher {
 
 export {
 	HttpDispatcher,
+	HttpDispatcherFunction,
 	HttpDispatcherGroup,
 	HttpMethodDispatcher,
 	HttpDirectoryDispatcher,
 
 	sendStatus,
 	sendResult,
+	getSearchParams,
+	splitPath,
 };
 export default HttpDispatcher;

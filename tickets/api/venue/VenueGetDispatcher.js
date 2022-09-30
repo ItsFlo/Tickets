@@ -1,32 +1,32 @@
-import HttpDispatcher, { sendStatus } from "../../../modules/HttpDispatcher.js";
+import { HttpDispatcherFunction, sendStatus, getSearchParams, splitPath, HttpDispatcherGroup } from "../../../modules/HttpDispatcher.js";
 import TicketConfig from "../../TicketConfig.js";
 import { getOrderDirection, getLimit } from "../functions.js";
 import Venue from "../../db/Venue.js";
 
-class VenueGetDispatcher extends HttpDispatcher {
-	request(path, request, response) {
+
+function requestFunction(path, request, response) {
 		if(!path) {
-			this.dispatchClosestVenue(request, response);
+		dispatchClosestVenue(request, response);
 			return;
 		}
-		let pathElements = this.splitPath(path);
+	let pathElements = splitPath(path);
 		let dispatchFunction = null;
 
 		switch(pathElements[0].toUpperCase()) {
 			case "ID":
-				dispatchFunction = this.dispatchId;
+			dispatchFunction = dispatchId;
 				break;
 
 			case "ALL":
-				dispatchFunction = this.dispatchAll;
+			dispatchFunction = dispatchAll;
 				break;
 
 			case "NAME":
-				dispatchFunction = this.dispatchName;
+			dispatchFunction = dispatchName;
 				break;
 
 			case "DATE":
-				dispatchFunction = this.dispatchDate;
+			dispatchFunction = dispatchDate;
 				break;
 		}
 
@@ -39,9 +39,8 @@ class VenueGetDispatcher extends HttpDispatcher {
 		}
 	}
 
-
-	dispatchClosestVenue(request, response) {
-		let searchParams = this.getSearchParams(request, false);
+function dispatchClosestVenue(request, response) {
+	let searchParams = getSearchParams(request, false);
 		let date = new Date();
 		if(searchParams.has("date")) {
 			let tempDate = new Date(searchParams.get("date"));
@@ -61,9 +60,7 @@ class VenueGetDispatcher extends HttpDispatcher {
 	}
 
 
-
-
-	dispatchId(request, response, pathElements) {
+function dispatchId(request, response, pathElements) {
 		if(pathElements.length > 1) {
 			sendStatus(response, 400, "Too many arguments");
 			return;
@@ -89,8 +86,8 @@ class VenueGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchAll(request, response, pathElements) {
-		let searchParams = this.getSearchParams(request, false);
+function dispatchAll(request, response, pathElements) {
+	let searchParams = getSearchParams(request, false);
 
 		let orderDirection = getOrderDirection(searchParams, "DESC");
 		let order = {
@@ -119,7 +116,7 @@ class VenueGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchName(request, response, pathElements) {
+function dispatchName(request, response, pathElements) {
 		if(pathElements.length > 1) {
 			sendStatus(response, 400, "Too many arguments");
 			return;
@@ -145,8 +142,8 @@ class VenueGetDispatcher extends HttpDispatcher {
 	}
 
 
-	dispatchDate(request, response, pathElements) {
-		let searchParams = this.getSearchParams(request, false);
+function dispatchDate(request, response, pathElements) {
+	let searchParams = getSearchParams(request, false);
 
 		if(!searchParams.get("date", null)) {
 			sendStatus(response, 400, "No date provided");
@@ -169,6 +166,15 @@ class VenueGetDispatcher extends HttpDispatcher {
 		} catch (err) {
 			sendStatus(response, 500, err.message);
 		}
+}
+
+
+let fallbackDispatcher = new HttpDispatcherFunction(requestFunction);
+
+class VenueGetDispatcher extends HttpDispatcherGroup {
+	constructor() {
+		super();
+		this.setFallbackDispatcher(fallbackDispatcher);
 	}
 };
 
