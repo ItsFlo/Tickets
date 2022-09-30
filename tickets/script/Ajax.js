@@ -143,6 +143,13 @@ const AJAX_METHODS_WITHOUT_BODY = [
 ];
 
 
+class HttpError extends Error {
+	constructor(httpStatusCode, message=null) {
+		super(message===null? getHttpStatusMessage(httpStatusCode) : message);
+		this.httpStatus = httpStatusCode;
+		this.aborted = httpStatusCode === 0;
+	}
+}
 class AjaxRequest {
 	constructor(sMethod) {
 		if(!AJAX_METHODS.includes(sMethod)) {
@@ -167,8 +174,7 @@ class AjaxRequest {
 		this._xmlHttp.addEventListener("readystatechange", () => {
 			switch(this._xmlHttp.readyState) {
 				case 0:
-					let oError = new Error(getHttpStatusMessage(0));
-					oError.aborted = true;
+					let oError = new HttpError(0);
 					this.callErrorListeners(oError, null);
 					this._sending = false;
 					break;
@@ -198,14 +204,14 @@ class AjaxRequest {
 					else {
 						let oError;
 						if(this._xmlHttp.status === 0) {
-							oError = new Error(getHttpStatusMessage(this._xmlHttp.status));
-							oError.aborted = true;
+							oError = new HttpError(0);
 						}
 						else if(this._xmlHttp.responseText) {
-							oError = new Error(this._xmlHttp.responseText);
+							oError = new HttpError(this._xmlHttp.status, this._xmlHttp.responseText);
 						}
 						else {
-							oError = getHttpStatusMessage(this._xmlHttp.status) || "Übertragung fehlgeschlagen";
+							let sErrorMessage = getHttpStatusMessage(this._xmlHttp.status) || "Übertragung fehlgeschlagen";
+							oError = new HttpError(this._xmlHttp.status, sErrorMessage);
 						}
 						this.callErrorListeners(oError, this._xmlHttp.responseText);
 					}
@@ -357,6 +363,7 @@ function sendJson(url, method=GET, data={}) {
 
 export default {
 	Request: AjaxRequest,
+	HttpError,
 
 	send,
 	sendJson,
