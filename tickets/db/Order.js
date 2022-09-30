@@ -68,8 +68,11 @@ class Order extends DbTable {
 		stmt.run();
 	}
 
-	getAllWhere(where, whereValues, sortOrder, limit) {
+	getOneWhere(where=null, whereValues=null, sortOrder=null) {
 		let values = [];
+		if(!Array.isArray(whereValues) && whereValues !== null) {
+			whereValues = [whereValues];
+		}
 		let query = `SELECT ${SELECT_LIST} FROM "${this.constructor.TABLE}"`;
 
 		//WHERE
@@ -82,7 +85,30 @@ class Order extends DbTable {
 		query += this.getOrderClause(sortOrder);
 
 		//LIMIT
-		query += this.getLimitClause(limit);
+		query += this.getLimitClause(1);
+
+		let stmt = this.db.prepare(query);
+		return stmt.get(values);
+	}
+
+	getAllWhere(where=null, whereValues=null, sortOrder=null, limit=null, offset=null) {
+		let values = [];
+		if(!Array.isArray(whereValues) && whereValues !== null) {
+			whereValues = [whereValues];
+		}
+		let query = `SELECT ${SELECT_LIST} FROM "${this.constructor.TABLE}"`;
+
+		//WHERE
+		if(where) {
+			query += " WHERE " + where;
+			values = whereValues;
+		}
+
+		//ORDER BY
+		query += this.getOrderClause(sortOrder);
+
+		//LIMIT
+		query += this.getLimitClause(limit, offset);
 
 		let stmt = this.db.prepare(query);
 		return stmt.all(values);

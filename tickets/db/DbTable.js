@@ -9,10 +9,31 @@ class DbTable {
 
 
 
-	getByID(id) {
-		let query = `SELECT * FROM "${this.constructor.TABLE}" WHERE "${COL_ID}" = ? LIMIT 1`;
+	getOneWhere(where=null, whereValues=null, sortOrder=null) {
+		let values = [];
+		if(!Array.isArray(whereValues) && whereValues !== null) {
+			whereValues = [whereValues];
+		}
+		let query = `SELECT * FROM "${this.constructor.TABLE}"`;
+
+		//WHERE
+		if(where) {
+			query += " WHERE " + where;
+			values = whereValues;
+		}
+
+		//ORDER BY
+		query += this.getOrderClause(sortOrder);
+
+		//LIMIT
+		query += this.getLimitClause(1);
+
 		let stmt = this.db.prepare(query);
-		return stmt.get(id);
+		return stmt.get(values);
+	}
+	getByID(id) {
+		let where = `"${COL_ID}" = ?`;
+		return this.getOneWhere(where, [id]);
 	}
 
 	getOrderClause(sortOrder) {
@@ -55,15 +76,23 @@ class DbTable {
 		}
 		return "";
 	}
-	getLimitClause(limit) {
+	getLimitClause(limit, offset=0) {
 		limit = parseInt(limit);
+		offset = parseInt(offset);
+		let ret = "";
 		if(!isNaN(limit) && limit > 0) {
-			return ` LIMIT ${limit} `;
+			ret =  ` LIMIT ${limit} `;
 		}
-		return "";
+		if(!isNaN(offset) && offset > 0) {
+			ret += ` OFFSET ${offset}`;
+		}
+		return ret;
 	}
-	getAllWhere(where, whereValues, sortOrder, limit) {
+	getAllWhere(where=null, whereValues=null, sortOrder=null, limit=null, offset=null) {
 		let values = [];
+		if(!Array.isArray(whereValues) && whereValues !== null) {
+			whereValues = [whereValues];
+		}
 		let query = `SELECT * FROM "${this.constructor.TABLE}"`;
 
 		//WHERE
@@ -76,7 +105,7 @@ class DbTable {
 		query += this.getOrderClause(sortOrder);
 
 		//LIMIT
-		query += this.getLimitClause(limit);
+		query += this.getLimitClause(limit, offset);
 
 		let stmt = this.db.prepare(query);
 		return stmt.all(values);
